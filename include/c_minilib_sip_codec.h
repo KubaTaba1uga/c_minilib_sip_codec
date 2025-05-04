@@ -37,21 +37,30 @@ void cmsc_destroy(void);
 /******************************************************************************
  *                             Scheme                                         *
  ******************************************************************************/
+struct cmsc_SchemeField {
+  const char *id;
+  void *is_field_func; // This function is optional if none provided default one
+                       // is used.
+  void *parse_field_func;
+  void *generate_field_func;
+};
+
 enum cmsc_SipMethod {
   cmsc_SipMethod_INVITE,
 };
 
-struct cmsc_SchemeField {
-  const char *id;
-  void *parse_field_func;
-  void *is_field_func; // This function is optional if none provided default one
-                       // is used.
+enum cmsc_SipMsgType {
+  cmsc_SipMsgType_INVITE,
+  cmsc_SipMsgType_200_OK,
+  // Add more message types here
 };
 
-struct cmsc_SchemeMessage {
-  uint32_t fields_len;
-  struct cmsc_SchemeField *fields;
-  enum cmsc_SipMethod sip_method;
+struct cmsc_Scheme {
+  uint32_t mandatory_fields_len;
+  struct cmsc_SchemeField *mandatory_fields;
+  uint32_t optional_fields_len;
+  struct cmsc_SchemeField *optional_fields;
+  enum cmsc_SipMsgType sip_msg_type;
 };
 
 /******************************************************************************
@@ -82,7 +91,10 @@ struct cmsc_SipVia {
 };
 
 struct cmsc_SipMessage {
+  bool is_request;
+  uint32_t sip_status_code; // This is set to >0 only for responses.
   enum cmsc_SipMethod sip_method;
+  enum cmsc_SipMsgType sip_msg_type;
   struct cmsc_SipProtoVer sip_proto_ver;
   struct cmsc_SipVia via_l;
   // Add more fields here
@@ -93,7 +105,7 @@ typedef struct cmsc_SipMessage *cmsc_sipmsg_t;
  *                             Parse                                          *
  ******************************************************************************/
 cme_error_t cmsc_parse_sip_msg(const uint32_t n, const char *buffer,
-                               cmsc_sipmsg_t msg);
+                               cmsc_sipmsg_t *msg);
 
 /******************************************************************************
  *                             Generate                                       *
