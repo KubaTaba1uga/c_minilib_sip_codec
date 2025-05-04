@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" version="26.2.14" pages="2">
   <diagram name="Data structures" id="b5b7bab2-c9e2-2cf4-8b2a-24fd1a2a6d21">
-    <mxGraphModel dx="3824" dy="2872" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
+    <mxGraphModel dx="2075" dy="2799" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -165,24 +165,6 @@
         </mxCell>
         <mxCell id="_YlIUzoWdMrv823mW4tC-3" value="Each field value which is&amp;nbsp;&lt;div&gt;char * is ptr to&amp;nbsp;&lt;/div&gt;&lt;div&gt;underlaying&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;buffer&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;so we need only&amp;nbsp;&lt;/div&gt;&lt;div&gt;single alloc. Buffer len&lt;/div&gt;&lt;div&gt;&amp;nbsp;tells how much of&lt;/div&gt;&lt;div&gt;&amp;nbsp;the buffer is taken.&lt;/div&gt;&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="-200" y="440" width="180" height="190" as="geometry" />
-        </mxCell>
-        <mxCell id="W38sP7LwrRTjk2jpy5pA-1" value="List[Via]" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="1080" y="72.5" width="140" height="90" as="geometry" />
-        </mxCell>
-        <mxCell id="W38sP7LwrRTjk2jpy5pA-2" value="data: Via" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="W38sP7LwrRTjk2jpy5pA-1" vertex="1">
-          <mxGeometry y="30" width="140" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="W38sP7LwrRTjk2jpy5pA-4" value="next: List[Via]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="W38sP7LwrRTjk2jpy5pA-1" vertex="1">
-          <mxGeometry y="60" width="140" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="W38sP7LwrRTjk2jpy5pA-5" value="List[str]" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="1080" y="217.5" width="140" height="90" as="geometry" />
-        </mxCell>
-        <mxCell id="W38sP7LwrRTjk2jpy5pA-6" value="data: Str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="W38sP7LwrRTjk2jpy5pA-5" vertex="1">
-          <mxGeometry y="30" width="140" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="W38sP7LwrRTjk2jpy5pA-7" value="next: List[Str]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="W38sP7LwrRTjk2jpy5pA-5" vertex="1">
-          <mxGeometry y="60" width="140" height="30" as="geometry" />
         </mxCell>
         <mxCell id="4nJ-BJ8516CtUPef1fGO-1" value="StringsBuffer" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="1080" y="360" width="140" height="90" as="geometry" />
