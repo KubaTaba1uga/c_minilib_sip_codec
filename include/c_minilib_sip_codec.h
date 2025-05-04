@@ -7,12 +7,12 @@
 #ifndef C_MINILIB_SIP_CODEC_H
 #define C_MINILIB_SIP_CODEC_H
 
-#include <c_minilib_error.h>
-#include <cstdint>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+#include <c_minilib_error.h>
 
 //
 ////
