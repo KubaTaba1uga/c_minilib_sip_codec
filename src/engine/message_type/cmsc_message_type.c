@@ -13,6 +13,8 @@ cme_error_t cmsc_message_type_parse(const uint32_t buffer_len,
     goto error_out;
   }
 
+  
+  
   return 0;
 
 error_out:

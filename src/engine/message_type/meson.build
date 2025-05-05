@@ -1,4 +1,4 @@
 sources += files(
    'cmsc_invite.h', 'cmsc_invite.c',
-   'cmsc_message_type.h', 'cmsc_message_type.c',
+   'cmsc_first_line.h', 'cmsc_first_line.c',
 )
