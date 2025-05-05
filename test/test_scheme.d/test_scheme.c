@@ -28,16 +28,16 @@ void test_cmsc_scheme_create_and_destroy() {
 
 void test_cmsc_scheme_add_mandatory_field_valid() {
   struct cmsc_Scheme *scheme = NULL;
-  struct cmsc_SchemeField field = {
-      .id = "Via",
-      .generate_field_func = dummy_generate,
-      .parse_field_func = dummy_parse,
-  };
-
   cme_error_t err = cmsc_scheme_create(cmsc_SipMsgType_INVITE, &scheme);
   TEST_ASSERT_NULL(err);
 
-  err = cmsc_scheme_add_mandatory_field(&field, scheme);
+  err = cmsc_scheme_add_mandatory_field(
+      &(struct cmsc_SchemeField){
+          .id = "Via",
+          .generate_field_func = dummy_generate,
+          .parse_field_func = dummy_parse,
+      },
+      scheme);
   TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_EQUAL(scheme->mandatory_fields_len, 1);
@@ -48,16 +48,16 @@ void test_cmsc_scheme_add_mandatory_field_valid() {
 
 void test_cmsc_scheme_add_optional_field_valid() {
   struct cmsc_Scheme *scheme = NULL;
-  struct cmsc_SchemeField field = {
-      .id = "User-Agent",
-      .generate_field_func = dummy_generate,
-      .parse_field_func = dummy_parse,
-  };
-
   cme_error_t err = cmsc_scheme_create(cmsc_SipMsgType_INVITE, &scheme);
   TEST_ASSERT_NULL(err);
 
-  err = cmsc_scheme_add_optional_field(&field, scheme);
+  err = cmsc_scheme_add_optional_field(
+      &(struct cmsc_SchemeField){
+          .id = "User-Agent",
+          .generate_field_func = dummy_generate,
+          .parse_field_func = dummy_parse,
+      },
+      scheme);
   TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_EQUAL(scheme->optional_fields_len, 1);
@@ -68,25 +68,31 @@ void test_cmsc_scheme_add_optional_field_valid() {
 
 void test_cmsc_scheme_add_field_null_checks() {
   struct cmsc_Scheme *scheme = NULL;
-  struct cmsc_SchemeField bad_field = {
-      .id = NULL,
-      .generate_field_func = dummy_generate,
-      .parse_field_func = dummy_parse,
-  };
-
   cme_error_t err = cmsc_scheme_create(cmsc_SipMsgType_INVITE, &scheme);
   TEST_ASSERT_NULL(err);
 
   err = cmsc_scheme_add_mandatory_field(NULL, scheme);
   TEST_ASSERT_NOT_NULL(err);
 
-  err = cmsc_scheme_add_mandatory_field(&bad_field, scheme);
+  err = cmsc_scheme_add_mandatory_field(
+      &(struct cmsc_SchemeField){
+          .id = NULL,
+          .generate_field_func = dummy_generate,
+          .parse_field_func = dummy_parse,
+      },
+      scheme);
   TEST_ASSERT_NOT_NULL(err);
 
   err = cmsc_scheme_add_optional_field(NULL, scheme);
   TEST_ASSERT_NOT_NULL(err);
 
-  err = cmsc_scheme_add_optional_field(&bad_field, scheme);
+  err = cmsc_scheme_add_optional_field(
+      &(struct cmsc_SchemeField){
+          .id = NULL,
+          .generate_field_func = dummy_generate,
+          .parse_field_func = dummy_parse,
+      },
+      scheme);
   TEST_ASSERT_NOT_NULL(err);
 
   cmsc_scheme_destroy(&scheme);

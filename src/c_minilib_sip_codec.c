@@ -1,4 +1,3 @@
-#include <asm-generic/errno-base.h>
 #include <c_minilib_error.h>
 
 #include "c_minilib_sip_codec.h"
@@ -28,3 +27,8 @@ void cmsc_destroy(void) {
 
   cme_destroy();
 };
+
+cme_error_t cmsc_parse_sip_msg(const uint32_t n, const char *buffer,
+                               cmsc_sipmsg_t *msg) {
+  return 0;
+}

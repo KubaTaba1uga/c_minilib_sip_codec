@@ -46,13 +46,18 @@ struct cmsc_SchemeField {
 };
 
 enum cmsc_SipMethod {
+  cmsc_SipMethod_NONE = 0,
   cmsc_SipMethod_INVITE,
+  // Add more sip methods here
+  cmsc_SipMethod_MAX,
 };
 
 enum cmsc_SipMsgType {
+  cmsc_SipMsgType_NONE = 0,
   cmsc_SipMsgType_INVITE,
   cmsc_SipMsgType_200_OK,
   // Add more message types here
+  cmsc_SipMsgType_MAX,
 };
 
 struct cmsc_Scheme {
@@ -66,10 +71,9 @@ struct cmsc_Scheme {
 /******************************************************************************
  *                             Message                                        *
  ******************************************************************************/
-#define CMSC_STRINGSBUFFER_MAX 2048
 struct cmsc_StringsBuffer {
   uint32_t buffer_len;
-  char buffer[CMSC_STRINGSBUFFER_MAX];
+  char buffer[];
 };
 
 struct cmsc_SipProtoVer {
@@ -78,7 +82,10 @@ struct cmsc_SipProtoVer {
 };
 
 enum cmsc_SipTransportProtocol {
+  cmsc_SipTransportProtocol_NONE = 0,
   cmsc_SipTransportProtocol_UDP,
+  // Add more transport protocols here
+  cmsc_SipTransportProtocol_MAX,
 };
 
 struct cmsc_SipVia {
@@ -91,6 +98,9 @@ struct cmsc_SipVia {
 };
 
 struct cmsc_SipMessage {
+  uint32_t present_mask; // If a field is present corresponding bit is set to 1,
+                         // You can check for field presence like this:
+                         //     m->present & cmsc_SipField_FIELD_NAME.
   bool is_request;
   uint32_t sip_status_code; // This is set to >0 only for responses.
   enum cmsc_SipMethod sip_method;
@@ -101,6 +111,7 @@ struct cmsc_SipMessage {
 };
 
 typedef struct cmsc_SipMessage *cmsc_sipmsg_t;
+
 /******************************************************************************
  *                             Parse                                          *
  ******************************************************************************/

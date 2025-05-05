@@ -15,7 +15,8 @@ static struct cmsc_Scheme *cmsc_schemes[] = {
 cme_error_t cmsc_engine_init(void) {
   cme_error_t err;
 
-  if ((err = cmsc_engine_invite_scheme_init(
+  if (!cmsc_schemes[cmsc_SipMsgType_INVITE] &&
+      (err = cmsc_engine_invite_scheme_init(
            &cmsc_schemes[cmsc_SipMsgType_INVITE]))) {
     goto error_out;
   }
@@ -28,7 +29,10 @@ error_out:
 };
 
 void cmsc_engine_destroy(void) {
-  cmsc_engine_invite_scheme_destroy(&cmsc_schemes[cmsc_SipMsgType_INVITE]);
+  if (cmsc_schemes[cmsc_SipMsgType_INVITE]) {
+    cmsc_engine_invite_scheme_destroy(&cmsc_schemes[cmsc_SipMsgType_INVITE]);
+    cmsc_schemes[cmsc_SipMsgType_INVITE] = NULL;
+  }
 };
 
 cme_error_t cmsc_engine_parse(const uint32_t n, const char *buffer,
