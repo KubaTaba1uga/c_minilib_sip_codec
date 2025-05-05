@@ -5,6 +5,7 @@
 #include "scheme/cmsc_scheme.h"
 
 cme_error_t cmsc_scheme_create(const enum cmsc_SipMsgType msg_type,
+                               const char *msg_type_str,
                                struct cmsc_Scheme **scheme) {
   struct cmsc_Scheme *local_scheme;
   cme_error_t err;
@@ -16,6 +17,8 @@ cme_error_t cmsc_scheme_create(const enum cmsc_SipMsgType msg_type,
   }
 
   local_scheme->sip_msg_type = msg_type;
+  local_scheme->sip_msg_type_str = msg_type_str;
+
   local_scheme->mandatory_fields = NULL;
   local_scheme->mandatory_fields_len = 0;
   local_scheme->optional_fields = NULL;

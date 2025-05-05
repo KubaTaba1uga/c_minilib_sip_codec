@@ -61,11 +61,12 @@ enum cmsc_SipMsgType {
 };
 
 struct cmsc_Scheme {
+  const char *sip_msg_type_str;
+  enum cmsc_SipMsgType sip_msg_type;
   uint32_t mandatory_fields_len;
   struct cmsc_SchemeField *mandatory_fields;
   uint32_t optional_fields_len;
   struct cmsc_SchemeField *optional_fields;
-  enum cmsc_SipMsgType sip_msg_type;
 };
 
 /******************************************************************************

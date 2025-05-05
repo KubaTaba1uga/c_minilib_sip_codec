@@ -6,6 +6,7 @@
 #include "c_minilib_sip_codec.h"
 
 cme_error_t cmsc_scheme_create(const enum cmsc_SipMsgType msg_type,
+                               const char *msg_type_str,
                                struct cmsc_Scheme **scheme);
 
 void cmsc_scheme_destroy(struct cmsc_Scheme **scheme);
