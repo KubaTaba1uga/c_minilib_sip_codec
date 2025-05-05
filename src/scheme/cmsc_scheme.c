@@ -1,4 +1,3 @@
-#include <asm-generic/errno-base.h>
 #include <c_minilib_error.h>
 #include <stdlib.h>
 
@@ -21,6 +20,8 @@ cme_error_t cmsc_scheme_create(const enum cmsc_SipMsgType msg_type,
   local_scheme->mandatory_fields_len = 0;
   local_scheme->optional_fields = NULL;
   local_scheme->optional_fields_len = 0;
+
+  *scheme = local_scheme;
 
   return 0;
 
