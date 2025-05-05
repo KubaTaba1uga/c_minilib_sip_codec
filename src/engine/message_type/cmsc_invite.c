@@ -20,4 +20,6 @@ cme_error_t cmsc_engine_invite_scheme_init(struct cmsc_Scheme **scheme) {
 error_out:
   return err;
 };
-void cmsc_engine_invite_scheme_destroy(struct cmsc_Scheme **scheme){};
+void cmsc_engine_invite_scheme_destroy(struct cmsc_Scheme **scheme) {
+  cmsc_scheme_destroy(scheme);
+};

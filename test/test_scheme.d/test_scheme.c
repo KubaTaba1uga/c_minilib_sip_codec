@@ -14,7 +14,7 @@ static int dummy_parse(void *unused1, const char *unused2, size_t unused3) {
   return 0;
 }
 
-void test_cmsc_scheme_create_and_destroy() {
+void test_cmsc_scheme_create_and_destroy(void) {
   struct cmsc_Scheme *scheme = NULL;
   cme_error_t err =
       cmsc_scheme_create(cmsc_SipMsgType_INVITE, "INVITE", &scheme);
@@ -27,7 +27,7 @@ void test_cmsc_scheme_create_and_destroy() {
   TEST_ASSERT_NULL(scheme);
 }
 
-void test_cmsc_scheme_add_mandatory_field_valid() {
+void test_cmsc_scheme_add_mandatory_field_valid(void) {
   struct cmsc_Scheme *scheme = NULL;
   cme_error_t err =
       cmsc_scheme_create(cmsc_SipMsgType_INVITE, "INVITE", &scheme);
@@ -48,7 +48,7 @@ void test_cmsc_scheme_add_mandatory_field_valid() {
   cmsc_scheme_destroy(&scheme);
 }
 
-void test_cmsc_scheme_add_optional_field_valid() {
+void test_cmsc_scheme_add_optional_field_valid(void) {
   struct cmsc_Scheme *scheme = NULL;
   cme_error_t err =
       cmsc_scheme_create(cmsc_SipMsgType_INVITE, "INVITE", &scheme);
@@ -69,7 +69,7 @@ void test_cmsc_scheme_add_optional_field_valid() {
   cmsc_scheme_destroy(&scheme);
 }
 
-void test_cmsc_scheme_add_field_null_checks() {
+void test_cmsc_scheme_add_field_null_checks(void) {
   struct cmsc_Scheme *scheme = NULL;
   cme_error_t err =
       cmsc_scheme_create(cmsc_SipMsgType_INVITE, "INVITE", &scheme);
