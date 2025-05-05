@@ -1,8 +1,6 @@
 sources += files(
-   'cmsc_engine.h',
+   'cmsc_engine.h', 'cmsc_engine.c',
 )
 
-subdir(
-   'message',
-)
+subdir('message_type')
 

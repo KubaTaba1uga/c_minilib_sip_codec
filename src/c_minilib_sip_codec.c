@@ -2,24 +2,29 @@
 #include <c_minilib_error.h>
 
 #include "c_minilib_sip_codec.h"
+#include "engine/cmsc_engine.h"
 #include "scheme/cmsc_scheme.h"
 
 cme_error_t cmsc_init(void) {
-  if (cme_init() != 0) {
-    return cme_error(ENOMEM, "Unable to initiate c_minilib_error library");
-  };
-
   cme_error_t err;
 
-  if ((err = cmsc_scheme_init())) {
-    return err;
+  if (cme_init() != 0) {
+    err = cme_error(ENOMEM, "Unable to initiate c_minilib_error library");
+    goto error_out;
+  };
+
+  if ((err = cmsc_engine_init())) {
+    goto error_out;
   }
 
   return 0;
+
+error_out:
+  return cme_return(err);
 };
 
 void cmsc_destroy(void) {
-  cmsc_scheme_destroy();
+  cmsc_engine_destroy();
 
   cme_destroy();
 };
