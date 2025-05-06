@@ -89,7 +89,41 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
     goto error_out;
   };
 
+  // Find end of SIP message
+  // produce lines split by CLRF, unitl end of msg reached
+
   struct cmsc_Scheme *scheme = cmsc_schemes_map[msg->sip_msg_type];
+
+  CMSC_SCHEME_MANDATORY_FIELDS_ITER(scheme_field, scheme, {
+    char *clrf_buffer = buffer;
+
+    bool is_field_match;
+    while (clrf_buffer) {
+      char *clrf_buffer_end = strstr(clrf_buffer, "\r\n");
+      if (!clrf_buffer_end) {
+        break;
+      }
+
+      uint32_t clrf_buffer_len = clrf_buffer_end - clrf_buffer;
+
+      if (scheme_field.is_field_func) {
+        is_field_match =
+            ((bool (*)(uint32_t, char *))scheme_field.is_field_func)(
+                clrf_buffer_len, clrf_buffer);
+
+        if (is_field_match) {
+          // TO-DO parse
+          break;
+        }
+      }
+    }
+
+    if (!is_field_match) {
+      err = cme_errorf(ENOENT, "Can't find mandatory entry `%s` in scheme `%s",
+                       scheme_field.id, scheme->sip_msg_type_str);
+      goto error_out;
+    }
+  })
   (void)scheme;
 
   return 0;
