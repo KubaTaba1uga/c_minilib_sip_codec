@@ -1,8 +1,7 @@
 #include <c_minilib_error.h>
 
 #include "c_minilib_sip_codec.h"
-#include "engine/cmsc_engine.h"
-#include "scheme/cmsc_scheme.h"
+#include "sip_proto/sip_proto.h"
 
 cme_error_t cmsc_init(void) {
   cme_error_t err;
@@ -12,7 +11,7 @@ cme_error_t cmsc_init(void) {
     goto error_out;
   };
 
-  if ((err = cmsc_engine_init())) {
+  if ((err = cmsc_sip_proto_init())) {
     goto error_out;
   }
 
@@ -23,7 +22,7 @@ error_out:
 };
 
 void cmsc_destroy(void) {
-  cmsc_engine_destroy();
+  cmsc_sip_proto_destroy();
 
   cme_destroy();
 };

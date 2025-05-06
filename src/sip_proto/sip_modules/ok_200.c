@@ -1,14 +1,14 @@
 #include <c_minilib_error.h>
 
 #include "c_minilib_sip_codec.h"
-#include "engine/message_type/cmsc_invite.h"
-#include "scheme/cmsc_scheme.h"
+#include "scheme/scheme.h"
+#include "sip_proto/sip_modules/ok_200.h"
 
-cme_error_t cmsc_engine_invite_scheme_init(struct cmsc_Scheme **scheme) {
+cme_error_t cmsc_sip_proto_ok_200_init(struct cmsc_Scheme **scheme) {
   struct cmsc_Scheme *local_scheme;
   cme_error_t err;
 
-  if ((err = cmsc_scheme_create(cmsc_SipMsgType_INVITE, "INVITE",
+  if ((err = cmsc_scheme_create(cmsc_SipMsgType_200_OK, "200 OK",
                                 &local_scheme))) {
     goto error_out;
   }
@@ -20,6 +20,7 @@ cme_error_t cmsc_engine_invite_scheme_init(struct cmsc_Scheme **scheme) {
 error_out:
   return err;
 };
-void cmsc_engine_invite_scheme_destroy(struct cmsc_Scheme **scheme) {
+
+void cmsc_sip_proto_ok_200_destroy(struct cmsc_Scheme **scheme) {
   cmsc_scheme_destroy(scheme);
 };

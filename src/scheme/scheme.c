@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "c_minilib_sip_codec.h"
-#include "scheme/cmsc_scheme.h"
+#include "scheme/scheme.h"
 
 cme_error_t cmsc_scheme_create(const enum cmsc_SipMsgType msg_type,
                                const char *msg_type_str,

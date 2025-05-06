@@ -5,7 +5,7 @@
 
 #include "c_minilib_sip_codec.h"
 
-cme_error_t cmsc_engine_invite_scheme_init(struct cmsc_Scheme **scheme);
-void cmsc_engine_invite_scheme_destroy(struct cmsc_Scheme **scheme);
+cme_error_t cmsc_sip_proto_invite_init(struct cmsc_Scheme **scheme);
+void cmsc_sip_proto_invite_destroy(struct cmsc_Scheme **scheme);
 
 #endif // C_MINILIB_SIP_CODEC_INVITE_H

@@ -4,7 +4,7 @@
 #include <c_minilib_error.h>
 
 #include "c_minilib_sip_codec.h"
-#include "message/cmsc_message.h"
+#include "sip_msg/sip_msg.h"
 
 cme_error_t cmsc_message_create(struct cmsc_SipMessage **message) {
   cme_error_t err;

@@ -4,7 +4,7 @@
 #include <c_minilib_error.h>
 #include <unity.h>
 
-#include "scheme/cmsc_scheme.h"
+#include "scheme/scheme.h"
 
 static int dummy_generate(void *unused1, char *unused2, size_t *unused3) {
   return 0;
