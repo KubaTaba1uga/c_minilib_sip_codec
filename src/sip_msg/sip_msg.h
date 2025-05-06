@@ -19,6 +19,10 @@ enum cmsc_SipField {
   cmsc_SipField_TO_TAG = 64,
   cmsc_SipField_TO_URI = 128,
   cmsc_SipField_TO_DISPLAY_NAME = 256,
+  cmsc_SipField_FROM_TAG = 512,
+  cmsc_SipField_FROM_URI = 1024,
+  cmsc_SipField_FROM_DISPLAY_NAME = 2048,
+  cmsc_SipField_CSEQ = 4096,
 };
 
 cme_error_t cmsc_message_create(struct cmsc_SipMessage **message,

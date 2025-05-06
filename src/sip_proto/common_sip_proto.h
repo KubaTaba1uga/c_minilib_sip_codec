@@ -92,6 +92,9 @@ static inline cme_error_t cmsc_sip_proto_parse_first_line(
   msg->sip_msg_type = scheme->sip_msg_type;
   cmsc_message_mark_field_present(msg, cmsc_SipField_SIP_MSG_TYPE);
 
+  msg->sip_method = cmsc_map_sip_msg_type_to_sip_method(msg->sip_msg_type);
+  cmsc_message_mark_field_present(msg, cmsc_SipField_SIP_METHOD);
+
   return 0;
 
 error_out:

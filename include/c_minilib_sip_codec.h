@@ -69,6 +69,28 @@ enum cmsc_SipMsgType {
   cmsc_SipMsgType_MAX,
 };
 
+static inline char *
+cmsc_dump_sip_method_to_str(enum cmsc_SipMethod msg_method) {
+  switch (msg_method) {
+  case cmsc_SipMethod_INVITE:
+    return "INVITE";
+  // Add more sip methods here
+  default:
+    return "UNKOWN";
+  }
+}
+
+static inline enum cmsc_SipMethod
+cmsc_map_sip_msg_type_to_sip_method(enum cmsc_SipMsgType msg_type) {
+  switch (msg_type) {
+  case cmsc_SipMsgType_INVITE:
+    return cmsc_SipMethod_INVITE;
+  // Add more sip methods here
+  default:
+    return cmsc_SipMethod_NONE;
+  }
+}
+
 struct cmsc_SchemeFields {
   struct cmsc_SchemeField *fields;
   uint32_t size;
@@ -112,10 +134,11 @@ struct cmsc_SipTo {
   const char *display_name;
 };
 
-/* struct cmsc_SipFrom { */
-/*   const char *uri; */
-/*   const char *tag; */
-/* }; */
+struct cmsc_SipFrom {
+  const char *uri;
+  const char *tag;
+  const char *display_name;
+};
 
 struct cmsc_SipMessage {
   uint32_t present_mask; // If a field is present corresponding bit is set to 1,
@@ -128,6 +151,8 @@ struct cmsc_SipMessage {
   struct cmsc_SipProtoVer sip_proto_ver;
   struct cmsc_SipVia via_l;
   struct cmsc_SipTo to;
+  struct cmsc_SipFrom from;
+  const char *cseq;
   // Add more fields here
   struct cmsc_FamBuffer _buffer; // This field needs to be last
 };

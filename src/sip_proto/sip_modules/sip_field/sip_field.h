@@ -6,11 +6,24 @@
 #include "c_minilib_sip_codec.h"
 #include "sip_proto/sip_modules/sip_field/parse/parse.h"
 
-// This field can re reused by any scheme
 static struct cmsc_SchemeField cmsc_field_to = {
     .id = "To",
     .is_field_func = NULL,
     .parse_field_func = cmsc_parse_field_func_to,
+    .generate_field_func = NULL,
+};
+
+static struct cmsc_SchemeField cmsc_field_from = {
+    .id = "From",
+    .is_field_func = NULL,
+    .parse_field_func = cmsc_parse_field_func_from,
+    .generate_field_func = NULL,
+};
+
+static struct cmsc_SchemeField cmsc_field_cseq = {
+    .id = "CSeq",
+    .is_field_func = NULL,
+    .parse_field_func = cmsc_parse_field_func_cseq,
     .generate_field_func = NULL,
 };
 
