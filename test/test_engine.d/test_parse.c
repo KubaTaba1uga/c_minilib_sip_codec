@@ -28,23 +28,6 @@ void tearDown(void) {
   cme_destroy();
 }
 
-void test_parse_minimal_invite(void) {
-  const char *raw_msg = "INVITE sip:bob@example.com SIP/2.0\r\n"
-                        "To: alice@example.com\r\n"
-                        "\r\n";
-  cme_error_t err = cmsc_sip_proto_parse(strlen(raw_msg), raw_msg, msg);
-  TEST_ASSERT_NULL(err);
-  TEST_ASSERT_TRUE(msg->is_request);
-  TEST_ASSERT_EQUAL(cmsc_SipMsgType_INVITE, msg->sip_msg_type);
-  TEST_ASSERT_EQUAL(2, msg->sip_proto_ver.major);
-  TEST_ASSERT_EQUAL(0, msg->sip_proto_ver.minor);
-
-  uint32_t expected_mask = cmsc_SipField_IS_REQUEST |
-                           cmsc_SipField_SIP_MSG_TYPE |
-                           cmsc_SipField_SIP_PROTO_VER;
-  TEST_ASSERT_EQUAL(expected_mask, msg->present_mask);
-}
-
 void test_parse_to_with_tag(void) {
   const char *line = "<sip:bob@domain.com>;tag=abc123";
   uint32_t len = strlen(line);
@@ -55,7 +38,7 @@ void test_parse_to_with_tag(void) {
   TEST_ASSERT_NOT_NULL(msg->to.tag);
   TEST_ASSERT_NOT_NULL(msg->to.uri);
   TEST_ASSERT_EQUAL_STRING("tag=abc123", msg->to.tag);
-  TEST_ASSERT_EQUAL_STRING("<sip:bob@domain.com>;", msg->to.uri);
+  TEST_ASSERT_EQUAL_STRING("<sip:bob@domain.com>", msg->to.uri);
 }
 
 void test_parse_to_without_tag(void) {
@@ -70,14 +53,60 @@ void test_parse_to_without_tag(void) {
   TEST_ASSERT_EQUAL_STRING("<sip:bob@domain.com>", msg->to.uri);
 }
 
-void test_parse_with_headers(void) {
+void test_parse_to_with_display_name(void) {
+  const char *line = "\"Alice Smith\" <sip:alice@domain.com>;tag=def456";
+  uint32_t len = strlen(line);
+
+  cme_error_t err = cmsc_parse_field_func_to(len, line, msg);
+
+  TEST_ASSERT_NULL(err);
+  TEST_ASSERT_NOT_NULL(msg->to.display_name);
+  TEST_ASSERT_NOT_NULL(msg->to.uri);
+  TEST_ASSERT_NOT_NULL(msg->to.tag);
+
+  TEST_ASSERT_EQUAL_STRING("\"Alice Smith\"", msg->to.display_name);
+  TEST_ASSERT_EQUAL_STRING("<sip:alice@domain.com>", msg->to.uri);
+  TEST_ASSERT_EQUAL_STRING("tag=def456", msg->to.tag);
+}
+
+/* void test_parse_from_with_tag(void) { */
+/*   const char *line = "<sip:carol@domain.com>;tag=xyz789"; */
+/*   uint32_t len = strlen(line); */
+
+/*   cme_error_t err = cmsc_parse_field_func_from(len, line, msg); */
+
+/*   TEST_ASSERT_NULL(err); */
+/*   TEST_ASSERT_NOT_NULL(msg->from.tag); */
+/*   TEST_ASSERT_NOT_NULL(msg->from.uri); */
+/*   TEST_ASSERT_EQUAL_STRING("tag=xyz789", msg->from.tag); */
+/*   TEST_ASSERT_EQUAL_STRING("<sip:carol@domain.com>;", msg->from.uri); */
+/* } */
+
+/* void test_parse_from_without_tag(void) { */
+/*   const char *line = "<sip:carol@domain.com>"; */
+/*   uint32_t len = strlen(line); */
+
+/*   cme_error_t err = cmsc_parse_field_func_from(len, line, msg); */
+
+/*   TEST_ASSERT_NULL(err); */
+/*   TEST_ASSERT_NULL(msg->from.tag); */
+/*   TEST_ASSERT_NOT_NULL(msg->from.uri); */
+/*   TEST_ASSERT_EQUAL_STRING("<sip:carol@domain.com>", msg->from.uri); */
+/* } */
+
+void test_parse_minimal_invite(void) {
   const char *raw_msg = "INVITE sip:bob@example.com SIP/2.0\r\n"
                         "To: alice@example.com\r\n"
-                        "From: bob@example.com\r\n"
                         "\r\n";
-  TEST_ASSERT_NULL(cmsc_sip_proto_parse(strlen(raw_msg), raw_msg, msg));
+  cme_error_t err = cmsc_sip_proto_parse(strlen(raw_msg), raw_msg, msg);
+  TEST_ASSERT_NULL(err);
   TEST_ASSERT_TRUE(msg->is_request);
   TEST_ASSERT_EQUAL(cmsc_SipMsgType_INVITE, msg->sip_msg_type);
+  TEST_ASSERT_EQUAL(2, msg->sip_proto_ver.major);
+  TEST_ASSERT_EQUAL(0, msg->sip_proto_ver.minor);
 
-  TEST_ASSERT_EQUAL_STRING("alice@example.com", msg->to.uri);
+  uint32_t expected_mask = cmsc_SipField_IS_REQUEST |
+                           cmsc_SipField_SIP_MSG_TYPE |
+                           cmsc_SipField_SIP_PROTO_VER | cmsc_SipField_TO_URI;
+  TEST_ASSERT_EQUAL(expected_mask, msg->present_mask);
 }

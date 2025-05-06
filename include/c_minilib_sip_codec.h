@@ -109,7 +109,13 @@ struct cmsc_SipVia {
 struct cmsc_SipTo {
   const char *uri;
   const char *tag;
+  const char *display_name;
 };
+
+/* struct cmsc_SipFrom { */
+/*   const char *uri; */
+/*   const char *tag; */
+/* }; */
 
 struct cmsc_SipMessage {
   uint32_t present_mask; // If a field is present corresponding bit is set to 1,

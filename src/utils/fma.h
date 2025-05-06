@@ -3,7 +3,9 @@
 
 #include <asm-generic/errno.h>
 #include <c_minilib_error.h>
+#include <ctype.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "c_minilib_sip_codec.h"
@@ -36,16 +38,22 @@ error_out:
 static inline char *
 cmsc_fambuffer_insert_str(const uint32_t src_len, const char *src,
                           struct cmsc_FamBuffer *fambuffer) {
-  uint32_t available_space = fambuffer->size - fambuffer->len;
-  if (src_len > available_space) {
-    // This shouldn't happn, we specially are picking enough big buffer
-    //  when creating fambuffer, but can't be too secure i supouse.
-    return NULL;
+
+  // We are deleting all spaces at front
+  while (isblank(*src)) {
+    src++;
   }
 
+  // And at tail
+  const char *src_end = src + src_len - 1;
+  while (isblank(*src_end)) {
+    src_end--;
+  }
+  src_end++;
+
   char *dest = fambuffer->buffer + fambuffer->len;
-  strncpy(dest, src, src_len);             // copy src
-  fambuffer->len += src_len;               // increment len
+  strncpy(dest, src, src_end - src);       // copy src
+  fambuffer->len += src_end - src;         // increment len
   fambuffer->buffer[fambuffer->len++] = 0; // insert null for safety
 
   return dest;
