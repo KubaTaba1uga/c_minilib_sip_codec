@@ -11,3 +11,4 @@ test_link_args = ['-fsanitize=memory,undefined']
 subdir('test_unity.d')
 subdir('test_scheme.d')
 subdir('test_engine.d')
+subdir('test_message.d')

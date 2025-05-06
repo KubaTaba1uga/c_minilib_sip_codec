@@ -7,6 +7,7 @@
 #include <c_minilib_error.h>
 
 #include "c_minilib_sip_codec.h"
+#include "sip_msg/sip_msg.h"
 
 /* Use schemes to parse buffer. Goal of this function is to set
    msg->sip_msg_type. Once we have msg_type we can fetch appropriate scheme
@@ -28,12 +29,6 @@ static inline cme_error_t cmsc_sip_proto_parse_first_line(
   const char *msg_type_match;
 
   for (uint32_t i = 0; i < schemes_len; i++) {
-    // Scheme can be NULL. It is designed that way to allow O(1) fetches from
-    //  schemes table in sip_proto.c once sip_msg_type is known.
-    if (!schemes[i]) {
-      continue;
-    }
-
     const struct cmsc_Scheme *local_scheme = schemes[i];
     msg_type_match = strstr(buffer, local_scheme->sip_msg_type_str);
     if (msg_type_match && msg_type_match < first_line_end) {
@@ -82,15 +77,17 @@ static inline cme_error_t cmsc_sip_proto_parse_first_line(
   char minor_buf[2];
   minor_buf[0] = *sip_version_match;
   minor_buf[1] = 0;
-  // TO-DO mark this as present
   msg->sip_proto_ver.minor = atoi(minor_buf);
+  cmsc_message_mark_field_present(msg, cmsc_SipField_SIP_PROTO_VER);
 
-  // TO-DO mark this as present
   msg->is_request = sip_version_match > msg_type_match;
-  // TO-DO mark this as present
+  cmsc_message_mark_field_present(msg, cmsc_SipField_IS_REQUEST);
+
   msg->sip_msg_type = scheme->sip_msg_type;
+  cmsc_message_mark_field_present(msg, cmsc_SipField_SIP_MSG_TYPE);
 
   return 0;
+
 error_out:
   return cme_return(err);
 };

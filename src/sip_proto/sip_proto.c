@@ -17,6 +17,7 @@ static struct cmsc_Scheme *cmsc_schemes_map[] = {
 
 // This array is prepared for iteration better than map
 static struct cmsc_Scheme **cmsc_schemes = NULL;
+static uint32_t cmsc_schemes_len = 0;
 
 cme_error_t cmsc_sip_proto_init(void) {
 #define CMSC_SIP_PROTO_INIT(type, init_func)                                   \
@@ -24,11 +25,11 @@ cme_error_t cmsc_sip_proto_init(void) {
     goto error_out;                                                            \
   }
 
-  cme_error_t err;
-
   if (cmsc_schemes) {
     return 0;
   }
+
+  cme_error_t err;
 
   // We need to initialize possible holes between ptrs to NULL.
   memset(cmsc_schemes_map, 0,
@@ -46,13 +47,14 @@ cme_error_t cmsc_sip_proto_init(void) {
     goto error_out;
   }
 
-  for (uint32_t i = 0, j = 0;
+  cmsc_schemes_len = 0;
+  for (uint32_t i = 0;
        i < sizeof(cmsc_schemes_map) / sizeof(struct cmsc_Scheme *); i++) {
     if (!cmsc_schemes_map[i]) {
       continue;
     }
 
-    cmsc_schemes[j++] = cmsc_schemes_map[i];
+    cmsc_schemes[cmsc_schemes_len++] = cmsc_schemes_map[i];
   }
 
   return 0;
@@ -76,3 +78,22 @@ void cmsc_sip_proto_destroy(void) {
   free(cmsc_schemes);
   cmsc_schemes = NULL;
 };
+
+cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
+                                 cmsc_sipmsg_t msg) {
+  cme_error_t err;
+
+  if ((err = cmsc_sip_proto_parse_first_line(
+           cmsc_schemes_len, (const struct cmsc_Scheme **)cmsc_schemes, n,
+           buffer, msg))) {
+    goto error_out;
+  };
+
+  struct cmsc_Scheme *scheme = cmsc_schemes_map[msg->sip_msg_type];
+  (void)scheme;
+
+  return 0;
+
+error_out:
+  return cme_return(err);
+}
