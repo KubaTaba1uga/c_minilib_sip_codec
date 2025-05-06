@@ -128,19 +128,22 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
 
       key.len = key.end - key.start;
 
-      value.start = key.end + 1;
-      value.end = line.end;
-      value.len = value.end - value.start;
-
-      if (scheme_field.is_field_func) {
+      if (scheme_field.is_field_func) { // To-do add default is field func
         is_field_match = scheme_field.is_field_func(key.len, key.start);
 
         if (is_field_match) {
+
+          value.start = key.end + 1;
+          value.end = line.end;
+          value.len = value.end - value.start;
+
           if ((err = scheme_field.parse_field_func(value.len, value.start,
                                                    msg))) {
             goto error_out;
           };
 
+          // We need to verify that field is not a list
+          //  before breaking the loop.
           break;
         }
       }

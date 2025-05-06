@@ -7,6 +7,7 @@
 #ifndef C_MINILIB_SIP_CODEC_H
 #define C_MINILIB_SIP_CODEC_H
 
+#include "utils/fma.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -84,11 +85,6 @@ struct cmsc_Scheme {
 /******************************************************************************
  *                             Message                                        *
  ******************************************************************************/
-struct cmsc_StringsBuffer {
-  uint32_t buffer_len;
-  char buffer[];
-};
-
 struct cmsc_SipProtoVer {
   uint32_t major;
   uint32_t minor;
@@ -110,6 +106,11 @@ struct cmsc_SipVia {
   struct cmsc_SipVia *next; // This is linked list
 };
 
+struct cmsc_SipTo {
+  const char *uri;
+  const char *tag;
+};
+
 struct cmsc_SipMessage {
   uint32_t present_mask; // If a field is present corresponding bit is set to 1,
                          // You can check for field presence like this:
@@ -120,7 +121,9 @@ struct cmsc_SipMessage {
   enum cmsc_SipMsgType sip_msg_type;
   struct cmsc_SipProtoVer sip_proto_ver;
   struct cmsc_SipVia via_l;
+  struct cmsc_SipTo to;
   // Add more fields here
+  struct cmsc_FamBuffer _buffer; // This field needs to be last
 };
 
 /******************************************************************************

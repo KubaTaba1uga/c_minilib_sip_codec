@@ -98,4 +98,30 @@ error_out:
   return cme_return(err);
 };
 
+/* Default fallback for recognising key in header field. */
+static inline bool cmsc_default_is_field_func(const uint32_t buffer_len,
+                                              const char *buffer,
+                                              const char *id) {
+
+  const uint32_t id_len = strlen(id) + 1;
+  if (id_len > buffer_len) {
+    return false;
+  }
+
+  char tmp_buffer[id_len];
+  char tmp_id[id_len];
+  strncpy(tmp_buffer, buffer, id_len);
+  tmp_buffer[id_len] = 0;
+  strncpy(tmp_id, id, id_len);
+  tmp_id[id_len] = 0;
+
+  // According to RFC 3261 7.3.1 case doesn't matter.
+  for (uint32_t i = 0; i < id_len; i++) {
+    tmp_buffer[i] = tolower(tmp_buffer[i]);
+    tmp_id[i] = tolower(tmp_id[i]);
+  }
+
+  return strcmp(tmp_id, tmp_buffer) == 0;
+};
+
 #endif // C_MINILIB_SIP_CODEC_COMMON_SIP_PROTO_H

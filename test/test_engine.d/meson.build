@@ -9,3 +9,13 @@ test_message_type_exe = executable('test_message_type',
 )
 
 test('test_message_type', test_message_type_exe)
+
+test_sip_proto_parse_exe = executable('test_sip_proto_parse',
+  sources: [
+    'test_parse.c',
+    test_runner.process('test_parse.c'),
+  ],
+  dependencies: test_dependencies,
+)
+
+test('test_sip_proto_parse', test_sip_proto_parse_exe)

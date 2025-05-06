@@ -93,15 +93,15 @@ cme_error_t cmsc_scheme_add_optional_field(const struct cmsc_SchemeField *field,
   }
 
   olocal_fields =
-      realloc(scheme->mandatory.fields,
-              sizeof(struct cmsc_SchemeField) * (scheme->mandatory.len + 1));
+      realloc(scheme->optional.fields,
+              sizeof(struct cmsc_SchemeField) * (scheme->optional.len + 1));
   if (!olocal_fields) {
     err = cme_error(ENOMEM, "Cannot allocate memory for `olocal_fields`");
     goto error_out;
   }
 
-  olocal_fields[scheme->mandatory.len++] = *field;
-  scheme->mandatory.fields = olocal_fields;
+  olocal_fields[scheme->optional.len++] = *field;
+  scheme->optional.fields = olocal_fields;
 
   return 0;
 

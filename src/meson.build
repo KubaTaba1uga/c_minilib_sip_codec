@@ -5,5 +5,5 @@ sources = files(
 subdir('sip_proto')
 subdir('sip_msg')
 subdir('scheme')
-
+subdir('utils')
 
