@@ -18,7 +18,8 @@ enum cmsc_SipField {
   cmsc_SipField_VIA_L = 32,
 };
 
-cme_error_t cmsc_message_create(struct cmsc_SipMessage **message);
+cme_error_t cmsc_message_create(struct cmsc_SipMessage **message,
+                                uint32_t buffer_size);
 
 void cmsc_message_destroy(struct cmsc_SipMessage **message);
 

@@ -52,7 +52,7 @@ cmsc_scheme_add_mandatory_field(const struct cmsc_SchemeField *field,
   struct cmsc_SchemeField *mlocal_fields;
   cme_error_t err;
 
-  if (!field || !scheme || !field->generate_field_func ||
+  if (!field || !scheme || // !field->generate_field_func ||
       !field->parse_field_func || !field->id) {
     err = cme_error(
         EINVAL,

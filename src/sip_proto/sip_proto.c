@@ -102,7 +102,8 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
 
   struct cmsc_Scheme *scheme = cmsc_schemes_map[msg->sip_msg_type];
 
-  CMSC_SCHEME_MANDATORY_FIELDS_ITER(scheme_field, scheme, {
+  for (uint32_t __i__ = 0; __i__ < scheme->mandatory.len; ++__i__) {
+    struct cmsc_SchemeField scheme_field = scheme->mandatory.fields[__i__];
     struct cmsc_SipLine line = {.start = buffer, .end = NULL, .len = 0};
     struct cmsc_SipLine key = {.start = NULL, .end = NULL, .len = 0};
     struct cmsc_SipLine value = {.start = NULL, .end = NULL, .len = 0};
@@ -117,35 +118,47 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
       line.len = line.end - line.start;
 
       if (line.len == 0) {
+        break;
         // This is body, two \r\n in the row
       }
+
+      printf("line.start=%.*s\n", line.len, line.start);
 
       key.start = line.start;
       key.end = strstr(key.start, ":");
       if (!key.end || key.end > line.end) {
-        break;
+        continue;
       }
 
       key.len = key.end - key.start;
 
       if (scheme_field.is_field_func) { // To-do add default is field func
         is_field_match = scheme_field.is_field_func(key.len, key.start);
+      } else {
+        is_field_match =
+            cmsc_default_is_field_func(key.len, key.start, scheme_field.id);
+      }
 
-        if (is_field_match) {
+      if (is_field_match) {
+        value.start = key.end + 1;
 
-          value.start = key.end + 1;
-          value.end = line.end;
-          value.len = value.end - value.start;
-
-          if ((err = scheme_field.parse_field_func(value.len, value.start,
-                                                   msg))) {
-            goto error_out;
-          };
-
-          // We need to verify that field is not a list
-          //  before breaking the loop.
-          break;
+        // According to RFC 3261 7.3.1 Header Field Format
+        //  there can be multiple spaces before value.
+        while (isblank(*value.start)) {
+          value.start++;
         }
+
+        value.end = line.end;
+        value.len = value.end - value.start;
+
+        if ((err =
+                 scheme_field.parse_field_func(value.len, value.start, msg))) {
+          goto error_out;
+        };
+
+        // We need to verify that field is not a list
+        //  before breaking the loop.
+        break;
       }
 
       line.start = line.end + 2;
@@ -156,7 +169,7 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
                        scheme_field.id, scheme->sip_msg_type_str);
       goto error_out;
     }
-  });
+  };
 
   return 0;
 

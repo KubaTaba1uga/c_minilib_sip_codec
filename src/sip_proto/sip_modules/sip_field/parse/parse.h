@@ -26,8 +26,8 @@ static inline cme_error_t cmsc_parse_field_func_to(const uint32_t buffer_len,
     msg->to.uri =
         cmsc_fambuffer_insert_str(tag_start - buffer, buffer, &msg->_buffer);
   } else {
-    msg->to.uri = NULL;
-    msg->to.tag = cmsc_fambuffer_insert_str(buffer_len, buffer, &msg->_buffer);
+    msg->to.uri = cmsc_fambuffer_insert_str(buffer_len, buffer, &msg->_buffer);
+    msg->to.tag = NULL;
   }
 
   return 0;

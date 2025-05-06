@@ -4,9 +4,11 @@
 
 #include "sip_msg/sip_msg.h"
 
+#define TEST_BUFFER_SIZE 1024
+
 void test_message_create_and_destroy(void) {
   struct cmsc_SipMessage *msg = NULL;
-  cme_error_t err = cmsc_message_create(&msg);
+  cme_error_t err = cmsc_message_create(&msg, TEST_BUFFER_SIZE);
   TEST_ASSERT_NULL(err);
   TEST_ASSERT_NOT_NULL(msg);
   TEST_ASSERT_EQUAL(0, msg->present_mask);
@@ -16,21 +18,18 @@ void test_message_create_and_destroy(void) {
 
 void test_mark_and_check_field_present(void) {
   struct cmsc_SipMessage *msg = NULL;
-  cme_error_t err = cmsc_message_create(&msg);
+  cme_error_t err = cmsc_message_create(&msg, TEST_BUFFER_SIZE);
   TEST_ASSERT_NULL(err);
 
-  // Initially all fields are not present
   for (int field = 1; field <= cmsc_SipField_VIA_L; field <<= 1) {
     TEST_ASSERT_FALSE(
         cmsc_message_is_field_present(msg, (enum cmsc_SipField)field));
   }
 
-  // Mark one field
   cmsc_message_mark_field_present(msg, cmsc_SipField_SIP_METHOD);
   TEST_ASSERT_TRUE(
       cmsc_message_is_field_present(msg, cmsc_SipField_SIP_METHOD));
 
-  // Mark multiple fields
   cmsc_message_mark_field_present(msg, cmsc_SipField_SIP_MSG_TYPE);
   cmsc_message_mark_field_present(msg, cmsc_SipField_VIA_L);
 
@@ -45,10 +44,9 @@ void test_mark_and_check_field_present(void) {
 
 void test_field_mask_bitwise_behavior(void) {
   struct cmsc_SipMessage *msg = NULL;
-  cme_error_t err = cmsc_message_create(&msg);
+  cme_error_t err = cmsc_message_create(&msg, TEST_BUFFER_SIZE);
   TEST_ASSERT_NULL(err);
 
-  // Setting multiple fields should result in proper bitwise OR
   cmsc_message_mark_field_present(msg, cmsc_SipField_IS_REQUEST);
   cmsc_message_mark_field_present(msg, cmsc_SipField_SIP_PROTO_VER);
   uint32_t expected_mask =
