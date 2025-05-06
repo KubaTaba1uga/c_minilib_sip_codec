@@ -25,6 +25,8 @@
  *                             General                                        *
  ******************************************************************************/
 
+typedef struct cmsc_SipMessage *cmsc_sipmsg_t;
+
 /**
  * Initialize the sip codec library. Must be called before any parsing.
  */
@@ -39,9 +41,15 @@ void cmsc_destroy(void);
  ******************************************************************************/
 struct cmsc_SchemeField {
   const char *id;
-  void *is_field_func; // This function is optional if none provided default one
-                       // is used.
-  void *parse_field_func;
+
+  bool (*is_field_func)(         // This function is optional if none
+      const uint32_t buffer_len, // provided default one is used.
+      const char *buffer);
+
+  cme_error_t (*parse_field_func)( // This function is mandatory there
+      const uint32_t buffer_len,   // is no default one.
+      const char *buffer, cmsc_sipmsg_t msg);
+
   void *generate_field_func;
 };
 
@@ -60,13 +68,17 @@ enum cmsc_SipMsgType {
   cmsc_SipMsgType_MAX,
 };
 
+struct cmsc_SchemeFields {
+  struct cmsc_SchemeField *fields;
+  uint32_t size;
+  uint32_t len;
+};
+
 struct cmsc_Scheme {
   const char *sip_msg_type_str;
   enum cmsc_SipMsgType sip_msg_type;
-  uint32_t mandatory_fields_len;
-  struct cmsc_SchemeField *mandatory_fields;
-  uint32_t optional_fields_len;
-  struct cmsc_SchemeField *optional_fields;
+  struct cmsc_SchemeFields mandatory;
+  struct cmsc_SchemeFields optional;
 };
 
 /******************************************************************************
@@ -110,8 +122,6 @@ struct cmsc_SipMessage {
   struct cmsc_SipVia via_l;
   // Add more fields here
 };
-
-typedef struct cmsc_SipMessage *cmsc_sipmsg_t;
 
 /******************************************************************************
  *                             Parse                                          *

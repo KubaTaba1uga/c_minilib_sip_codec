@@ -16,13 +16,16 @@ cme_error_t cmsc_scheme_create(const enum cmsc_SipMsgType msg_type,
     goto error_out;
   }
 
-  local_scheme->sip_msg_type = msg_type;
   local_scheme->sip_msg_type_str = msg_type_str;
+  local_scheme->sip_msg_type = msg_type;
 
-  local_scheme->mandatory_fields = NULL;
-  local_scheme->mandatory_fields_len = 0;
-  local_scheme->optional_fields = NULL;
-  local_scheme->optional_fields_len = 0;
+  local_scheme->mandatory.fields = NULL;
+  local_scheme->mandatory.size = 0;
+  local_scheme->mandatory.len = 0;
+
+  local_scheme->optional.fields = NULL;
+  local_scheme->optional.size = 0;
+  local_scheme->optional.len = 0;
 
   *scheme = local_scheme;
 
@@ -37,8 +40,8 @@ void cmsc_scheme_destroy(struct cmsc_Scheme **scheme) {
     return;
   }
 
-  free((*scheme)->mandatory_fields);
-  free((*scheme)->optional_fields);
+  free((*scheme)->mandatory.fields);
+  free((*scheme)->optional.fields);
   free((*scheme));
   *scheme = NULL;
 };
@@ -59,15 +62,15 @@ cmsc_scheme_add_mandatory_field(const struct cmsc_SchemeField *field,
   }
 
   mlocal_fields =
-      realloc(scheme->mandatory_fields, sizeof(struct cmsc_SchemeField) *
-                                            (scheme->mandatory_fields_len + 1));
+      realloc(scheme->mandatory.fields,
+              sizeof(struct cmsc_SchemeField) * (scheme->mandatory.len + 1));
   if (!mlocal_fields) {
     err = cme_error(ENOMEM, "Cannot allocate memory for `mlocal_fields`");
     goto error_out;
   }
 
-  mlocal_fields[scheme->mandatory_fields_len++] = *field;
-  scheme->mandatory_fields = mlocal_fields;
+  mlocal_fields[scheme->mandatory.len++] = *field;
+  scheme->mandatory.fields = mlocal_fields;
 
   return 0;
 
@@ -90,15 +93,15 @@ cme_error_t cmsc_scheme_add_optional_field(const struct cmsc_SchemeField *field,
   }
 
   olocal_fields =
-      realloc(scheme->optional_fields, sizeof(struct cmsc_SchemeField) *
-                                           (scheme->optional_fields_len + 1));
+      realloc(scheme->mandatory.fields,
+              sizeof(struct cmsc_SchemeField) * (scheme->mandatory.len + 1));
   if (!olocal_fields) {
     err = cme_error(ENOMEM, "Cannot allocate memory for `olocal_fields`");
     goto error_out;
   }
 
-  olocal_fields[scheme->optional_fields_len++] = *field;
-  scheme->optional_fields = olocal_fields;
+  olocal_fields[scheme->mandatory.len++] = *field;
+  scheme->mandatory.fields = olocal_fields;
 
   return 0;
 

@@ -9,10 +9,10 @@
 #include "c_minilib_sip_codec.h"
 #include "sip_msg/sip_msg.h"
 
-#define CMSC_SCHEME_MANDATORY_FIELDS_ITER(var, scheme, func)                   \
-  for (uint32_t __i__ = 0; __i__ < (scheme)->mandatory_fields_len; __i__++) {  \
-    struct cmsc_SchemeField var = (scheme)->mandatory_fields[__i__];           \
-    func                                                                       \
+#define CMSC_SCHEME_MANDATORY_FIELDS_ITER(var, scheme, ...)                    \
+  for (uint32_t __i__ = 0; __i__ < (scheme)->mandatory.len; ++__i__) {         \
+    struct cmsc_SchemeField var = (scheme)->mandatory.fields[__i__];           \
+    __VA_ARGS__;                                                               \
   }
 
 /* Use schemes to parse buffer. Goal of this function is to set

@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include <c_minilib_error.h>
+#include <string.h>
 
 #include "c_minilib_sip_codec.h"
 #include "sip_proto/common_sip_proto.h"
@@ -77,6 +78,13 @@ void cmsc_sip_proto_destroy(void) {
 
   free(cmsc_schemes);
   cmsc_schemes = NULL;
+  cmsc_schemes_len = 0;
+};
+
+struct cmsc_SipLine {
+  uint32_t len;
+  const char *start;
+  const char *end;
 };
 
 cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
@@ -95,36 +103,57 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
   struct cmsc_Scheme *scheme = cmsc_schemes_map[msg->sip_msg_type];
 
   CMSC_SCHEME_MANDATORY_FIELDS_ITER(scheme_field, scheme, {
-    char *clrf_buffer = buffer;
+    struct cmsc_SipLine line = {.start = buffer, .end = NULL, .len = 0};
+    struct cmsc_SipLine key = {.start = NULL, .end = NULL, .len = 0};
+    struct cmsc_SipLine value = {.start = NULL, .end = NULL, .len = 0};
+    bool is_field_match = false;
 
-    bool is_field_match;
-    while (clrf_buffer) {
-      char *clrf_buffer_end = strstr(clrf_buffer, "\r\n");
-      if (!clrf_buffer_end) {
+    while (line.start) {
+      line.end = strstr(line.start, "\r\n");
+      if (!line.end) {
         break;
       }
 
-      uint32_t clrf_buffer_len = clrf_buffer_end - clrf_buffer;
+      line.len = line.end - line.start;
+
+      if (line.len == 0) {
+        // This is body, two \r\n in the row
+      }
+
+      key.start = line.start;
+      key.end = strstr(key.start, ":");
+      if (!key.end || key.end > line.end) {
+        break;
+      }
+
+      key.len = key.end - key.start;
+
+      value.start = key.end + 1;
+      value.end = line.end;
+      value.len = value.end - value.start;
 
       if (scheme_field.is_field_func) {
-        is_field_match =
-            ((bool (*)(uint32_t, char *))scheme_field.is_field_func)(
-                clrf_buffer_len, clrf_buffer);
+        is_field_match = scheme_field.is_field_func(key.len, key.start);
 
         if (is_field_match) {
-          // TO-DO parse
+          if ((err = scheme_field.parse_field_func(value.len, value.start,
+                                                   msg))) {
+            goto error_out;
+          };
+
           break;
         }
       }
+
+      line.start = line.end + 2;
     }
 
     if (!is_field_match) {
-      err = cme_errorf(ENOENT, "Can't find mandatory entry `%s` in scheme `%s",
+      err = cme_errorf(ENOENT, "Can't find mandatory field `%s` in scheme `%s`",
                        scheme_field.id, scheme->sip_msg_type_str);
       goto error_out;
     }
-  })
-  (void)scheme;
+  });
 
   return 0;
 

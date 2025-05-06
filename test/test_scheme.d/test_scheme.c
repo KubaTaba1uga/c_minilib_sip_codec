@@ -1,16 +1,19 @@
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <c_minilib_error.h>
 #include <unity.h>
 
+#include "c_minilib_sip_codec.h"
 #include "scheme/scheme.h"
 
 static int dummy_generate(void *unused1, char *unused2, size_t *unused3) {
   return 0;
 }
 
-static int dummy_parse(void *unused1, const char *unused2, size_t unused3) {
+static cme_error_t dummy_parse(const uint32_t unused1, const char *unused2,
+                               cmsc_sipmsg_t unused3) {
   return 0;
 }
 
@@ -21,8 +24,8 @@ void test_cmsc_scheme_create_and_destroy(void) {
   TEST_ASSERT_NULL(err);
   TEST_ASSERT_NOT_NULL(scheme);
   TEST_ASSERT_EQUAL(scheme->sip_msg_type, cmsc_SipMsgType_INVITE);
-  TEST_ASSERT_EQUAL(scheme->mandatory_fields_len, 0);
-  TEST_ASSERT_EQUAL(scheme->optional_fields_len, 0);
+  TEST_ASSERT_EQUAL(scheme->mandatory.len, 0);
+  TEST_ASSERT_EQUAL(scheme->optional.len, 0);
   cmsc_scheme_destroy(&scheme);
   TEST_ASSERT_NULL(scheme);
 }
@@ -42,9 +45,9 @@ void test_cmsc_scheme_add_mandatory_field_valid(void) {
       scheme);
   TEST_ASSERT_NULL(err);
 
-  TEST_ASSERT_EQUAL(scheme->mandatory_fields_len, 1);
-  TEST_ASSERT_NOT_NULL(scheme->mandatory_fields);
-  TEST_ASSERT(strcmp(scheme->mandatory_fields[0].id, "Via") == 0);
+  TEST_ASSERT_EQUAL(scheme->mandatory.len, 1);
+  TEST_ASSERT_NOT_NULL(scheme->mandatory.fields);
+  TEST_ASSERT(strcmp(scheme->mandatory.fields[0].id, "Via") == 0);
   cmsc_scheme_destroy(&scheme);
 }
 
@@ -63,9 +66,9 @@ void test_cmsc_scheme_add_optional_field_valid(void) {
       scheme);
   TEST_ASSERT_NULL(err);
 
-  TEST_ASSERT_EQUAL(scheme->optional_fields_len, 1);
-  TEST_ASSERT_NOT_NULL(scheme->optional_fields);
-  TEST_ASSERT(strcmp(scheme->optional_fields[0].id, "User-Agent") == 0);
+  TEST_ASSERT_EQUAL(scheme->optional.len, 1);
+  TEST_ASSERT_NOT_NULL(scheme->optional.fields);
+  TEST_ASSERT(strcmp(scheme->optional.fields[0].id, "User-Agent") == 0);
   cmsc_scheme_destroy(&scheme);
 }
 
