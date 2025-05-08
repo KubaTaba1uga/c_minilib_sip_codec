@@ -103,6 +103,26 @@ error_out:
   return err;
 }
 
+/* Return NULL if fail. Return ptr to valid str on success. */
+static inline const char *
+cmsc_dynbuf_put_word(uint32_t data_len, char *data, void **parent_container,
+                     uint32_t parent_container_size,
+                     struct cmsc_DynamicBuffer *dynbuf) {
+  char *output = dynbuf->buf + dynbuf->len;
+  if (cmsc_dynbuf_put(data_len, data, parent_container, parent_container_size,
+                      dynbuf)) {
+    return NULL;
+  };
+
+  // Ensure value is null terminated
+  if (output[data_len - 1] &&
+      cmsc_dynbuf_put(1, "", parent_container, parent_container_size, dynbuf)) {
+    return NULL;
+  };
+
+  return output;
+}
+
 static inline char *cmsc_dynbuf_flush(struct cmsc_DynamicBuffer *dynbuf) {
   if (!dynbuf) {
     return NULL;

@@ -85,7 +85,7 @@ struct cmsc_Field_CSeq {
   uint32_t seq_number;
 };
 
-typedef struct cmsc_SipMessage *cmsc_sipmsg_t;
+typedef struct cmsc_SipMsg *cmsc_sipmsg_t;
 
 bool cmsc_sipmsg_is_request(const cmsc_sipmsg_t msg);
 struct cmsc_Field_SipProtoVer *
@@ -112,7 +112,7 @@ cme_error_t cmsc_parser_create(cmsc_parser_t *parser);
 void cmsc_parser_destroy(cmsc_parser_t *parser);
 enum cmsc_ParserStates cmsc_parser_get_state(cmsc_parser_t parser);
 cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
-                                  cmsc_parser_t parser);
+                                  cmsc_parser_t *parser);
 cmsc_sipmsg_t cmsc_parser_pop_msg(cmsc_parser_t parser);
 
 #endif
