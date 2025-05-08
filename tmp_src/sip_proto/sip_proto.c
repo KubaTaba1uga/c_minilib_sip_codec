@@ -110,7 +110,7 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
     // in msg. Once we have a match, loop is finished if the field is not a
     // list. To find all list values we need to parse msg to the EOF.
     while (line.start) {
-      line.end = strstr(line.start, "\r\n");
+      line.end = cmsc_strstr(line.start, "\r\n");
       if (!line.end) {
         break;
       }

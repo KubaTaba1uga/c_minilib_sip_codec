@@ -2,8 +2,8 @@ sources = files(
    'c_minilib_sip_codec.c',
 )
 
-subdir('parser')
+subdir('sip_proto')
+subdir('sip_msg')
 subdir('scheme')
-subdir('settings')
-subdir('sipmsg')
 subdir('utils')
+
