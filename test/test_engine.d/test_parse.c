@@ -152,6 +152,7 @@ void test_parse_minimal_invite(void) {
       "From: bob@example.com\r\n"
       "CSeq: 4711 INVITE\r\n"
       "Call-ID: f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com\r\n"
+      "Max-Forwards: 70\r\n"
       "\r\n";
 
   cme_error_t err = cmsc_sip_proto_parse(strlen(raw_msg), raw_msg, msg);
@@ -181,12 +182,15 @@ void test_parse_minimal_invite(void) {
   TEST_ASSERT_EQUAL_STRING("f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com",
                            msg->call_id);
 
+  // Max-Forwards field
+  TEST_ASSERT_EQUAL_INT(70, msg->max_forwards);
+
   // Presence mask
   uint32_t expected_mask = cmsc_SipField_IS_REQUEST | cmsc_SipField_SIP_METHOD |
                            cmsc_SipField_SIP_MSG_TYPE |
                            cmsc_SipField_SIP_PROTO_VER | cmsc_SipField_TO_URI |
                            cmsc_SipField_FROM_URI | cmsc_SipField_CSEQ |
-                           cmsc_SipField_CALL_ID;
+                           cmsc_SipField_CALL_ID | cmsc_SipField_MAX_FORWARDS;
 
   TEST_ASSERT_EQUAL(expected_mask, msg->present_mask);
 }

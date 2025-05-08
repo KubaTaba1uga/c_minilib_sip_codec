@@ -103,4 +103,18 @@ cmsc_parse_field_func_callid(const uint32_t buffer_len, const char *buffer,
   return 0;
 }
 
+static inline cme_error_t
+cmsc_parse_field_func_max_forwards(const uint32_t buffer_len,
+                                   const char *buffer, cmsc_sipmsg_t msg) {
+  /* According RFC 3261 8.1.1.6 Max-Forwards, this field
+     need to parse one value:
+        - max forwards
+   */
+
+  msg->max_forwards = atoi(buffer);
+  cmsc_message_mark_field_present(msg, cmsc_SipField_MAX_FORWARDS);
+
+  return 0;
+}
+
 #endif // C_MINILIB_SIP_CODEC_PARSE_H
