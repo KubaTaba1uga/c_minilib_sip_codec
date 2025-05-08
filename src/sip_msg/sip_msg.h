@@ -23,6 +23,7 @@ enum cmsc_SipField {
   cmsc_SipField_FROM_URI = 1024,
   cmsc_SipField_FROM_DISPLAY_NAME = 2048,
   cmsc_SipField_CSEQ = 4096,
+  cmsc_SipField_CALL_ID = 8192,
 };
 
 cme_error_t cmsc_message_create(struct cmsc_SipMessage **message,

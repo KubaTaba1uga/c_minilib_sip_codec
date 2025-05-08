@@ -24,16 +24,15 @@ static inline cme_error_t cmsc_parse_field_func_to(const uint32_t buffer_len,
       is copied as is. No uri scheme interpretation.
    */
 
-  const char *tag_start =
-      cmsc_parse_tag_field(buffer_len, buffer, &msg->_buffer,
-                           (char **)&msg->to.tag, cmsc_SipField_TO_TAG, msg);
+  const char *tag_start = cmsc_parse_tag_field(
+      buffer_len, buffer, cmsc_SipField_TO_TAG, (char **)&msg->to.tag, msg);
 
-  const char *display_name_end = cmsc_parse_display_name(
-      buffer_len, buffer, &msg->_buffer, (char **)&msg->to.display_name,
-      cmsc_SipField_TO_DISPLAY_NAME, msg);
+  const char *display_name_end =
+      cmsc_parse_display_name(buffer_len, buffer, cmsc_SipField_TO_DISPLAY_NAME,
+                              (char **)&msg->to.display_name, msg);
 
-  cmsc_parse_uri_field(buffer, display_name_end, tag_start, &msg->_buffer,
-                       (char **)&msg->to.uri, cmsc_SipField_TO_URI, msg);
+  cmsc_parse_uri_field(buffer_len, buffer, display_name_end, tag_start,
+                       cmsc_SipField_TO_URI, (char **)&msg->to.uri, msg);
 
   return 0;
 }
@@ -41,7 +40,7 @@ static inline cme_error_t cmsc_parse_field_func_to(const uint32_t buffer_len,
 static inline cme_error_t cmsc_parse_field_func_from(const uint32_t buffer_len,
                                                      const char *buffer,
                                                      cmsc_sipmsg_t msg) {
-  /* According RFC 3261 8.1.1.3 From and 20.20 From this field
+  /* According RFC 3261 8.1.1.3 From and 20.20 From, this field
      need to parse three values:
         - SIP uri
         - tag (optional)
@@ -51,22 +50,21 @@ static inline cme_error_t cmsc_parse_field_func_from(const uint32_t buffer_len,
    */
 
   const char *tag_start = cmsc_parse_tag_field(
-      buffer_len, buffer, &msg->_buffer, (char **)&msg->from.tag,
-      cmsc_SipField_FROM_TAG, msg);
+      buffer_len, buffer, cmsc_SipField_FROM_TAG, (char **)&msg->from.tag, msg);
 
   const char *display_name_end = cmsc_parse_display_name(
-      buffer_len, buffer, &msg->_buffer, (char **)&msg->from.display_name,
-      cmsc_SipField_FROM_DISPLAY_NAME, msg);
+      buffer_len, buffer, cmsc_SipField_FROM_DISPLAY_NAME,
+      (char **)&msg->from.display_name, msg);
 
-  cmsc_parse_uri_field(buffer, display_name_end, tag_start, &msg->_buffer,
-                       (char **)&msg->from.uri, cmsc_SipField_FROM_URI, msg);
+  cmsc_parse_uri_field(buffer_len, buffer, display_name_end, tag_start,
+                       cmsc_SipField_FROM_URI, (char **)&msg->from.uri, msg);
   return 0;
 }
 
 static inline cme_error_t cmsc_parse_field_func_cseq(const uint32_t buffer_len,
                                                      const char *buffer,
                                                      cmsc_sipmsg_t msg) {
-  /* According RFC 3261 8.1.1.5 CSeq this field
+  /* According RFC 3261 8.1.1.5 CSeq, this field
      need to parse one value:
         - cseq
      This field also requires validation:
@@ -89,6 +87,20 @@ static inline cme_error_t cmsc_parse_field_func_cseq(const uint32_t buffer_len,
 
 error_out:
   return err;
+}
+
+static inline cme_error_t
+cmsc_parse_field_func_callid(const uint32_t buffer_len, const char *buffer,
+                             cmsc_sipmsg_t msg) {
+  /* According RFC 3261 8.1.1.4 Call-id, this field
+     need to parse one value:
+        - call id
+   */
+
+  msg->call_id = cmsc_fambuffer_insert_str(buffer_len, buffer, &msg->_buffer);
+  cmsc_message_mark_field_present(msg, cmsc_SipField_CALL_ID);
+
+  return 0;
 }
 
 #endif // C_MINILIB_SIP_CODEC_PARSE_H

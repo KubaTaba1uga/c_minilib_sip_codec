@@ -146,21 +146,47 @@ void test_parse_cseq_response_valid(void) {
 }
 
 void test_parse_minimal_invite(void) {
-  const char *raw_msg = "INVITE sip:bob@example.com SIP/2.0\r\n"
-                        "To: alice@example.com\r\n"
-                        "From: bob@example.com\r\n"
-                        "CSeq: 4711 INVITE\r\n"
-                        "\r\n";
+  const char *raw_msg =
+      "INVITE sip:bob@example.com SIP/2.0\r\n"
+      "To: alice@example.com\r\n"
+      "From: bob@example.com\r\n"
+      "CSeq: 4711 INVITE\r\n"
+      "Call-ID: f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com\r\n"
+      "\r\n";
+
   cme_error_t err = cmsc_sip_proto_parse(strlen(raw_msg), raw_msg, msg);
   TEST_ASSERT_NULL(err);
+
+  // Basic structural checks
   TEST_ASSERT_TRUE(msg->is_request);
   TEST_ASSERT_EQUAL(cmsc_SipMsgType_INVITE, msg->sip_msg_type);
   TEST_ASSERT_EQUAL(2, msg->sip_proto_ver.major);
   TEST_ASSERT_EQUAL(0, msg->sip_proto_ver.minor);
+  TEST_ASSERT_EQUAL(cmsc_SipMethod_INVITE, msg->sip_method);
 
-  uint32_t expected_mask =
-      cmsc_SipField_IS_REQUEST | cmsc_SipField_SIP_MSG_TYPE |
-      cmsc_SipField_SIP_PROTO_VER | cmsc_SipField_TO_URI | cmsc_SipField_CSEQ |
-      cmsc_SipField_FROM_URI | cmsc_SipField_SIP_METHOD;
+  // To field
+  TEST_ASSERT_NOT_NULL(msg->to.uri);
+  TEST_ASSERT_EQUAL_STRING("alice@example.com", msg->to.uri);
+
+  // From field
+  TEST_ASSERT_NOT_NULL(msg->from.uri);
+  TEST_ASSERT_EQUAL_STRING("bob@example.com", msg->from.uri);
+
+  // CSeq field
+  TEST_ASSERT_NOT_NULL(msg->cseq);
+  TEST_ASSERT_EQUAL_STRING("4711 INVITE", msg->cseq);
+
+  // Call-ID field
+  TEST_ASSERT_NOT_NULL(msg->call_id);
+  TEST_ASSERT_EQUAL_STRING("f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com",
+                           msg->call_id);
+
+  // Presence mask
+  uint32_t expected_mask = cmsc_SipField_IS_REQUEST | cmsc_SipField_SIP_METHOD |
+                           cmsc_SipField_SIP_MSG_TYPE |
+                           cmsc_SipField_SIP_PROTO_VER | cmsc_SipField_TO_URI |
+                           cmsc_SipField_FROM_URI | cmsc_SipField_CSEQ |
+                           cmsc_SipField_CALL_ID;
+
   TEST_ASSERT_EQUAL(expected_mask, msg->present_mask);
 }

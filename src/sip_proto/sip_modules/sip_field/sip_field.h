@@ -27,4 +27,11 @@ static struct cmsc_SchemeField cmsc_field_cseq = {
     .generate_field_func = NULL,
 };
 
+static struct cmsc_SchemeField cmsc_field_callid = {
+    .id = "Call-ID",
+    .is_field_func = NULL,
+    .parse_field_func = cmsc_parse_field_func_callid,
+    .generate_field_func = NULL,
+};
+
 #endif // C_MINILIB_SIP_CODEC_SIP_FIELD_H

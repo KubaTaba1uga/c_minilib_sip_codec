@@ -27,6 +27,11 @@ cme_error_t cmsc_sip_proto_invite_init(struct cmsc_Scheme **scheme) {
     goto error_out;
   };
 
+  if ((err =
+           cmsc_scheme_add_mandatory_field(&cmsc_field_callid, local_scheme))) {
+    goto error_out;
+  };
+
   *scheme = local_scheme;
 
   return 0;
