@@ -154,6 +154,7 @@ struct cmsc_SipMessage {
   struct cmsc_SipFrom from;
   const char *cseq;
   const char *call_id;
+  uint32_t max_forwards;
   // Add more fields here
   struct cmsc_FamBuffer _buffer; // This field needs to be last
 };
