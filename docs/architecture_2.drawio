@@ -1,0 +1,183 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" version="27.0.1">
+  <diagram name="Flow" id="ZKBCoRI4lpfDGy-4syBj">
+    <mxGraphModel dx="2098" dy="1630" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="w6QvwMustZXX6lFKVsSo-62" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Once user get&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;msg from parser,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;parser resets&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;itself and does&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&amp;nbsp;not hold ownership over msg&lt;/div&gt;&lt;div&gt;&amp;nbsp;anymore. Ownership over&amp;nbsp;&lt;/div&gt;&lt;div&gt;msg is transfererd to user&amp;nbsp;&lt;/div&gt;&lt;div&gt;which means user is&amp;nbsp;&lt;/div&gt;&lt;div&gt;responsible&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;for destroying&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;the message.&lt;/span&gt;&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="205" y="960" width="220" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-14" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;Because parser&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;manages&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;msg&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;creation it holds&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;current parsing state&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;and can&#39;t be shared in parallel&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;configuration.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-160" y="400" width="200" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-7" value="Library initialization populates scheme and fields parsing and generation logic." style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-120" y="280" width="150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-4" value="During&amp;nbsp;&lt;div&gt;configuration one&lt;/div&gt;&lt;div&gt;&amp;nbsp;can add only&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;logger&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;at the moment.&lt;/div&gt;&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-110" y="120" width="150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-1" target="w6QvwMustZXX6lFKVsSo-2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-1" value="User use our library." style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="20" y="60" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-2" target="w6QvwMustZXX6lFKVsSo-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-2" value="Configure library" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="20" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-5" target="w6QvwMustZXX6lFKVsSo-11" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-5" value="Init library" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="20" y="340" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-11" target="w6QvwMustZXX6lFKVsSo-19" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-11" value="Create one parser per thread." style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="20" y="480" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-18" value="If lines are correct&lt;div&gt;parser will create msg internally.&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="110" y="660" width="150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-19" target="w6QvwMustZXX6lFKVsSo-20" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-19" value="Receive some&amp;nbsp;&lt;div&gt;bytes.&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="20" y="610" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-20" target="w6QvwMustZXX6lFKVsSo-21" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-20" value="Feed parser some bytes." style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="20" y="730" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="w6QvwMustZXX6lFKVsSo-21" target="w6QvwMustZXX6lFKVsSo-19" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-100" y="905" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-40" y="905" />
+              <mxPoint x="-40" y="640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-35" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-21" target="w6QvwMustZXX6lFKVsSo-34" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="80" y="1000" />
+              <mxPoint x="170" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-21" value="Has parser indicate msg is over?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="30" y="850" width="100" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-29" value="No" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-20" y="880" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-77" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-34" target="w6QvwMustZXX6lFKVsSo-43" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="170" y="1200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-34" value="Get message from parser." style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="110" y="1030" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-36" value="Yes" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="80" y="940" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-47" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-43" target="w6QvwMustZXX6lFKVsSo-46" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-43" value="Use message" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="110" y="1160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-69" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="w6QvwMustZXX6lFKVsSo-46" target="w6QvwMustZXX6lFKVsSo-57" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-46" value="Destroy message" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="110" y="1310" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-66" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="w6QvwMustZXX6lFKVsSo-57" target="w6QvwMustZXX6lFKVsSo-19" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-215" y="1255" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-160" y="1115" />
+              <mxPoint x="-160" y="640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-71" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-57" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-20" y="1305" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-79" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=classic;startFill=0;endArrow=none;" parent="1" source="w6QvwMustZXX6lFKVsSo-57" target="w6QvwMustZXX6lFKVsSo-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-20" y="925" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-20" y="1000" />
+              <mxPoint x="80" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-57" value="Want to parse another msg?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-70" y="1060" width="100" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-67" value="Yes" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-130" y="1080" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-72" value="No" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-75" y="1160" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-85" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-74" target="w6QvwMustZXX6lFKVsSo-82" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-74" value="Destroy parser" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-80" y="1310" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-83" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="w6QvwMustZXX6lFKVsSo-82" target="w6QvwMustZXX6lFKVsSo-19" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-150" y="1470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-160" y="1470" />
+              <mxPoint x="-160" y="640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-87" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-82" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-20" y="1600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-82" value="Is any other&lt;div&gt;&amp;nbsp;parser used by the user?&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-75" y="1420" width="110" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-84" value="Yes" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-140" y="1440" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-88" value="No" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-10" y="1500" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-91" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="w6QvwMustZXX6lFKVsSo-89" target="w6QvwMustZXX6lFKVsSo-90" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-89" value="Destroy library" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-80" y="1600" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-90" value="User doesn not use our library anymore." style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-80" y="1720" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-92" value="Init library" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="570" y="150" width="440" height="510" as="geometry" />
+        </mxCell>
+        <mxCell id="w6QvwMustZXX6lFKVsSo-93" value="Here zoom in on every step." style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="430" y="70" width="120" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
