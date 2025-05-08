@@ -15,6 +15,10 @@
 
 #include "c_minilib_sip_codec.h"
 
+#include "utils/string.h"
+
+#define CMSC_DYNBUF_GET_END(dynbuf) (dynbuf)->buf + (dynbuf)->len
+
 struct cmsc_DynamicBuffer {
   uint32_t size;
   uint32_t len;
@@ -80,8 +84,6 @@ static inline cme_error_t cmsc_dynbuf_put(uint32_t data_len, char *data,
       new_size *= 2;
     }
 
-    printf("\n%lu\n",
-           sizeof(struct cmsc_DynamicBuffer) + new_size * sizeof(char));
     struct cmsc_DynamicBuffer *tmpbuf =
         realloc(local_dynbuf,
                 sizeof(struct cmsc_DynamicBuffer) + new_size * sizeof(char));
@@ -94,8 +96,8 @@ static inline cme_error_t cmsc_dynbuf_put(uint32_t data_len, char *data,
     local_dynbuf->size = new_size;
   }
 
+  memcpy(local_dynbuf->buf + local_dynbuf->len, data, data_len);
   local_dynbuf->len += data_len;
-  memcpy(local_dynbuf->buf, data, data_len);
 
   *dynbuf = local_dynbuf;
 
@@ -105,7 +107,6 @@ error_out:
   return err;
 }
 
-/* static inline char *cmsc_dynbuf_flush(struct cmsc_DynamicBuffer *dynbuf) { */
 static inline char *cmsc_dynbuf_flush(struct cmsc_DynamicBuffer *dynbuf) {
   if (!dynbuf) {
     return NULL;

@@ -10,3 +10,4 @@ test_link_args = ['-fsanitize=memory,undefined']
 
 subdir('test_unity.d')
 subdir('test_utils.d')
+subdir('test_parser.d')
