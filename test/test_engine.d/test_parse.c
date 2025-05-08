@@ -145,6 +145,86 @@ void test_parse_cseq_response_valid(void) {
   TEST_ASSERT_EQUAL_STRING("4711 INVITE", msg->cseq);
 }
 
+void test_parse_via_single_entry(void) {
+  const char *line = "SIP/2.0/UDP proxy.example.com;branch=z9hG4bK1";
+  uint32_t len = strlen(line);
+
+  cme_error_t err = cmsc_parse_field_func_via(len, line, msg);
+
+  TEST_ASSERT_NULL(err);
+  TEST_ASSERT_NOT_NULL(msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_STRING("proxy.example.com", msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_UDP, msg->via_l.transp_proto);
+  TEST_ASSERT_EQUAL_STRING("z9hG4bK1", msg->via_l.branch);
+}
+
+void test_parse_via_with_addr_param(void) {
+  const char *line = "SIP/2.0/UDP host.domain.com;addr=10.0.0.1";
+  uint32_t len = strlen(line);
+
+  cme_error_t err = cmsc_parse_field_func_via(len, line, msg);
+
+  TEST_ASSERT_NULL(err);
+
+  TEST_ASSERT_NOT_NULL(msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_STRING("host.domain.com", msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_UDP, msg->via_l.transp_proto);
+  TEST_ASSERT_NOT_NULL(msg->via_l.addr);
+  TEST_ASSERT_EQUAL_STRING("10.0.0.1", msg->via_l.addr);
+}
+
+void test_parse_via_with_received_param(void) {
+  const char *line = "SIP/2.0/UDP relay.domain.com;received=203.0.113.5";
+  uint32_t len = strlen(line);
+
+  cme_error_t err = cmsc_parse_field_func_via(len, line, msg);
+
+  TEST_ASSERT_NULL(err);
+
+  TEST_ASSERT_NOT_NULL(msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_STRING("relay.domain.com", msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_UDP, msg->via_l.transp_proto);
+  TEST_ASSERT_NOT_NULL(msg->via_l.received);
+  TEST_ASSERT_EQUAL_STRING("203.0.113.5", msg->via_l.received);
+}
+
+void test_parse_via_with_ttl_param(void) {
+  const char *line = "SIP/2.0/UDP ttlproxy.net;branch=z9hG4bKdef;ttl=42";
+  uint32_t len = strlen(line);
+
+  cme_error_t err = cmsc_parse_field_func_via(len, line, msg);
+
+  TEST_ASSERT_NULL(err);
+
+  TEST_ASSERT_NOT_NULL(msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_STRING("ttlproxy.net", msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_UDP, msg->via_l.transp_proto);
+  TEST_ASSERT_EQUAL_UINT32(42, msg->via_l.ttl);
+}
+
+void test_parse_via_multiple_values_one_header(void) {
+  const char *line = "SIP/2.0/UDP a.example.com;branch=z9hG4bKa, SIP/2.0/UDP "
+                     "b.example.com;branch=z9hG4bKb";
+  uint32_t len = strlen(line);
+
+  cme_error_t err = cmsc_parse_field_func_via(len, line, msg);
+
+  TEST_ASSERT_NULL(err);
+
+  // First entry
+  TEST_ASSERT_NOT_NULL(msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_STRING("a.example.com", msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_UDP, msg->via_l.transp_proto);
+  TEST_ASSERT_EQUAL_STRING("z9hG4bKa", msg->via_l.branch);
+
+  // Second entry
+  TEST_ASSERT_NOT_NULL(msg->via_l.next);
+  TEST_ASSERT_EQUAL_STRING("b.example.com", msg->via_l.next->sent_by);
+  TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_UDP,
+                        msg->via_l.next->transp_proto);
+  TEST_ASSERT_EQUAL_STRING("z9hG4bKb", msg->via_l.next->branch);
+}
+
 void test_parse_minimal_invite(void) {
   const char *raw_msg =
       "INVITE sip:bob@example.com SIP/2.0\r\n"

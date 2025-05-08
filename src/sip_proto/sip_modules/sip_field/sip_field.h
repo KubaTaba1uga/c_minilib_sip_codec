@@ -8,6 +8,7 @@
 
 static struct cmsc_SchemeField cmsc_field_to = {
     .id = "To",
+    .is_list = false,
     .is_field_func = NULL,
     .parse_field_func = cmsc_parse_field_func_to,
     .generate_field_func = NULL,
@@ -15,6 +16,7 @@ static struct cmsc_SchemeField cmsc_field_to = {
 
 static struct cmsc_SchemeField cmsc_field_from = {
     .id = "From",
+    .is_list = false,
     .is_field_func = NULL,
     .parse_field_func = cmsc_parse_field_func_from,
     .generate_field_func = NULL,
@@ -22,6 +24,7 @@ static struct cmsc_SchemeField cmsc_field_from = {
 
 static struct cmsc_SchemeField cmsc_field_cseq = {
     .id = "CSeq",
+    .is_list = false,
     .is_field_func = NULL,
     .parse_field_func = cmsc_parse_field_func_cseq,
     .generate_field_func = NULL,
@@ -29,6 +32,7 @@ static struct cmsc_SchemeField cmsc_field_cseq = {
 
 static struct cmsc_SchemeField cmsc_field_callid = {
     .id = "Call-ID",
+    .is_list = false,
     .is_field_func = NULL,
     .parse_field_func = cmsc_parse_field_func_callid,
     .generate_field_func = NULL,
@@ -36,6 +40,7 @@ static struct cmsc_SchemeField cmsc_field_callid = {
 
 static struct cmsc_SchemeField cmsc_field_max_forwards = {
     .id = "Max-Forwards",
+    .is_list = false,
     .is_field_func = NULL,
     .parse_field_func = cmsc_parse_field_func_max_forwards,
     .generate_field_func = NULL,

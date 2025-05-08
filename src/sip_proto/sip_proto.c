@@ -97,9 +97,6 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
     goto error_out;
   };
 
-  // Find end of SIP message
-  // produce lines split by CLRF, unitl end of msg reached
-
   struct cmsc_Scheme *scheme = cmsc_schemes_map[msg->sip_msg_type];
 
   for (uint32_t __i__ = 0; __i__ < scheme->mandatory.len; ++__i__) {
@@ -109,6 +106,9 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
     struct cmsc_SipLine value = {.start = NULL, .end = NULL, .len = 0};
     bool is_field_match = false;
 
+    // This is main parser loop, it is executed for every CLRF seperated line
+    // in msg. Once we have a match, loop is finished if the field is not a
+    // list. To find all list values we need to parse msg to the EOF.
     while (line.start) {
       line.end = strstr(line.start, "\r\n");
       if (!line.end) {
@@ -132,14 +132,15 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
 
       key.len = key.end - key.start;
 
+      bool is_local_match;
       if (scheme_field.is_field_func) { // To-do add default is field func
-        is_field_match = scheme_field.is_field_func(key.len, key.start);
+        is_local_match = scheme_field.is_field_func(key.len, key.start);
       } else {
-        is_field_match =
+        is_local_match =
             cmsc_default_is_field_func(key.len, key.start, scheme_field.id);
       }
 
-      if (is_field_match) {
+      if (is_local_match) {
         value.start = key.end + 1;
 
         // According to RFC 3261 7.3.1 Header Field Format
@@ -156,9 +157,10 @@ cme_error_t cmsc_sip_proto_parse(const uint32_t n, const char *buffer,
           goto error_out;
         };
 
-        // We need to verify that field is not a list
-        //  before breaking the loop.
-        break;
+        is_field_match = true;
+        if (!scheme_field.is_list) {
+          break;
+        }
       }
 
       line.start = line.end + 2;

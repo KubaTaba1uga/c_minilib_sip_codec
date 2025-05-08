@@ -43,6 +43,9 @@ void cmsc_destroy(void);
 struct cmsc_SchemeField {
   const char *id;
 
+  bool is_list; // Fields wich can occur multiple times are
+                //   represented as lists.
+
   bool (*is_field_func)(         // This function is optional if none
       const uint32_t buffer_len, // provided default one is used.
       const char *buffer);
@@ -120,11 +123,12 @@ enum cmsc_SipTransportProtocol {
 };
 
 struct cmsc_SipVia {
-  struct cmsc_SipProtoVer sip_proto_ver;
   enum cmsc_SipTransportProtocol transp_proto;
+  const char *sent_by;
   const char *addr;
   const char *branch;
   const char *received;
+  uint32_t ttl;
   struct cmsc_SipVia *next; // This is linked list
 };
 
