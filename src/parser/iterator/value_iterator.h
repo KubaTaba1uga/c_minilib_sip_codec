@@ -16,6 +16,8 @@
 #include "utils/dynamic_buffer.h"
 
 struct cmsc_ValueIterator {
+  // Value is optional, always ensure it is not null even on hit.
+  // Consider field like
   const char *value_start;
   const char *value_end;
   const char *header_start;

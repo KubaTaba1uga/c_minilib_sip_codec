@@ -2,89 +2,94 @@
 #include <string.h>
 #include <unity.h>
 
+#include "utils/dynamic_buffer.h"
 #include <c_minilib_error.h>
 
-#include "utils/dynamic_buffer.h"
 #define INITIAL_SIZE 8
 #define LARGE_DATA "0123456789ABCDEF0123456789ABCDEF"
 
-static struct cmsc_DynamicBuffer *buf = NULL;
+struct TestContainer {
+  int dummy; // Example header data before dynbuf
+  struct cmsc_DynamicBuffer dynbuf;
+};
 
-void setUp(void) { cme_init(); }
+static void *container = NULL;
+static struct TestContainer *test_container = NULL;
+static struct cmsc_DynamicBuffer *buf = NULL;
+static size_t container_size = 0;
+
+void setUp(void) {
+  cme_init();
+  container_size = sizeof(struct TestContainer) + INITIAL_SIZE;
+  container = malloc(container_size);
+  TEST_ASSERT_NOT_NULL(container);
+
+  test_container = (struct TestContainer *)container;
+  buf = &test_container->dynbuf;
+
+  cme_error_t err = cmsc_dynbuf_init(INITIAL_SIZE, buf);
+  TEST_ASSERT_NULL(err);
+}
 
 void tearDown(void) {
-  cmsc_dynbuf_destroy(&buf);
+  free(container);
+  container = NULL;
+  test_container = NULL;
+  buf = NULL;
+  container_size = 0;
   cme_destroy();
 }
 
-void test_create_valid(void) {
-  cme_error_t err = cmsc_dynbuf_create(INITIAL_SIZE, &buf);
-  TEST_ASSERT_NULL(err);
-  TEST_ASSERT_NOT_NULL(buf);
-  TEST_ASSERT_EQUAL_UINT32(0, buf->len);
-  TEST_ASSERT_EQUAL_UINT32(INITIAL_SIZE, buf->size);
-}
-
-void test_create_null_output(void) {
-  cme_error_t err = cmsc_dynbuf_create(INITIAL_SIZE, NULL);
+void test_init_null(void) {
+  cme_error_t err = cmsc_dynbuf_init(INITIAL_SIZE, NULL);
   TEST_ASSERT_NOT_NULL(err);
 }
 
-void test_destroy_null_pointer(void) {
-  // Should be a no-op, not crash
-  cmsc_dynbuf_destroy(NULL);
-}
-
-void test_destroy_already_destroyed(void) {
-  cmsc_dynbuf_create(INITIAL_SIZE, &buf);
-  cmsc_dynbuf_destroy(&buf);
-  TEST_ASSERT_NULL(buf);
-  // Second destroy should also be safe
-  cmsc_dynbuf_destroy(&buf);
-  TEST_ASSERT_NULL(buf);
-}
-
 void test_put_within_capacity(void) {
-  cmsc_dynbuf_create(INITIAL_SIZE, &buf);
   const char *data = "ABCD";
-  cme_error_t err = cmsc_dynbuf_put(strlen(data), (char *)data, &buf);
+  cme_error_t err = cmsc_dynbuf_put(strlen(data), (char *)data, &container,
+                                    container_size, buf);
   TEST_ASSERT_NULL(err);
   TEST_ASSERT_EQUAL_MEMORY(data, buf->buf, strlen(data));
   TEST_ASSERT_EQUAL_UINT32(4, buf->len);
 }
 
 void test_put_triggers_realloc(void) {
-  cmsc_dynbuf_create(4, &buf);
-  size_t data_len = strlen(LARGE_DATA);
+  const char *data = LARGE_DATA;
+  size_t data_len = strlen(data);
+
   cme_error_t err =
-      cmsc_dynbuf_put((uint32_t)data_len, (char *)LARGE_DATA, &buf);
+      cmsc_dynbuf_put(data_len, (char *)data, &container, container_size, buf);
   TEST_ASSERT_NULL(err);
 
+  test_container = (struct TestContainer *)container;
+  buf = &test_container->dynbuf;
+
   TEST_ASSERT_TRUE(buf->size >= data_len);
-  TEST_ASSERT_EQUAL_MEMORY(LARGE_DATA, buf->buf, data_len);
+  TEST_ASSERT_EQUAL_MEMORY(data, buf->buf, data_len);
+  TEST_ASSERT_EQUAL_UINT32(data_len, buf->len);
 }
 
 void test_put_null_dynbuf_ptr(void) {
-  cme_error_t err = cmsc_dynbuf_put(4, "test", NULL);
+  const char *data = "test";
+  cme_error_t err = cmsc_dynbuf_put(strlen(data), (char *)data, &container,
+                                    container_size, NULL);
   TEST_ASSERT_NOT_NULL(err);
 }
 
-void test_put_null_buffer_data_zero_len(void) {
-  cmsc_dynbuf_create(INITIAL_SIZE, &buf);
-  // data == NULL but length == 0 ⇒ memcpy of 0 bytes is valid
-  cme_error_t err = cmsc_dynbuf_put(0, NULL, &buf);
+void test_put_null_data_zero_len(void) {
+  cme_error_t err = cmsc_dynbuf_put(0, NULL, &container, container_size, buf);
   TEST_ASSERT_NULL(err);
 }
 
 void test_flush_reduces_size_and_resets_len(void) {
-  cme_error_t err = cmsc_dynbuf_create(INITIAL_SIZE * 4, &buf);
-  TEST_ASSERT_NULL(err);
-  // simulate that len was less than half the size
-  buf->len = INITIAL_SIZE;
+  // simulate buffer usage
+  cmsc_dynbuf_put(3, "ABC", &container, container_size, buf);
   char *p = cmsc_dynbuf_flush(buf);
+
   TEST_ASSERT_NOT_NULL(p);
   TEST_ASSERT_EQUAL_UINT32(0, buf->len);
-  TEST_ASSERT_EQUAL_UINT32((INITIAL_SIZE * 4) / 2, buf->size);
+  TEST_ASSERT_EQUAL_UINT32(INITIAL_SIZE / 2, buf->size);
 }
 
 void test_flush_null_buffer(void) {

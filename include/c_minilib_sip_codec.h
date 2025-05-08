@@ -53,6 +53,7 @@ struct cmsc_CharBufferView {
 enum cmsc_SupportedMessages {
   cmsc_SupportedMessages_INVITE,
 };
+
 enum cmsc_SupportedFields {
   cmsc_SupportedFields_IS_REQUEST,
   cmsc_SupportedFields_SIP_PROTO_VER,

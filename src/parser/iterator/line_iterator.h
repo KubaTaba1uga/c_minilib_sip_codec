@@ -59,7 +59,6 @@ cmsc_headeriter_next(struct cmsc_DynamicBuffer *buffer,
       cmsc_strnstr(headeriter->line_start, "\r\n", available_space);
 
   if (!headeriter->line_end) {
-    cmsc_headeriter_init(headeriter);
     goto false_out;
   }
 
@@ -70,7 +69,7 @@ cmsc_headeriter_next(struct cmsc_DynamicBuffer *buffer,
   if (headeriter->line_end == headeriter->line_start) {
     // We hit the body headeriter wont be usefull for us no more.
     // headeriter is not filled with valid data, we now need to use
-    // cmsc_BodyIter.
+    // struct cmsc_BodyIterator.
     goto false_out;
   }
 

@@ -25,8 +25,8 @@ struct cmsc_DynamicBuffer {
   char buf[];
 };
 
-static inline cme_error_t
-cmsc_dynbuf_create(uint32_t buf_size, struct cmsc_DynamicBuffer **dynbuf) {
+static inline cme_error_t cmsc_dynbuf_init(const uint32_t size,
+                                           struct cmsc_DynamicBuffer *dynbuf) {
   cme_error_t err;
 
   if (!dynbuf) {
@@ -34,16 +34,8 @@ cmsc_dynbuf_create(uint32_t buf_size, struct cmsc_DynamicBuffer **dynbuf) {
     goto error_out;
   }
 
-  struct cmsc_DynamicBuffer *local_dynbuf =
-      malloc(sizeof(struct cmsc_DynamicBuffer) + buf_size * sizeof(char));
-  if (!local_dynbuf) {
-    err = cme_error(ENOMEM, "Unable to allocate memory for `local_dynbuf`");
-    goto error_out;
-  }
-
-  local_dynbuf->len = 0;
-  local_dynbuf->size = buf_size;
-  *dynbuf = local_dynbuf;
+  dynbuf->len = 0;
+  dynbuf->size = size;
 
   return 0;
 
@@ -51,17 +43,19 @@ error_out:
   return cme_return(err);
 }
 
-static inline void cmsc_dynbuf_destroy(struct cmsc_DynamicBuffer **dynbuf) {
-  if (!dynbuf || !*dynbuf) {
+static inline void cmsc_dynbuf_destroy(struct cmsc_DynamicBuffer *dynbuf) {
+  if (!dynbuf) {
     return;
   }
 
-  free(*dynbuf);
-  *dynbuf = NULL;
+  dynbuf->len = 0;
+  dynbuf->size = 0;
 }
 
 static inline cme_error_t cmsc_dynbuf_put(uint32_t data_len, char *data,
-                                          struct cmsc_DynamicBuffer **dynbuf) {
+                                          void **parent_container,
+                                          uint32_t parent_container_size,
+                                          struct cmsc_DynamicBuffer *dynbuf) {
 
   cme_error_t err;
 
@@ -69,37 +63,39 @@ static inline cme_error_t cmsc_dynbuf_put(uint32_t data_len, char *data,
     return 0;
   }
 
-  if (!dynbuf || !*dynbuf) {
+  if (!dynbuf) {
     err = cme_error(EINVAL, "`dynbuf` cannot be NULL");
     goto error_out;
   }
 
-  struct cmsc_DynamicBuffer *local_dynbuf = *dynbuf;
-
-  uint32_t available_space = local_dynbuf->size - local_dynbuf->len;
+  uint32_t available_space = dynbuf->size - dynbuf->len;
 
   if (data_len > available_space) {
-    uint32_t new_size = local_dynbuf->size * 2;
-    while ((new_size - local_dynbuf->len) < data_len) {
+    uint32_t new_size = dynbuf->size * 2;
+    while ((new_size - dynbuf->len) < data_len) {
       new_size *= 2;
     }
 
-    struct cmsc_DynamicBuffer *tmpbuf =
-        realloc(local_dynbuf,
-                sizeof(struct cmsc_DynamicBuffer) + new_size * sizeof(char));
-    if (!tmpbuf) {
+    // Here we are utilizing that dynbuf is embedded in parent
+    uintptr_t dynbuf_offset =
+        (uintptr_t)dynbuf - (uintptr_t)(*parent_container);
+
+    void *new_parent_container = realloc(
+        *parent_container, parent_container_size + new_size * sizeof(char));
+    if (!new_parent_container) {
       err = cme_error(ENOMEM, "Cannot reallocate memory for `dynbuf`");
       goto error_out;
     }
 
-    local_dynbuf = tmpbuf;
-    local_dynbuf->size = new_size;
+    *parent_container = new_parent_container;
+
+    dynbuf = (struct cmsc_DynamicBuffer *)((uintptr_t)new_parent_container +
+                                           dynbuf_offset);
+    dynbuf->size = new_size;
   }
 
-  memcpy(local_dynbuf->buf + local_dynbuf->len, data, data_len);
-  local_dynbuf->len += data_len;
-
-  *dynbuf = local_dynbuf;
+  memcpy(dynbuf->buf + dynbuf->len, data, data_len);
+  dynbuf->len += data_len;
 
   return 0;
 
