@@ -162,7 +162,9 @@ static inline cme_error_t cmsc_parse_field_func_via(const uint32_t buffer_len,
     while (via->next) {
       via = via->next;
     }
+  }
 
+  if (!via->next) {
     via->next = calloc(1, sizeof(struct cmsc_SipVia));
     if (!via->next) {
       err = cme_error(ENOMEM, "Unable to allocate memory for `via->next`");
@@ -204,30 +206,26 @@ static inline cme_error_t cmsc_parse_field_func_via(const uint32_t buffer_len,
             (buffer + buffer_len - 1) - value_end, branch, msg);
       }
 
-      /* const char *addr = */
-      /*     cmsc_strnstr(value_end, "addr=", (buffer + buffer_len) -
-       * value_end); */
-      /* if (addr) { */
-      /*   via->addr = cmsc_parse_insert_sip_arg((buffer + buffer_len) -
-       * value_end, */
-      /*                                         addr, msg); */
-      /* } */
+      const char *addr =
+          cmsc_strnstr(value_end, "addr=", (buffer + buffer_len) - value_end);
+      if (addr) {
+        via->addr = cmsc_parse_insert_sip_arg(
+            (buffer + buffer_len - 1) - value_end, addr, msg);
+      }
 
-      /* const char *received = cmsc_strnstr( */
-      /*     value_end, "received=", (buffer + buffer_len) - value_end); */
-      /* if (received) { */
-      /*   via->received = cmsc_parse_insert_sip_arg( */
-      /*       (buffer + buffer_len) - value_end, received, msg); */
-      /* } */
+      const char *received = cmsc_strnstr(
+          value_end, "received=", (buffer + buffer_len) - value_end);
+      if (received) {
+        via->received = cmsc_parse_insert_sip_arg(
+            (buffer + buffer_len) - value_end, received, msg);
+      }
 
-      /* const char *ttl = */
-      /*     cmsc_strnstr(value_end, "ttl=", (buffer + buffer_len) - value_end);
-       */
-      /* if (ttl) { */
-      /*   ttl += 4; // len("ttl=") is 4 */
-
-      /*   via->ttl = atoi(ttl); */
-      /* } */
+      const char *ttl =
+          cmsc_strnstr(value_end, "ttl=", (buffer + buffer_len) - value_end);
+      if (ttl) {
+        ttl += 4; // len("ttl=") is 4
+        via->ttl = atoi(ttl);
+      }
     }
   }
 
