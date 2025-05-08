@@ -1,12 +1,9 @@
-test_string_name = 'test_string.c'
-
-test_string_exe = executable('test_string',
+test_dynamic_buffer_name = 'test_dynamic_buffer.c'
+test_dynamic_buffer_exe = executable('test_dynamic_buffer',
   sources: [
-    test_string_name,
-    test_runner.process(test_string_name),
+    test_dynamic_buffer_name,
+    test_runner.process(test_dynamic_buffer_name),
   ],
   dependencies: test_dependencies,
-  # include_directories: include_directories('../../include'),
 )
-
-test('test_string', test_string_exe)
+test('test_dynamic_buffer', test_dynamic_buffer_exe)
