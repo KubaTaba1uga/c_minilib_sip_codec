@@ -39,7 +39,6 @@ void cmsc_message_destroy(struct cmsc_SipMessage **message) {
   }
 
   struct cmsc_SipVia *via = (*message)->via_l.next;
-
   while (via) {
     struct cmsc_SipVia *next = via->next;
     free(via);

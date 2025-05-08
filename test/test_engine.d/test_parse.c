@@ -22,7 +22,7 @@ void setUp(void) {
 }
 
 void tearDown(void) {
-  free(msg);
+  cmsc_message_destroy(&msg);
   msg = NULL;
   cmsc_sip_proto_destroy();
   cme_destroy();
@@ -225,30 +225,29 @@ void test_parse_via_multiple_values_one_header(void) {
   TEST_ASSERT_EQUAL_STRING("z9hG4bKb", msg->via_l.next->branch);
 }
 
-/* void test_parse_via_multiple_header_calls(void) { */
-/*   const char *via1 = "SIP/2.0/UDP node1.example.org;branch=z9hG4bK1"; */
-/*   const char *via2 = "SIP/2.0/TCP node2.example.org;branch=z9hG4bK2"; */
+void test_parse_via_multiple_header_calls(void) {
+  const char *via1 = "SIP/2.0/UDP node1.example.org;branch=z9hG4bK1";
+  const char *via2 = "SIP/2.0/UDP node2.example.org;branch=z9hG4bK2";
 
-/*   cme_error_t err1 = cmsc_parse_field_func_via(strlen(via1), via1, msg); */
-/*   cme_error_t err2 = cmsc_parse_field_func_via(strlen(via2), via2, msg); */
+  cme_error_t err1 = cmsc_parse_field_func_via(strlen(via1), via1, msg);
+  cme_error_t err2 = cmsc_parse_field_func_via(strlen(via2), via2, msg);
 
-/*   TEST_ASSERT_NULL(err1); */
-/*   TEST_ASSERT_NULL(err2); */
+  TEST_ASSERT_NULL(err1);
+  TEST_ASSERT_NULL(err2);
 
-/*   // First parsed header */
-/*   TEST_ASSERT_NOT_NULL(msg->via_l.sent_by); */
-/*   TEST_ASSERT_EQUAL_STRING("node1.example.org", msg->via_l.sent_by); */
-/*   TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_UDP,
- * msg->via_l.transp_proto); */
-/*   TEST_ASSERT_EQUAL_STRING("z9hG4bK1", msg->via_l.branch); */
+  // First parsed header
+  TEST_ASSERT_NOT_NULL(msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_STRING("node1.example.org", msg->via_l.sent_by);
+  TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_UDP, msg->via_l.transp_proto);
+  TEST_ASSERT_EQUAL_STRING("z9hG4bK1", msg->via_l.branch);
 
-/*   // Second parsed header */
-/*   TEST_ASSERT_NOT_NULL(msg->via_l.next); */
-/*   TEST_ASSERT_EQUAL_STRING("node2.example.org", msg->via_l.next->sent_by); */
-/*   TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_TCP,
- * msg->via_l.next->transp_proto); */
-/*   TEST_ASSERT_EQUAL_STRING("z9hG4bK2", msg->via_l.next->branch); */
-/* } */
+  // Second parsed header
+  TEST_ASSERT_NOT_NULL(msg->via_l.next);
+  TEST_ASSERT_EQUAL_STRING("node2.example.org", msg->via_l.next->sent_by);
+  TEST_ASSERT_EQUAL_INT(cmsc_SipTransportProtocol_UDP,
+                        msg->via_l.next->transp_proto);
+  TEST_ASSERT_EQUAL_STRING("z9hG4bK2", msg->via_l.next->branch);
+}
 
 void test_parse_minimal_invite(void) {
   const char *raw_msg =
