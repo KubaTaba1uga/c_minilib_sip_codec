@@ -43,7 +43,9 @@ void cmsc_parser_destroy(cmsc_parser_t *parser) {
     return;
   }
 
+  free((*parser)->msg);
   free(*parser);
+
   *parser = NULL;
 };
 
@@ -70,6 +72,8 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     }
   }
 
+  // We need to store whole data in case some data from one feed
+  //   will be needed in next feed.
   if ((err =
            cmsc_dynbuf_put(data.buf_len, (char *)data.buf, (void **)parser,
                            sizeof(struct cmsc_Parser), &(*parser)->content))) {
@@ -89,14 +93,17 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     case cmsc_ParserStates_MsgReady:
       // This is final state, to go back to MsgEmpty
       //  one needs to pop_msg.
+      is_next = false;
       break;
-    default:;
+    default:
+      is_next = false;
     }
+
     if (err) {
       goto error_out;
     }
 
-    (*parser)->state = (*parser)->state++ % cmsc_ParserStates_MsgReady;
+    (*parser)->state = ((*parser)->state % cmsc_ParserStates_MsgReady) + 1;
   }
 
   // Once we processed all data we can flush the parser content.
