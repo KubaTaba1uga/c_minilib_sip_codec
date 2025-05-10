@@ -53,17 +53,29 @@ struct cmsc_CharBufferView {
 
 enum cmsc_SupportedFields {
   cmsc_SupportedFields_SUPPORTED_MSG = 1,
-  cmsc_SupportedFields_SIP_PROTO_VER = 2,
-  cmsc_SupportedFields_IS_REQUEST = 4,
-  cmsc_SupportedFields_TO = 8,
-  cmsc_SupportedFields_FROM = 16,
-  cmsc_SupportedFields_CSEQ = 32,
+  cmsc_SupportedFields_REQUEST_LINE = 2,
+  cmsc_SupportedFields_RESPONSE_LINE = 4,
+  cmsc_SupportedFields_IS_REQUEST = 8,
+  cmsc_SupportedFields_TO = 16,
+  cmsc_SupportedFields_FROM = 32,
+  cmsc_SupportedFields_CSEQ = 64,
   // Add more fields here
 };
 
 struct cmsc_Field_SipProtoVer {
   uint32_t major;
   uint32_t minor;
+};
+
+struct cmsc_Field_RequestLine {
+  struct cmsc_Field_SipProtoVer sip_proto_ver;
+  const char *request_uri;
+};
+
+struct cmsc_Field_StatusLine {
+  struct cmsc_Field_SipProtoVer sip_proto_ver;
+  const char *reason_phrase;
+  uint32_t status_code;
 };
 
 struct cmsc_Field_To {
@@ -85,9 +97,11 @@ struct cmsc_Field_CSeq {
 
 typedef struct cmsc_SipMsg *cmsc_sipmsg_t;
 
-bool cmsc_sipmsg_is_request(const cmsc_sipmsg_t msg);
-struct cmsc_Field_SipProtoVer *
-cmsc_sipmsg_get_sip_proto_ver(const cmsc_sipmsg_t msg);
+bool cmsc_sipmsg_get_is_request(const cmsc_sipmsg_t msg);
+struct cmsc_Field_RequestLine *
+cmsc_sipmsg_get_request_line(const cmsc_sipmsg_t msg);
+struct cmsc_Field_StatusLine *
+cmsc_sipmsg_get_response_line(const cmsc_sipmsg_t msg);
 struct cmsc_Field_To *cmsc_sipmsg_get_to(const cmsc_sipmsg_t msg);
 struct cmsc_Field_From *cmsc_sipmsg_get_from(const cmsc_sipmsg_t msg);
 struct cmsc_CharBufferView *cmsc_sipmsg_get_body(const cmsc_sipmsg_t msg);

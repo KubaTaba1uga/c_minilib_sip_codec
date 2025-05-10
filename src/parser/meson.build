@@ -4,3 +4,4 @@ sources += files(
 )
 
 subdir('iterator')
+subdir('parse_field')

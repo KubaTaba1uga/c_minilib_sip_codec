@@ -30,7 +30,8 @@ struct cmsc_SipMsg {
   uint32_t presence_mask;
   bool is_request;
   enum cmsc_SupportedMessages supmsg;
-  struct cmsc_Field_SipProtoVer sip_proto_ver;
+  struct cmsc_Field_RequestLine request_line;
+  struct cmsc_Field_StatusLine status_line;
   struct cmsc_Field_To to;
   struct cmsc_Field_From from;
   struct cmsc_Field_CSeq cseq;

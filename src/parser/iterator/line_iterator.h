@@ -17,6 +17,7 @@ struct cmsc_HeaderIterator {
   const char *line_start;
   const char *line_end;
   const char *colon;
+  uint32_t line_len;
 };
 
 static inline cme_error_t
@@ -30,6 +31,7 @@ cmsc_headeriter_init(struct cmsc_HeaderIterator *headeriter) {
 
   headeriter->line_start = NULL;
   headeriter->line_end = NULL;
+  headeriter->line_len = 0;
   headeriter->colon = NULL;
 
   return 0;
@@ -72,6 +74,8 @@ cmsc_headeriter_next(struct cmsc_DynamicBuffer *buffer,
     // struct cmsc_BodyIterator.
     goto false_out;
   }
+
+  headeriter->line_len = headeriter->line_end - headeriter->line_start;
 
   return true;
 false_out:
