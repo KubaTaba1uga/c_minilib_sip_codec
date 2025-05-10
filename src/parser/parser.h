@@ -75,18 +75,18 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
   struct cmsc_Field_SipProtoVer *proto_ver;
   if (parser->msg->is_request) {
     proto_ver = &parser->msg->request_line.sip_proto_ver;
+    if ((err = cmsc_parser_parse_request_line(header_iter.line_end -
+                                                  supported_msg_id,
+                                              supported_msg_id, parser->msg))) {
+      goto error_out;
+    }
+
+  } else {
+    proto_ver = &parser->msg->status_line.sip_proto_ver;
 
     if ((err = cmsc_parser_parse_status_line(header_iter.line_end -
                                                  supported_msg_id,
                                              supported_msg_id, parser->msg))) {
-      goto error_out;
-    }
-  } else {
-    proto_ver = &parser->msg->status_line.sip_proto_ver;
-
-    if ((err = cmsc_parser_parse_request_line(header_iter.line_end -
-                                                  supported_msg_id,
-                                              supported_msg_id, parser->msg))) {
       goto error_out;
     }
   }

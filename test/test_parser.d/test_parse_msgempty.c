@@ -41,9 +41,12 @@ void test_parse_valid_invite_line(void) {
   TEST_ASSERT_EQUAL(cmsc_SupportedMessages_INVITE, msg->supmsg);
 
   TEST_ASSERT_TRUE(
-      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_SIP_PROTO_VER));
-  TEST_ASSERT_EQUAL(2, msg->sip_proto_ver.major);
-  TEST_ASSERT_EQUAL(0, msg->sip_proto_ver.minor);
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_REQUEST_LINE));
+  TEST_ASSERT_EQUAL(2, msg->request_line.sip_proto_ver.major);
+  TEST_ASSERT_EQUAL(0, msg->request_line.sip_proto_ver.minor);
+
+  TEST_ASSERT_EQUAL_STRING("sip:bob@example.com",
+                           msg->request_line.request_uri);
 }
 
 void test_parse_valid_200_ok_line(void) {
@@ -66,8 +69,14 @@ void test_parse_valid_200_ok_line(void) {
   TEST_ASSERT_TRUE(
       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_SUPPORTED_MSG));
   TEST_ASSERT_EQUAL(cmsc_SupportedMessages_200_OK, msg->supmsg);
-  TEST_ASSERT_EQUAL(2, msg->sip_proto_ver.major);
-  TEST_ASSERT_EQUAL(0, msg->sip_proto_ver.minor);
+
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_STATUS_LINE));
+  TEST_ASSERT_EQUAL(2, msg->status_line.sip_proto_ver.major);
+  TEST_ASSERT_EQUAL(0, msg->status_line.sip_proto_ver.minor);
+
+  TEST_ASSERT_EQUAL(200, msg->status_line.status_code);
+  TEST_ASSERT_EQUAL_STRING("OK", msg->status_line.reason_phrase);
 }
 
 void test_parse_missing_sip_version_returns_error(void) {

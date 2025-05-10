@@ -54,7 +54,7 @@ struct cmsc_CharBufferView {
 enum cmsc_SupportedFields {
   cmsc_SupportedFields_SUPPORTED_MSG = 1,
   cmsc_SupportedFields_REQUEST_LINE = 2,
-  cmsc_SupportedFields_RESPONSE_LINE = 4,
+  cmsc_SupportedFields_STATUS_LINE = 4,
   cmsc_SupportedFields_IS_REQUEST = 8,
   cmsc_SupportedFields_TO = 16,
   cmsc_SupportedFields_FROM = 32,

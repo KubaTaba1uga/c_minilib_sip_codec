@@ -41,6 +41,8 @@ cmsc_parser_parse_request_line(const uint32_t buffer_len, const char *buffer,
   msg->request_line.request_uri =
       cmsc_sipmsg_insert_str(second_space - first_space, first_space, &msg);
 
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_REQUEST_LINE);
+
   return NULL;
 error_out:
   return cme_return(err);

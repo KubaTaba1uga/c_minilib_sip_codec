@@ -36,10 +36,12 @@ cmsc_parser_parse_status_line(const uint32_t buffer_len, const char *buffer,
     goto error_out;
   }
 
-  msg->status_line.reason_phrase =
-      cmsc_sipmsg_insert_str(reason_phrase - buffer, buffer, &msg);
+  msg->status_line.reason_phrase = cmsc_sipmsg_insert_str(
+      buffer_len - (reason_phrase - buffer), reason_phrase, &msg);
 
   msg->status_line.status_code = atoi(buffer);
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_STATUS_LINE);
 
   return NULL;
 error_out:
