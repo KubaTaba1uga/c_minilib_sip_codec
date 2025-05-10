@@ -5,11 +5,16 @@
 
 #include "c_minilib_sip_codec.h"
 #include "supported_messages/invite.h"
+#include "supported_messages/ok_200.h"
 
 static inline cme_error_t cmsc_supmsg_init(void) {
   cme_error_t err;
 
   if ((err = cmsc_supmsg_invite_init())) {
+    goto error_out;
+  }
+
+  if ((err = cmsc_supmsg_ok_200_init())) {
     goto error_out;
   }
 
@@ -19,6 +24,9 @@ error_out:
   return cme_return(err);
 };
 
-static inline void cmsc_supmsg_destroy(void) { cmsc_supmsg_invite_destroy(); };
+static inline void cmsc_supmsg_destroy(void) {
+  cmsc_supmsg_ok_200_destroy();
+  cmsc_supmsg_invite_destroy();
+};
 
 #endif // C_MINILIB_SIP_CODEC_SUPPORTED_MESSAGES_H

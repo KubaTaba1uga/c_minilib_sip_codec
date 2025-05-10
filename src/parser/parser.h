@@ -9,6 +9,7 @@
 
 #include <asm-generic/errno-base.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <c_minilib_error.h>
@@ -33,9 +34,10 @@ struct cmsc_Parser {
   struct cmsc_DynamicBuffer content;
 };
 
-static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
-                                                     bool *is_next) {
-  struct cmsc_HeaderIterator header_iter;
+static inline cme_error_t
+cmsc_parser_parse_msgempty(struct cmsc_HeaderIterator *header_iter,
+                           cmsc_parser_t parser, bool *is_next) {
+
   cme_error_t err;
 
   if (!parser->msg) {
@@ -44,19 +46,9 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
     }
   }
 
-  if ((err = cmsc_headeriter_init(&header_iter))) {
-    goto error_out;
+  if (!cmsc_headeriter_next(&parser->content, header_iter)) {
+    return 0;
   }
-
-  // If we are unable to fill one line then we can drop parsing and wait for
-  // more data.
-  *is_next = cmsc_headeriter_next(&parser->content, &header_iter);
-  if (!*is_next) {
-    return NULL;
-  }
-
-  // Let's set default value for all errors etc.
-  *is_next = false;
 
   // According RFC 3261 25 request line looks like this:
   //    Method SP Request-URI SP SIP-Version CRLF
@@ -65,7 +57,7 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
 
   // First let's find sip version
   const char *sip_version =
-      cmsc_strnstr(header_iter.line_start, "SIP/", header_iter.line_len);
+      cmsc_strnstr(header_iter->line_start, "SIP/", header_iter->line_len);
   if (!sip_version) {
     err = cme_error(EINVAL, "No sip version in the line");
     goto error_out;
@@ -73,8 +65,8 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
 
   // Now let's find supported msg id
   const char *supported_msg_id = NULL;
-  if ((err = cmsc_parser_parse_supported_msg(header_iter.line_len,
-                                             header_iter.line_start,
+  if ((err = cmsc_parser_parse_supported_msg(header_iter->line_len,
+                                             header_iter->line_start,
                                              parser->msg, &supported_msg_id))) {
     goto error_out;
   }
@@ -85,7 +77,7 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
   struct cmsc_Field_SipProtoVer *proto_ver;
   if (parser->msg->is_request) {
     proto_ver = &parser->msg->request_line.sip_proto_ver;
-    if ((err = cmsc_parser_parse_request_line(header_iter.line_end -
+    if ((err = cmsc_parser_parse_request_line(header_iter->line_end -
                                                   supported_msg_id,
                                               supported_msg_id, parser->msg))) {
       goto error_out;
@@ -94,7 +86,7 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
   } else {
     proto_ver = &parser->msg->status_line.sip_proto_ver;
 
-    if ((err = cmsc_parser_parse_status_line(header_iter.line_end -
+    if ((err = cmsc_parser_parse_status_line(header_iter->line_end -
                                                  supported_msg_id,
                                              supported_msg_id, parser->msg))) {
       goto error_out;
@@ -102,7 +94,7 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
   }
 
   if ((err = cmsc_parser_parse_sip_proto_ver(
-           (header_iter.line_end - sip_version), sip_version, proto_ver))) {
+           (header_iter->line_end - sip_version), sip_version, proto_ver))) {
     goto error_out;
   };
 
@@ -114,18 +106,11 @@ error_out:
   return cme_return(err);
 }
 
-static inline cme_error_t cmsc_parser_parse_headers(cmsc_parser_t parser,
-                                                    bool *is_next) {
-  struct cmsc_HeaderIterator header_iter;
+static inline cme_error_t
+cmsc_parser_parse_headers(struct cmsc_HeaderIterator *header_iter,
+                          cmsc_parser_t parser, bool *is_next) {
   struct cmsc_ValueIterator value_iter;
   cme_error_t err;
-
-  // Let's set default value for all errors etc.
-  *is_next = false;
-
-  if ((err = cmsc_headeriter_init(&header_iter))) {
-    goto error_out;
-  }
 
   struct cmsc_Scheme *scheme =
       cmsc_schemes_register_get_scheme(parser->msg->supmsg);
@@ -144,10 +129,13 @@ static inline cme_error_t cmsc_parser_parse_headers(cmsc_parser_t parser,
     goto error_out;
   }
 
-  while (cmsc_headeriter_next(&parser->content, &header_iter) &&
-         cmsc_valueiter_next(&header_iter, &value_iter)) {
+  while (cmsc_headeriter_next(&parser->content, header_iter) &&
+         cmsc_valueiter_next(header_iter, &value_iter)) {
     bool is_match = false;
     CMSC_FOREACH_SCHEME_MANDATORY(scheme, i, field) {
+      printf("Parsing header: %s, %.*s\n", field->id, header_iter->line_len,
+             header_iter->line_start);
+
       if (field->is_field_func) {
         is_match = field->is_field_func(value_iter.header_len,
                                         value_iter.header_start);
@@ -166,28 +154,28 @@ static inline cme_error_t cmsc_parser_parse_headers(cmsc_parser_t parser,
       }
     }
 
-    if (is_match) {
-      continue;
-    }
+    /* if (is_match) { */
+    /*   continue; */
+    /* } */
 
-    CMSC_FOREACH_SCHEME_OPTIONAL(scheme, i, field) {
-      if (field->is_field_func) {
-        is_match = field->is_field_func(value_iter.header_len,
-                                        value_iter.header_start);
-      } else {
-        is_match = cmsc_default_is_field_func(
-            value_iter.header_len, value_iter.header_start, field->id);
-      }
+    /* CMSC_FOREACH_SCHEME_OPTIONAL(scheme, i, field) { */
+    /*   if (field->is_field_func) { */
+    /*     is_match = field->is_field_func(value_iter.header_len, */
+    /*                                     value_iter.header_start); */
+    /*   } else { */
+    /*     is_match = cmsc_default_is_field_func( */
+    /*         value_iter.header_len, value_iter.header_start, field->id); */
+    /*   } */
 
-      if (is_match) {
-        if ((err = field->parse_field_func(
-                 value_iter.value_end - value_iter.value_start,
-                 value_iter.value_start, parser->msg))) {
-          goto error_out;
-        }
-        break;
-      }
-    }
+    /*   if (is_match) { */
+    /*     if ((err = field->parse_field_func( */
+    /*              value_iter.value_end - value_iter.value_start, */
+    /*              value_iter.value_start, parser->msg))) { */
+    /*       goto error_out; */
+    /*     } */
+    /*     break; */
+    /*   } */
+    /* } */
 
     if (!is_match) {
       break;

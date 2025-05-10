@@ -73,34 +73,40 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     goto error_out;
   };
 
-  bool is_next = true;
-  while (is_next) {
+  struct cmsc_HeaderIterator header_iter;
+  if ((err = cmsc_headeriter_init(&header_iter))) {
+    goto error_out;
+  }
+
+  bool is_next;
+  do {
+    is_next = false;
+
     switch ((*parser)->state) {
     case cmsc_ParserStates_MsgEmpty:
-      err = cmsc_parser_parse_msgempty(*parser, &is_next);
+      err = cmsc_parser_parse_msgempty(&header_iter, *parser, &is_next);
       break;
     case cmsc_ParserStates_ParsingHeaders:
-      err = cmsc_parser_parse_headers(*parser, &is_next);
+      err = cmsc_parser_parse_headers(&header_iter, *parser, &is_next);
       break;
     case cmsc_ParserStates_ParsingBody:
       // ParsingHeaders -> ParsingBody
     case cmsc_ParserStates_MsgReady:
       // This is final state, to go back to MsgEmpty
       //  one needs to pop_msg.
-      is_next = false;
       break;
-    default:
-      is_next = false;
+    default:;
     }
 
     if (err) {
       goto error_out;
     }
 
+    printf("is_next=%d, (*parser)->state=%d\n", is_next, (*parser)->state);
     if (is_next) {
       (*parser)->state = ((*parser)->state % cmsc_ParserStates_MsgReady) + 1;
     }
-  }
+  } while (is_next);
 
   // Once we processed all data we can flush the parser content.
   //  There may be some dataloss here that needs to be fixed someday.

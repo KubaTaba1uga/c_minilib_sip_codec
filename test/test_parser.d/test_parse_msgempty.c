@@ -30,7 +30,6 @@ void test_parse_valid_invite_line(void) {
   };
 
   cme_error_t err = cmsc_parser_feed_data(view, &parser);
-  puts(err->msg);
   TEST_ASSERT_NULL(err);
 
   cmsc_sipmsg_t msg = parser->msg;
@@ -139,5 +138,5 @@ void test_parse_invite_with_to_header(void) {
   // To header parsing
   TEST_ASSERT_TRUE(cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_TO));
   TEST_ASSERT_NOT_NULL(msg->to.uri);
-  TEST_ASSERT_EQUAL_STRING("sip:bob@example.com", msg->to.uri);
+  TEST_ASSERT_EQUAL_STRING("<sip:bob@example.com>", msg->to.uri);
 }
