@@ -112,7 +112,7 @@ void cmsc_sipmsg_destroy(cmsc_sipmsg_t *msg);
  ******************************************************************************/
 enum cmsc_ParserStates {
   cmsc_ParserStates_MsgEmpty = 0,
-  cmsc_ParserStates_ParsingFields,
+  cmsc_ParserStates_ParsingHeaders,
   cmsc_ParserStates_ParsingBody,
   cmsc_ParserStates_MsgReady,
 };

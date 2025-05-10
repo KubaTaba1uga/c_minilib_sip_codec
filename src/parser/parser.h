@@ -7,6 +7,7 @@
 #ifndef C_MINILIB_SIP_CODEC_PARSER_H
 #define C_MINILIB_SIP_CODEC_PARSER_H
 
+#include <asm-generic/errno-base.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -15,10 +16,13 @@
 #include "c_minilib_sip_codec.h"
 #include "parser/common_parser.h"
 #include "parser/iterator/line_iterator.h"
+#include "parser/iterator/value_iterator.h"
 #include "parser/parse_field/parse_request_line.h"
 #include "parser/parse_field/parse_sip_proto_ver.h"
 #include "parser/parse_field/parse_status_line.h"
 #include "parser/parse_field/parse_supported_msg.h"
+#include "scheme/scheme.h"
+#include "scheme/scheme_register.h"
 #include "sipmsg/sipmsg.h"
 #include "utils/dynamic_buffer.h"
 #include "utils/string.h"
@@ -29,11 +33,16 @@ struct cmsc_Parser {
   struct cmsc_DynamicBuffer content;
 };
 
-// This function basically parse first line
 static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
                                                      bool *is_next) {
   struct cmsc_HeaderIterator header_iter;
   cme_error_t err;
+
+  if (!parser->msg) {
+    if ((err = cmsc_sipmsg_create(&parser->msg))) {
+      goto error_out;
+    }
+  }
 
   if ((err = cmsc_headeriter_init(&header_iter))) {
     goto error_out;
@@ -45,6 +54,7 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
   if (!*is_next) {
     return NULL;
   }
+
   // Let's set default value for all errors etc.
   *is_next = false;
 
@@ -95,6 +105,94 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
            (header_iter.line_end - sip_version), sip_version, proto_ver))) {
     goto error_out;
   };
+
+  *is_next = true;
+
+  return NULL;
+
+error_out:
+  return cme_return(err);
+}
+
+static inline cme_error_t cmsc_parser_parse_headers(cmsc_parser_t parser,
+                                                    bool *is_next) {
+  struct cmsc_HeaderIterator header_iter;
+  struct cmsc_ValueIterator value_iter;
+  cme_error_t err;
+
+  // Let's set default value for all errors etc.
+  *is_next = false;
+
+  if ((err = cmsc_headeriter_init(&header_iter))) {
+    goto error_out;
+  }
+
+  struct cmsc_Scheme *scheme =
+      cmsc_schemes_register_get_scheme(parser->msg->supmsg);
+  if (!scheme) {
+    err = cme_errorf(ENOENT, "No scheme matching `msg->supmsg=%d`",
+                     parser->msg->supmsg);
+    goto error_out;
+  }
+
+  // If we are unable to fill one line then we can drop parsing and wait for
+  // more data.
+  struct cmsc_SchemeField *field;
+  uint32_t i;
+
+  if ((err = cmsc_valueiter_init(&value_iter))) {
+    goto error_out;
+  }
+
+  while (cmsc_headeriter_next(&parser->content, &header_iter) &&
+         cmsc_valueiter_next(&header_iter, &value_iter)) {
+    bool is_match = false;
+    CMSC_FOREACH_SCHEME_MANDATORY(scheme, i, field) {
+      if (field->is_field_func) {
+        is_match = field->is_field_func(value_iter.header_len,
+                                        value_iter.header_start);
+      } else {
+        is_match = cmsc_default_is_field_func(
+            value_iter.header_len, value_iter.header_start, field->id);
+      }
+
+      if (is_match) {
+        if ((err = field->parse_field_func(
+                 value_iter.value_end - value_iter.value_start,
+                 value_iter.value_start, parser->msg))) {
+          goto error_out;
+        }
+        break;
+      }
+    }
+
+    if (is_match) {
+      continue;
+    }
+
+    CMSC_FOREACH_SCHEME_OPTIONAL(scheme, i, field) {
+      if (field->is_field_func) {
+        is_match = field->is_field_func(value_iter.header_len,
+                                        value_iter.header_start);
+      } else {
+        is_match = cmsc_default_is_field_func(
+            value_iter.header_len, value_iter.header_start, field->id);
+      }
+
+      if (is_match) {
+        if ((err = field->parse_field_func(
+                 value_iter.value_end - value_iter.value_start,
+                 value_iter.value_start, parser->msg))) {
+          goto error_out;
+        }
+        break;
+      }
+    }
+
+    if (!is_match) {
+      break;
+    }
+  }
 
   return NULL;
 
