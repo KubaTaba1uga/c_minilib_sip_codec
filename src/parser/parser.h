@@ -145,9 +145,7 @@ cmsc_parser_parse_headers(struct cmsc_HeaderIterator *header_iter,
       }
 
       if (is_match) {
-        if ((err = field->parse_field_func(
-                 value_iter.value_end - value_iter.value_start,
-                 value_iter.value_start, parser->msg))) {
+        if ((err = field->parse_field_func(&value_iter, parser->msg))) {
           goto error_out;
         }
         break;

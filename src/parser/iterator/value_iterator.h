@@ -88,4 +88,5 @@ cmsc_valueiter_next(const struct cmsc_HeaderIterator *headeriter,
 
   return true;
 }
+
 #endif

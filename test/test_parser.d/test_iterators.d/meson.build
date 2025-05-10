@@ -18,3 +18,13 @@ test_value_iterator_exe = executable('test_value_iterator',
   dependencies: test_dependencies,
 )
 test('test_value_iterator', test_value_iterator_exe)
+
+test_args_iterator_name = 'test_args_terator.c'
+test_args_iterator_exe = executable('test_args_iterator',
+  sources: [
+    test_args_iterator_name,
+    test_runner.process(test_args_iterator_name),
+  ],
+  dependencies: test_dependencies,
+)
+test('test_args_iterator', test_args_iterator_exe)

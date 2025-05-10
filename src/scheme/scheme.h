@@ -4,6 +4,7 @@
 #include <c_minilib_error.h>
 
 #include "c_minilib_sip_codec.h"
+#include "parser/iterator/value_iterator.h"
 #include "sipmsg/sipmsg.h"
 
 #define CMSC_FOREACH_SCHEME_MANDATORY(scheme_ptr, index_var, field_ptr)        \
@@ -25,9 +26,8 @@ struct cmsc_SchemeField {
       const uint32_t buffer_len, // provided default one is used.
       const char *buffer);
 
-  cme_error_t (*parse_field_func)( // This function is mandatory there
-      const uint32_t buffer_len,   // is no default one.
-      const char *buffer, cmsc_sipmsg_t msg);
+  cme_error_t (*parse_field_func)(const struct cmsc_ValueIterator *value_iter,
+                                  cmsc_sipmsg_t msg);
 
   void *generate_field_func;
 };
