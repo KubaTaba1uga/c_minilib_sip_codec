@@ -19,19 +19,17 @@
 #define CMSC_SIPMSG_DYNBUF_SIZE 512
 #endif
 
-// We need to assign fields to 2^N values, to represent seperate
-//  bits in `present_mask` field.
-enum cmsc_SipField {
-  cmsc_SipField_SIP_PROTO_VER = 1,
-  cmsc_SipField_IS_REQUEST = 2,
-  cmsc_SipField_TO = 4,
-  cmsc_SipField_FROM = 8,
-  cmsc_SipField_CSEQ = 16,
+enum cmsc_SupportedMessages {
+  cmsc_SupportedMessages_NONE = 0,
+  cmsc_SupportedMessages_INVITE,
+  cmsc_SupportedMessages_200_OK,
+  cmsc_SupportedMessages_MAX,
 };
 
 struct cmsc_SipMsg {
   uint32_t presence_mask;
   bool is_request;
+  enum cmsc_SupportedMessages supmsg;
   struct cmsc_Field_SipProtoVer sip_proto_ver;
   struct cmsc_Field_To to;
   struct cmsc_Field_From from;
@@ -72,5 +70,29 @@ static inline const char *cmsc_sipmsg_insert_str(const uint32_t buffer_len,
 error_out:
   return NULL;
 };
+
+static inline const char *
+cmsc_dump_supported_messages_string(enum cmsc_SupportedMessages supmsg) {
+  static const char *strings[] = {"INVITE", "200 OK"};
+
+  if (supmsg <= cmsc_SupportedMessages_NONE ||
+      supmsg >= cmsc_SupportedMessages_MAX) {
+    return NULL;
+  }
+
+  return strings[supmsg - 1];
+}
+
+static inline void
+cmsc_sipmsg_mark_field_present(struct cmsc_SipMsg *message,
+                               enum cmsc_SupportedFields field) {
+  message->presence_mask = message->presence_mask | field;
+}
+
+static inline bool
+cmsc_sipmsg_is_field_present(struct cmsc_SipMsg *message,
+                             enum cmsc_SupportedFields field) {
+  return message->presence_mask & field;
+}
 
 #endif

@@ -50,16 +50,14 @@ struct cmsc_CharBufferView {
    You can get fields from cmsc_sipmsg_t. Fields interpret different
    values in ctx of single sip message.
 */
-enum cmsc_SupportedMessages {
-  cmsc_SupportedMessages_INVITE,
-};
 
 enum cmsc_SupportedFields {
-  cmsc_SupportedFields_IS_REQUEST,
-  cmsc_SupportedFields_SIP_PROTO_VER,
-  cmsc_SupportedFields_TO,
-  cmsc_SupportedFields_FROM,
-  cmsc_SupportedFields_CSEQ,
+  cmsc_SupportedFields_SUPPORTED_MSG = 1,
+  cmsc_SupportedFields_SIP_PROTO_VER = 2,
+  cmsc_SupportedFields_IS_REQUEST = 4,
+  cmsc_SupportedFields_TO = 8,
+  cmsc_SupportedFields_FROM = 16,
+  cmsc_SupportedFields_CSEQ = 32,
   // Add more fields here
 };
 
@@ -99,8 +97,7 @@ void cmsc_sipmsg_destroy(cmsc_sipmsg_t *msg);
  *                             Parser                                         *
  ******************************************************************************/
 enum cmsc_ParserStates {
-  cmsc_ParserStates_MsgEmpty,
-  cmsc_ParserStates_ParsingFirstLine,
+  cmsc_ParserStates_MsgEmpty = 0,
   cmsc_ParserStates_ParsingFields,
   cmsc_ParserStates_ParsingBody,
   cmsc_ParserStates_MsgReady,

@@ -96,3 +96,25 @@ void test_flush_null_buffer(void) {
   char *out = cmsc_dynbuf_flush(NULL);
   TEST_ASSERT_NULL(out);
 }
+
+void test_dynbuf_zero_offset_ok(void) {
+  struct ZeroOffset {
+    struct cmsc_DynamicBuffer buf;
+  };
+
+  struct ZeroOffset *zero = malloc(sizeof(struct ZeroOffset) + INITIAL_SIZE);
+  TEST_ASSERT_NOT_NULL(zero);
+
+  struct cmsc_DynamicBuffer *zb = &zero->buf;
+  TEST_ASSERT_NULL(cmsc_dynbuf_init(INITIAL_SIZE, zb));
+
+  const char *data = "OK";
+  cme_error_t err = cmsc_dynbuf_put(strlen(data), (char *)data, (void **)&zero,
+                                    sizeof(struct ZeroOffset), zb);
+  TEST_ASSERT_NULL(err);
+  TEST_ASSERT_EQUAL_MEMORY(data, zb->buf, strlen(data));
+  TEST_ASSERT_EQUAL_UINT32(strlen(data), zb->len);
+
+  cmsc_dynbuf_destroy(zb);
+  free(zero);
+}

@@ -30,6 +30,7 @@ cmsc_parser_parse_sip_proto_ver(const uint32_t buffer_len, const char *buffer,
   char mini_buf[2];
   mini_buf[0] = *(++slash);
   mini_buf[1] = 0;
+
   msg->sip_proto_ver.major = atoi(mini_buf);
 
   const char *dot = cmsc_strnstr(slash, ".", buffer_len - (slash - buffer));
@@ -41,6 +42,8 @@ cmsc_parser_parse_sip_proto_ver(const uint32_t buffer_len, const char *buffer,
   mini_buf[0] = *(++dot);
   mini_buf[1] = 0;
   msg->sip_proto_ver.minor = atoi(mini_buf);
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_SIP_PROTO_VER);
 
   return NULL;
 error_out:

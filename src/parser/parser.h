@@ -8,20 +8,19 @@
 #define C_MINILIB_SIP_CODEC_PARSER_H
 
 #include "c_minilib_error.h"
+#include "c_minilib_sip_codec.h"
+#include "parser/common_parser.h"
 #include "parser/iterator/line_iterator.h"
 #include "sipmsg/sipmsg.h"
 #include "utils/string.h"
 #include <stdint.h>
+#include <string.h>
 
 struct cmsc_Parser {
   enum cmsc_ParserStates state;
   cmsc_sipmsg_t msg;
-  // Parser is initialized at
   struct cmsc_DynamicBuffer content;
 };
-
-/* static inline char *cmsc_parse_sip_version(char *data, uint32_t data_len, )
- */
 
 static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
                                                      bool *is_next) {
@@ -39,6 +38,8 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
     return NULL;
   }
 
+  *is_next = false;
+
   // According RFC 3261 25 request line looks like this:
   //    Method SP Request-URI SP SIP-Version CRLF
   // and response line looks like this:
@@ -49,20 +50,36 @@ static inline cme_error_t cmsc_parser_parse_msgempty(cmsc_parser_t parser,
   const char *sip_version =
       cmsc_strnstr(header_iter.line_start, "SIP/", line_size);
   if (!sip_version) {
-    *is_next = false;
     return NULL;
   }
 
   const char *first_space =
       cmsc_strnstr(header_iter.line_start, " ", line_size);
   if (!first_space) {
-    *is_next = false;
     return NULL;
   }
 
+  if ((err = cmsc_parser_parse_sip_proto_ver(line_size, header_iter.line_start,
+                                             parser->msg))) {
+    return NULL;
+  };
+
+  cmsc_sipmsg_mark_field_present(parser->msg, cmsc_SupportedFields_IS_REQUEST);
   parser->msg->is_request = first_space > sip_version;
 
-  return 0;
+  for (uint32_t i = cmsc_SupportedMessages_NONE + 1;
+       i < cmsc_SupportedMessages_MAX; i++) {
+    if (cmsc_strnstr(header_iter.line_start,
+                     cmsc_dump_supported_messages_string(i), line_size)) {
+      cmsc_sipmsg_mark_field_present(parser->msg,
+                                     cmsc_SupportedFields_SUPPORTED_MSG);
+      parser->msg->supmsg = i;
+      *is_next = true;
+      break;
+    }
+  }
+
+  return NULL;
 
 error_out:
   return cme_return(err);

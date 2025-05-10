@@ -82,8 +82,6 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     case cmsc_ParserStates_MsgEmpty:
       err = cmsc_parser_parse_msgempty(*parser, &is_next);
       break;
-    case cmsc_ParserStates_ParsingFirstLine:
-      // ParsingFirstLine -> ParsingFields
     case cmsc_ParserStates_ParsingFields:
       // ParsingFields -> ParsingBody
     case cmsc_ParserStates_ParsingBody:
@@ -97,6 +95,8 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     if (err) {
       goto error_out;
     }
+
+    (*parser)->state = (*parser)->state++ % cmsc_ParserStates_MsgReady;
   }
 
   // Once we processed all data we can flush the parser content.

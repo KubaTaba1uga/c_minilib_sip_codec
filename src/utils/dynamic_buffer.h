@@ -25,6 +25,11 @@ struct cmsc_DynamicBuffer {
   char buf[];
 };
 
+static inline void *cmsc_dynbuf_malloc(const uint32_t base_size,
+                                       const uint32_t elements_amount) {
+  return malloc(base_size + (elements_amount * sizeof(char)));
+}
+
 static inline cme_error_t cmsc_dynbuf_init(const uint32_t size,
                                            struct cmsc_DynamicBuffer *dynbuf) {
   cme_error_t err;
@@ -63,8 +68,8 @@ static inline cme_error_t cmsc_dynbuf_put(uint32_t data_len, char *data,
     return 0;
   }
 
-  if (!dynbuf) {
-    err = cme_error(EINVAL, "`dynbuf` cannot be NULL");
+  if (!dynbuf || !parent_container) {
+    err = cme_error(EINVAL, "`dynbuf` and `parent_container` cannot be NULL");
     goto error_out;
   }
 
