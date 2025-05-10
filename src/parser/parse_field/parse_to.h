@@ -28,28 +28,25 @@ cmsc_parser_parse_to(const struct cmsc_ValueIterator *value_iter,
     goto error_out;
   }
 
-  /* uint32_t i = 0; */
-  /* while (cmsc_argsiter_next(value_iter, &args_iter)) { */
-  /*   if (i++ == 0) { */
-  /*     msg->to.uri = */
-  /*         cmsc_sipmsg_insert_str(args_iter.value_len, args_iter.value, &msg);
-   */
-  /*   } */
+  uint32_t i = 0;
+  while (cmsc_argsiter_next(value_iter, &args_iter)) {
+    if (i++ == 0) {
+      msg->to.uri =
+          cmsc_sipmsg_insert_str(args_iter.value_len, args_iter.value, &msg);
+    }
 
-  /*   if (args_iter.args_header) { */
-  /*     if (cmsc_strnstr(args_iter.args_header, "tag", */
-  /*                      args_iter.args_header_len)) { */
-  /*       msg->to.tag = cmsc_sipmsg_insert_str(args_iter.args_value_len, */
-  /*                                            args_iter.args_value, &msg); */
-  /*     } */
-  /*   } */
-  /* } */
-  puts("Parsing TO");
+    if (args_iter.args_header) {
+      if (cmsc_strnstr(args_iter.args_header, "tag",
+                       args_iter.args_header_len)) {
+        msg->to.tag = cmsc_sipmsg_insert_str(args_iter.args_value_len,
+                                             args_iter.args_value, &msg);
+      }
+    }
+  }
 
-  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_TO);
-  msg->to.uri =
-      cmsc_sipmsg_insert_str(value_iter->value_end - value_iter->value_start,
-                             value_iter->value_start, &msg);
+  if (i > 0) {
+    cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_TO);
+  }
 
   return 0;
 

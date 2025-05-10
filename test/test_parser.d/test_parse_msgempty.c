@@ -106,7 +106,7 @@ void test_parse_unsupported_method_returns_error(void) {
 
 void test_parse_invite_with_to_header(void) {
   const char *packet = "INVITE sip:bob@example.com SIP/2.0\r\n"
-                       "To: <sip:bob@example.com>\r\n";
+                       "To: <sip:bob@example.com>;tag=xyz123\r\n";
 
   struct cmsc_CharBufferView view = {
       .buf = (const uint8_t *)packet,
@@ -139,4 +139,8 @@ void test_parse_invite_with_to_header(void) {
   TEST_ASSERT_TRUE(cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_TO));
   TEST_ASSERT_NOT_NULL(msg->to.uri);
   TEST_ASSERT_EQUAL_STRING("<sip:bob@example.com>", msg->to.uri);
+
+  // Tag parsing
+  TEST_ASSERT_NOT_NULL(msg->to.tag);
+  TEST_ASSERT_EQUAL_STRING("xyz123", msg->to.tag);
 }
