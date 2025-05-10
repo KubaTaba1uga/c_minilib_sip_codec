@@ -53,7 +53,14 @@ static inline cme_error_t cmsc_sipmsg_create(cmsc_sipmsg_t *sipmsg) {
     goto error_out;
   }
 
+  if ((err = cmsc_dynbuf_init(CMSC_SIPMSG_DYNBUF_SIZE, &local_msg->content))) {
+    goto error_out;
+  }
+
+  *sipmsg = local_msg;
+
   return 0;
+
 error_out:
   return cme_return(err);
 };

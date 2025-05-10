@@ -2,10 +2,11 @@
 #include <string.h>
 #include <unity.h>
 
+#include <c_minilib_error.h>
+
 #include "parser/iterator/line_iterator.h"
 #include "parser/iterator/value_iterator.h"
 #include "utils/dynamic_buffer.h"
-#include <c_minilib_error.h>
 
 struct DummyContainer {
   struct cmsc_DynamicBuffer buffer;
