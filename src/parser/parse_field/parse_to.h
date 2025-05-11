@@ -16,12 +16,12 @@
 
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 static inline cme_error_t
 cmsc_parser_parse_to(const struct cmsc_ValueIterator *value_iter,
                      cmsc_sipmsg_t msg) {
-  puts("Parsing TO");
   struct cmsc_ArgsIterator args_iter;
   cme_error_t err;
 
@@ -31,6 +31,10 @@ cmsc_parser_parse_to(const struct cmsc_ValueIterator *value_iter,
 
   uint32_t i = 0;
   while (cmsc_argsiter_next(value_iter, &args_iter)) {
+    if (!args_iter.value || !args_iter.value_len) {
+      break;
+    }
+
     if (i++ == 0) {
       msg->to.uri =
           cmsc_sipmsg_insert_str(args_iter.value_len, args_iter.value, &msg);
@@ -48,6 +52,10 @@ cmsc_parser_parse_to(const struct cmsc_ValueIterator *value_iter,
   if (i > 0) {
     cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_TO);
   }
+
+  // Debug print of parsed values
+  printf("To: uri=%s, tag=%s\n", msg->to.uri ? msg->to.uri : "<null>",
+         msg->to.tag ? msg->to.tag : "<null>");
 
   return 0;
 

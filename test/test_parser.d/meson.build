@@ -22,6 +22,16 @@ test_parse_parsingheaders_exe = executable('test_parse_parsingheaders',
 
 test('test_parse_parsingheaders', test_parse_parsingheaders_exe)
 
+test_parse_to_name = 'test_parse_to.c'
 
+test_parse_to_exe = executable('test_parse_to',
+  sources: [
+    test_parse_to_name,
+    test_runner.process(test_parse_to_name),
+  ],
+  dependencies: test_dependencies,
+)
+
+test('test_parse_to', test_parse_to_exe)
 
 subdir('test_iterators.d')

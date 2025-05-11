@@ -5,6 +5,6 @@ void cmsc_sipmsg_destroy(cmsc_sipmsg_t *sipmsg) {
     return;
   }
 
-  free(sipmsg);
+  free(*sipmsg);
   *sipmsg = NULL;
 }
