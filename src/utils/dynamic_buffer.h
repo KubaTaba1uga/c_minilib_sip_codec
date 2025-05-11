@@ -113,6 +113,10 @@ static inline const char *
 cmsc_dynbuf_put_word(uint32_t data_len, char *data, void **parent_container,
                      uint32_t parent_container_size,
                      struct cmsc_DynamicBuffer *dynbuf) {
+  if (data_len == 0 || !data) {
+    return NULL;
+  }
+
   char *output = dynbuf->buf + dynbuf->len;
   if (cmsc_dynbuf_put(data_len, data, parent_container, parent_container_size,
                       dynbuf)) {

@@ -24,7 +24,9 @@ test('test_parse_parsingheaders', test_parse_parsingheaders_exe)
 field_tests = [
   'to',
   'from',
-  # Add more fields like 'via', 'cseq', etc. as needed
+  'cseq',
+  'call_id',
+  # Add more fields here
 ]
 
 foreach field : field_tests
