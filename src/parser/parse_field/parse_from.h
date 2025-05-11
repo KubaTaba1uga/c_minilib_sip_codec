@@ -4,8 +4,8 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#ifndef C_MINILIB_SIP_CODEC_PARSE_TO_H
-#define C_MINILIB_SIP_CODEC_PARSE_TO_H
+#ifndef C_MINILIB_SIP_CODEC_PARSE_FROM_H
+#define C_MINILIB_SIP_CODEC_PARSE_FROM_H
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
@@ -21,8 +21,8 @@
 #include <stdlib.h>
 
 static inline cme_error_t
-cmsc_parser_parse_to(const struct cmsc_ValueIterator *value_iter,
-                     cmsc_sipmsg_t msg) {
+cmsc_parser_parse_from(const struct cmsc_ValueIterator *value_iter,
+                       cmsc_sipmsg_t msg) {
   struct cmsc_ArgsIterator args_iter;
   cme_error_t err;
 
@@ -44,10 +44,13 @@ cmsc_parser_parse_to(const struct cmsc_ValueIterator *value_iter,
         while (isspace(*display_name_start)) {
           display_name_start++;
         }
-        display_name_end--;
+
+        while (isspace(*(display_name_end - 1))) {
+          display_name_end--;
+        }
 
         if (display_name_start < display_name_end) {
-          msg->to.display_name = cmsc_sipmsg_insert_str(
+          msg->from.display_name = cmsc_sipmsg_insert_str(
               display_name_end - display_name_start, display_name_start, &msg);
 
           args_iter.value = display_name_end_cp;
@@ -55,21 +58,21 @@ cmsc_parser_parse_to(const struct cmsc_ValueIterator *value_iter,
         }
       }
 
-      msg->to.uri =
+      msg->from.uri =
           cmsc_sipmsg_insert_str(args_iter.value_len, args_iter.value, &msg);
     }
 
     if (args_iter.args_header) {
       if (cmsc_strnstr(args_iter.args_header, "tag",
                        args_iter.args_header_len)) {
-        msg->to.tag = cmsc_sipmsg_insert_str(args_iter.args_value_len,
-                                             args_iter.args_value, &msg);
+        msg->from.tag = cmsc_sipmsg_insert_str(args_iter.args_value_len,
+                                               args_iter.args_value, &msg);
       }
     }
   }
 
   if (i > 0) {
-    cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_TO);
+    cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_FROM);
   }
 
   return 0;
