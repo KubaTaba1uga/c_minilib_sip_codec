@@ -36,6 +36,8 @@ static inline bool cmsc_default_is_field_func(const uint32_t buffer_len,
     tmp_id[i] = tolower(tmp_id[i]);
   }
 
+  printf("%s vs %s\n", tmp_id, tmp_buffer);
+
   return strcmp(tmp_id, tmp_buffer) == 0;
 };
 

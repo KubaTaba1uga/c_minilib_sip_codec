@@ -21,6 +21,7 @@
 static inline cme_error_t
 cmsc_parser_parse_to(const struct cmsc_ValueIterator *value_iter,
                      cmsc_sipmsg_t msg) {
+  puts("Parsing TO");
   struct cmsc_ArgsIterator args_iter;
   cme_error_t err;
 

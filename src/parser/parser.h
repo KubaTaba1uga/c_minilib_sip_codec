@@ -40,6 +40,8 @@ cmsc_parser_parse_msgempty(struct cmsc_HeaderIterator *header_iter,
 
   cme_error_t err;
 
+  *is_next = false;
+
   if (!parser->msg) {
     if ((err = cmsc_sipmsg_create(&parser->msg))) {
       goto error_out;
@@ -133,9 +135,6 @@ cmsc_parser_parse_headers(struct cmsc_HeaderIterator *header_iter,
          cmsc_valueiter_next(header_iter, &value_iter)) {
     bool is_match = false;
     CMSC_FOREACH_SCHEME_MANDATORY(scheme, i, field) {
-      printf("Parsing header: %s, %.*s\n", field->id, header_iter->line_len,
-             header_iter->line_start);
-
       if (field->is_field_func) {
         is_match = field->is_field_func(value_iter.header_len,
                                         value_iter.header_start);
@@ -152,9 +151,9 @@ cmsc_parser_parse_headers(struct cmsc_HeaderIterator *header_iter,
       }
     }
 
-    /* if (is_match) { */
-    /*   continue; */
-    /* } */
+    if (is_match) {
+      continue;
+    }
 
     /* CMSC_FOREACH_SCHEME_OPTIONAL(scheme, i, field) { */
     /*   if (field->is_field_func) { */
@@ -175,9 +174,9 @@ cmsc_parser_parse_headers(struct cmsc_HeaderIterator *header_iter,
     /*   } */
     /* } */
 
-    if (!is_match) {
-      break;
-    }
+    /* if (!is_match) { */
+    /*   break; */
+    /* } */
   }
 
   return NULL;

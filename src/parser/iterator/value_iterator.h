@@ -53,17 +53,17 @@ cmsc_valueiter_next(const struct cmsc_HeaderIterator *headeriter,
   }
 
   // This means there is no `,` in this line.
-  if (valueiter->value_end == headeriter->line_end) {
+  if (valueiter->value_end && (valueiter->value_end == headeriter->line_end)) {
     return false;
   }
 
+  valueiter->header_start = headeriter->line_start;
+  valueiter->header_len = headeriter->colon - headeriter->line_start;
+
   if (!valueiter->value_start) {
-    valueiter->header_start = headeriter->line_start;
-    valueiter->header_len = headeriter->colon - headeriter->line_start;
     valueiter->value_end = headeriter->line_end;
     // +1 for skipping ":"
     valueiter->value_start = headeriter->colon + 1;
-
   } else {
     // +1 for skipping ","
     valueiter->value_start = valueiter->value_end + 1;
@@ -84,6 +84,17 @@ cmsc_valueiter_next(const struct cmsc_HeaderIterator *headeriter,
     while (isspace(*valueiter->value_start)) {
       valueiter->value_start++;
     }
+  }
+
+  // Debug print at the end
+  if (valueiter->value_start && valueiter->value_end) {
+    printf("ValueIter: header='%.*s', value='%.*s'\n", valueiter->header_len,
+           valueiter->header_start,
+           (int)(valueiter->value_end - valueiter->value_start),
+           valueiter->value_start);
+  } else {
+    printf("ValueIter: header='%.*s', value=<null>\n", valueiter->header_len,
+           valueiter->header_start);
   }
 
   return true;

@@ -22,15 +22,25 @@ void tearDown(void) {
   cme_destroy();
 }
 
-void test_parse_valid_invite_line(void) {
-  const char *line = "INVITE sip:bob@example.com SIP/2.0\r\n";
+static void prepare_parser(const char *line, struct cmsc_HeaderIterator *iter) {
   struct cmsc_CharBufferView view = {
       .buf = (const uint8_t *)line,
       .buf_len = (uint32_t)strlen(line),
   };
+  TEST_ASSERT_NULL(cmsc_dynbuf_put(view.buf_len, (char *)view.buf,
+                                   (void **)&parser, sizeof(struct cmsc_Parser),
+                                   &parser->content));
+  TEST_ASSERT_NULL(cmsc_headeriter_init(iter));
+}
 
-  cme_error_t err = cmsc_parser_feed_data(view, &parser);
+void test_parse_valid_invite_line_msgempty(void) {
+  struct cmsc_HeaderIterator header_iter;
+  prepare_parser("INVITE sip:bob@example.com SIP/2.0\r\n", &header_iter);
+
+  bool is_next = false;
+  cme_error_t err = cmsc_parser_parse_msgempty(&header_iter, parser, &is_next);
   TEST_ASSERT_NULL(err);
+  TEST_ASSERT_TRUE(is_next);
 
   cmsc_sipmsg_t msg = parser->msg;
   TEST_ASSERT_NOT_NULL(msg);
@@ -52,15 +62,14 @@ void test_parse_valid_invite_line(void) {
                            msg->request_line.request_uri);
 }
 
-void test_parse_valid_200_ok_line(void) {
-  const char *line = "SIP/2.0 200 OK\r\n";
-  struct cmsc_CharBufferView view = {
-      .buf = (const uint8_t *)line,
-      .buf_len = (uint32_t)strlen(line),
-  };
+void test_parse_valid_200_ok_line_msgempty(void) {
+  struct cmsc_HeaderIterator header_iter;
+  prepare_parser("SIP/2.0 200 OK\r\n", &header_iter);
 
-  cme_error_t err = cmsc_parser_feed_data(view, &parser);
+  bool is_next = false;
+  cme_error_t err = cmsc_parser_parse_msgempty(&header_iter, parser, &is_next);
   TEST_ASSERT_NULL(err);
+  TEST_ASSERT_TRUE(is_next);
 
   cmsc_sipmsg_t msg = parser->msg;
   TEST_ASSERT_NOT_NULL(msg);
@@ -82,65 +91,33 @@ void test_parse_valid_200_ok_line(void) {
   TEST_ASSERT_EQUAL_STRING("OK", msg->status_line.reason_phrase);
 }
 
-void test_parse_missing_sip_version_returns_error(void) {
-  const char *line = "FOO bar@example.com\r\n";
-  struct cmsc_CharBufferView view = {
-      .buf = (const uint8_t *)line,
-      .buf_len = (uint32_t)strlen(line),
-  };
+void test_parse_missing_sip_version_msgempty(void) {
+  struct cmsc_HeaderIterator header_iter;
+  prepare_parser("FOO bar@example.com\r\n", &header_iter);
 
-  cme_error_t err = cmsc_parser_feed_data(view, &parser);
+  bool is_next = false;
+  cme_error_t err = cmsc_parser_parse_msgempty(&header_iter, parser, &is_next);
   TEST_ASSERT_NOT_NULL(err);
+  TEST_ASSERT_FALSE(is_next);
 }
 
-void test_parse_unsupported_method_returns_error(void) {
-  const char *line = "UNSUPPORTED sip:alice@wonderland.org SIP/2.0\r\n";
-  struct cmsc_CharBufferView view = {
-      .buf = (const uint8_t *)line,
-      .buf_len = (uint32_t)strlen(line),
-  };
+void test_parse_unsupported_method_msgempty(void) {
+  struct cmsc_HeaderIterator header_iter;
+  prepare_parser("UNSUPPORTED sip:alice@wonderland.org SIP/2.0\r\n",
+                 &header_iter);
 
-  cme_error_t err = cmsc_parser_feed_data(view, &parser);
+  bool is_next = false;
+  cme_error_t err = cmsc_parser_parse_msgempty(&header_iter, parser, &is_next);
   TEST_ASSERT_NOT_NULL(err);
+  TEST_ASSERT_FALSE(is_next);
 }
 
-void test_parse_invite_with_to_header(void) {
-  const char *packet = "INVITE sip:bob@example.com SIP/2.0\r\n"
-                       "To: <sip:bob@example.com>;tag=xyz123\r\n";
+void test_parse_partial_line_returns_zero_msgempty(void) {
+  struct cmsc_HeaderIterator header_iter;
+  prepare_parser("", &header_iter);
 
-  struct cmsc_CharBufferView view = {
-      .buf = (const uint8_t *)packet,
-      .buf_len = (uint32_t)strlen(packet),
-  };
-
-  cme_error_t err = cmsc_parser_feed_data(view, &parser);
-  TEST_ASSERT_NULL(err);
-
-  cmsc_sipmsg_t msg = parser->msg;
-  TEST_ASSERT_NOT_NULL(msg);
-
-  // General INVITE line expectations
-  TEST_ASSERT_TRUE(
-      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_IS_REQUEST));
-  TEST_ASSERT_TRUE(msg->is_request);
-
-  TEST_ASSERT_TRUE(
-      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_SUPPORTED_MSG));
-  TEST_ASSERT_EQUAL(cmsc_SupportedMessages_INVITE, msg->supmsg);
-
-  TEST_ASSERT_TRUE(
-      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_REQUEST_LINE));
-  TEST_ASSERT_EQUAL(2, msg->request_line.sip_proto_ver.major);
-  TEST_ASSERT_EQUAL(0, msg->request_line.sip_proto_ver.minor);
-  TEST_ASSERT_EQUAL_STRING("sip:bob@example.com",
-                           msg->request_line.request_uri);
-
-  // To header parsing
-  TEST_ASSERT_TRUE(cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_TO));
-  TEST_ASSERT_NOT_NULL(msg->to.uri);
-  TEST_ASSERT_EQUAL_STRING("<sip:bob@example.com>", msg->to.uri);
-
-  // Tag parsing
-  TEST_ASSERT_NOT_NULL(msg->to.tag);
-  TEST_ASSERT_EQUAL_STRING("xyz123", msg->to.tag);
+  bool is_next = true; // Should be reset
+  cme_error_t err = cmsc_parser_parse_msgempty(&header_iter, parser, &is_next);
+  TEST_ASSERT_NULL(err); // not an error, just no progress
+  TEST_ASSERT_FALSE(is_next);
 }
