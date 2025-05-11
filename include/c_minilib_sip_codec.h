@@ -59,6 +59,9 @@ enum cmsc_SupportedFields {
   cmsc_SupportedFields_TO = 16,
   cmsc_SupportedFields_FROM = 32,
   cmsc_SupportedFields_CSEQ = 64,
+  cmsc_SupportedFields_CALL_ID = 128,
+  cmsc_SupportedFields_MAX_FORWARDS = 256,
+  cmsc_SupportedFields_VIA_L = 512,
   // Add more fields here
 };
 
@@ -91,6 +94,11 @@ struct cmsc_Field_From {
 };
 
 struct cmsc_Field_CSeq {
+  const char *method;
+  uint32_t seq_number;
+};
+
+struct cmsc_Field_Via_l {
   const char *method;
   uint32_t seq_number;
 };

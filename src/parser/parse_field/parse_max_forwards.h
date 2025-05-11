@@ -4,8 +4,8 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#ifndef C_MINILIB_SIP_CODEC_PARSE_CALL_ID_H
-#define C_MINILIB_SIP_CODEC_PARSE_CALL_ID_H
+#ifndef C_MINILIB_SIP_CODEC_PARSE_MAX_FORWARDS_H
+#define C_MINILIB_SIP_CODEC_PARSE_MAX_FORWARDS_H
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
@@ -21,14 +21,11 @@
 #include <stdlib.h>
 
 static inline cme_error_t
-cmsc_parser_parse_call_id(const struct cmsc_ValueIterator *value_iter,
-                          cmsc_sipmsg_t msg) {
+cmsc_parser_parse_max_forwards(const struct cmsc_ValueIterator *value_iter,
+                               cmsc_sipmsg_t msg) {
 
-  msg->call_id =
-      cmsc_sipmsg_insert_str(value_iter->value_end - value_iter->value_start,
-                             value_iter->value_start, &msg);
-
-  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_CALL_ID);
+  msg->max_forwards = atoi(value_iter->value_start);
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_MAX_FORWARDS);
 
   return 0;
 }

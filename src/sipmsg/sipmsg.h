@@ -36,6 +36,7 @@ struct cmsc_SipMsg {
   struct cmsc_Field_From from;
   struct cmsc_Field_CSeq cseq;
   const char *call_id;
+  uint32_t max_forwards;
   // Add new fields here
   struct cmsc_DynamicBuffer content;
 };

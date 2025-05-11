@@ -34,6 +34,8 @@ cmsc_parser_parse_cseq(const struct cmsc_ValueIterator *value_iter,
   msg->cseq.method =
       cmsc_sipmsg_insert_str(value_iter->value_end - method, method, &msg);
 
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_CSEQ);
+
   return 0;
 }
 
