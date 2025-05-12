@@ -3,43 +3,62 @@
 #include <unity.h>
 
 #include "c_minilib_sip_codec.h"
+#include "parser/iterator/line_iterator.h"
 #include "parser/iterator/value_iterator.h"
 #include "parser/parse_field/parse_via_l.h"
 #include "sipmsg/sipmsg.h"
+#include "utils/dynamic_buffer.h"
 
 static cmsc_sipmsg_t msg = NULL;
+
+struct DynBufContainer {
+  struct cmsc_DynamicBuffer dynbuf;
+};
+
+static struct DynBufContainer *container = NULL;
 
 void setUp(void) {
   cme_init();
   TEST_ASSERT_NULL(cmsc_sipmsg_create(&msg));
+
+  // Allocate buffer large enough for tests
+  size_t alloc_size = sizeof(struct DynBufContainer) + 512;
+  container = malloc(alloc_size);
+  TEST_ASSERT_NOT_NULL(container);
+  TEST_ASSERT_NULL(cmsc_dynbuf_init(512, &container->dynbuf));
 }
 
 void tearDown(void) {
   cmsc_sipmsg_destroy(&msg);
   msg = NULL;
+
+  free(container);
+  container = NULL;
+
   cme_destroy();
 }
 
-static void prepare_value_iterator(struct cmsc_ValueIterator *viter,
-                                   const char *line) {
-  const char *colon = strchr(line, ':');
-  TEST_ASSERT_NOT_NULL(colon);
+static void prepare_iterators(struct cmsc_ValueIterator *value_iter,
+                              const char *line) {
+  struct cmsc_HeaderIterator header_iter;
+  TEST_ASSERT_NULL(cmsc_headeriter_init(&header_iter));
+  TEST_ASSERT_NULL(cmsc_valueiter_init(value_iter));
 
-  viter->header_start = line;
-  viter->header_len = (uint32_t)(colon - line);
-  viter->value_start = colon + 1;
+  // Reset buffer state
+  cmsc_dynbuf_flush(&container->dynbuf);
 
-  while (isspace(*viter->value_start)) {
-    viter->value_start++;
-  }
+  TEST_ASSERT_NULL(cmsc_dynbuf_put(strlen(line), (char *)line,
+                                   (void **)&container, sizeof(*container),
+                                   &container->dynbuf));
 
-  viter->value_end = line + strlen(line);
+  TEST_ASSERT_TRUE(cmsc_headeriter_next(&container->dynbuf, &header_iter));
+  TEST_ASSERT_TRUE(cmsc_valueiter_next(&header_iter, value_iter));
 }
 
 void test_parse_via_basic_udp(void) {
-  const char *line = "Via: SIP/2.0/UDP server1.example.com";
+  const char *line = "Via: SIP/2.0/UDP server1.example.com\r\n";
   struct cmsc_ValueIterator viter;
-  prepare_value_iterator(&viter, line);
+  prepare_iterators(&viter, line);
 
   cme_error_t err = cmsc_parser_parse_via_l(&viter, msg);
   TEST_ASSERT_NULL(err);
@@ -56,9 +75,9 @@ void test_parse_via_basic_udp(void) {
 
 void test_parse_via_with_branch_and_addr(void) {
   const char *line =
-      "Via: SIP/2.0/UDP sip.test.org;branch=z9hG4bK-123;addr=10.0.0.1";
+      "Via: SIP/2.0/UDP sip.test.org;branch=z9hG4bK-123;addr=10.0.0.1\r\n";
   struct cmsc_ValueIterator viter;
-  prepare_value_iterator(&viter, line);
+  prepare_iterators(&viter, line);
 
   cme_error_t err = cmsc_parser_parse_via_l(&viter, msg);
   TEST_ASSERT_NULL(err);
@@ -72,9 +91,9 @@ void test_parse_via_with_branch_and_addr(void) {
 }
 
 void test_parse_via_missing_proto_returns_error(void) {
-  const char *line = "Via: somethingwrong";
+  const char *line = "Via: somethingwrong\r\n";
   struct cmsc_ValueIterator viter;
-  prepare_value_iterator(&viter, line);
+  prepare_iterators(&viter, line);
 
   cme_error_t err = cmsc_parser_parse_via_l(&viter, msg);
   TEST_ASSERT_NOT_NULL(err);
@@ -82,9 +101,9 @@ void test_parse_via_missing_proto_returns_error(void) {
 
 void test_parse_via_multiple_entries_two_parsed(void) {
   const char *line =
-      "Via: SIP/2.0/UDP host1;branch=b1, SIP/2.0/UDP host2;branch=b2";
+      "Via: SIP/2.0/UDP host1;branch=b1, SIP/2.0/UDP host2;branch=b2\r\n";
   struct cmsc_ValueIterator viter;
-  prepare_value_iterator(&viter, line);
+  prepare_iterators(&viter, line);
 
   cme_error_t err = cmsc_parser_parse_via_l(&viter, msg);
   TEST_ASSERT_NULL(err);

@@ -51,6 +51,7 @@ error_out:
 };
 
 // This function return true if it filled argsiter
+// This function returns true if it filled argsiter
 static inline bool
 cmsc_argsiter_next(const struct cmsc_ValueIterator *valueiter,
                    struct cmsc_ArgsIterator *argsiter) {
@@ -84,6 +85,8 @@ cmsc_argsiter_next(const struct cmsc_ValueIterator *valueiter,
 
     argsiter->value = valueiter->value_start;
     argsiter->value_len = value_len;
+
+    printf("Parsed value (no args): %.*s\n", value_len, valueiter->value_start);
     return true;
   }
 
@@ -111,6 +114,9 @@ cmsc_argsiter_next(const struct cmsc_ValueIterator *valueiter,
     argsiter->value = valueiter->value_start;
     argsiter->value_len = --args_start - valueiter->value_start;
   }
+
+  printf("Parsed arg: %.*s=%.*s\n", argsiter->args_header_len,
+         argsiter->args_header, argsiter->args_value_len, argsiter->args_value);
 
   return true;
 }
