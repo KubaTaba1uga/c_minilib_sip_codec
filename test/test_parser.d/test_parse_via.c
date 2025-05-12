@@ -21,7 +21,7 @@ void setUp(void) {
   cme_init();
   TEST_ASSERT_NULL(cmsc_sipmsg_create(&msg));
 
-  // Allocate buffer large enough for tests
+  // Allocate a dynamic container for dynbuf
   size_t alloc_size = sizeof(struct DynBufContainer) + 512;
   container = malloc(alloc_size);
   TEST_ASSERT_NOT_NULL(container);
@@ -38,29 +38,29 @@ void tearDown(void) {
   cme_destroy();
 }
 
-static void prepare_iterators(struct cmsc_ValueIterator *value_iter,
-                              const char *line) {
-  struct cmsc_HeaderIterator header_iter;
-  TEST_ASSERT_NULL(cmsc_headeriter_init(&header_iter));
+static void prepare_iterators(const char *line,
+                               struct cmsc_HeaderIterator *header_iter,
+                               struct cmsc_ValueIterator *value_iter) {
+  TEST_ASSERT_NULL(cmsc_headeriter_init(header_iter));
   TEST_ASSERT_NULL(cmsc_valueiter_init(value_iter));
 
-  // Reset buffer state
   cmsc_dynbuf_flush(&container->dynbuf);
 
   TEST_ASSERT_NULL(cmsc_dynbuf_put(strlen(line), (char *)line,
                                    (void **)&container, sizeof(*container),
                                    &container->dynbuf));
 
-  TEST_ASSERT_TRUE(cmsc_headeriter_next(&container->dynbuf, &header_iter));
-  TEST_ASSERT_TRUE(cmsc_valueiter_next(&header_iter, value_iter));
+  TEST_ASSERT_TRUE(cmsc_headeriter_next(&container->dynbuf, header_iter));
+  TEST_ASSERT_TRUE(cmsc_valueiter_next(header_iter, value_iter));
 }
 
 void test_parse_via_basic_udp(void) {
   const char *line = "Via: SIP/2.0/UDP server1.example.com\r\n";
-  struct cmsc_ValueIterator viter;
-  prepare_iterators(&viter, line);
+  struct cmsc_HeaderIterator header_iter;
+  struct cmsc_ValueIterator value_iter;
+  prepare_iterators(line, &header_iter, &value_iter);
 
-  cme_error_t err = cmsc_parser_parse_via_l(&viter, msg);
+  cme_error_t err = cmsc_parser_parse_via_l(&header_iter, &value_iter, msg);
   TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_TRUE(
@@ -76,10 +76,11 @@ void test_parse_via_basic_udp(void) {
 void test_parse_via_with_branch_and_addr(void) {
   const char *line =
       "Via: SIP/2.0/UDP sip.test.org;branch=z9hG4bK-123;addr=10.0.0.1\r\n";
-  struct cmsc_ValueIterator viter;
-  prepare_iterators(&viter, line);
+  struct cmsc_HeaderIterator header_iter;
+  struct cmsc_ValueIterator value_iter;
+  prepare_iterators(line, &header_iter, &value_iter);
 
-  cme_error_t err = cmsc_parser_parse_via_l(&viter, msg);
+  cme_error_t err = cmsc_parser_parse_via_l(&header_iter, &value_iter, msg);
   TEST_ASSERT_NULL(err);
 
   struct cmsc_Field_Via *via = STAILQ_FIRST(&msg->via);
@@ -92,20 +93,22 @@ void test_parse_via_with_branch_and_addr(void) {
 
 void test_parse_via_missing_proto_returns_error(void) {
   const char *line = "Via: somethingwrong\r\n";
-  struct cmsc_ValueIterator viter;
-  prepare_iterators(&viter, line);
+  struct cmsc_HeaderIterator header_iter;
+  struct cmsc_ValueIterator value_iter;
+  prepare_iterators(line, &header_iter, &value_iter);
 
-  cme_error_t err = cmsc_parser_parse_via_l(&viter, msg);
+  cme_error_t err = cmsc_parser_parse_via_l(&header_iter, &value_iter, msg);
   TEST_ASSERT_NOT_NULL(err);
 }
 
 void test_parse_via_multiple_entries_two_parsed(void) {
   const char *line =
       "Via: SIP/2.0/UDP host1;branch=b1, SIP/2.0/UDP host2;branch=b2\r\n";
-  struct cmsc_ValueIterator viter;
-  prepare_iterators(&viter, line);
+  struct cmsc_HeaderIterator header_iter;
+  struct cmsc_ValueIterator value_iter;
+  prepare_iterators(line, &header_iter, &value_iter);
 
-  cme_error_t err = cmsc_parser_parse_via_l(&viter, msg);
+  cme_error_t err = cmsc_parser_parse_via_l(&header_iter, &value_iter, msg);
   TEST_ASSERT_NULL(err);
 
   // First Via entry
@@ -125,3 +128,4 @@ void test_parse_via_multiple_entries_two_parsed(void) {
   // No more entries
   TEST_ASSERT_NULL(STAILQ_NEXT(via2, vias_l));
 }
+

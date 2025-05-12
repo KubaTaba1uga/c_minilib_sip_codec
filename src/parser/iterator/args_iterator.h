@@ -74,7 +74,8 @@ cmsc_argsiter_next(const struct cmsc_ValueIterator *valueiter,
   if (!argsiter->args_value) {
     args_start = cmsc_strnstr(valueiter->value_start, ";", value_len);
   } else {
-    args_start = argsiter->args_value + argsiter->args_value_len;
+    args_start = cmsc_strnstr(argsiter->args_value + argsiter->args_value_len,
+                              ";", value_len);
   }
 
   if (!args_start) {
@@ -110,7 +111,8 @@ cmsc_argsiter_next(const struct cmsc_ValueIterator *valueiter,
   argsiter->args_value = ++header_end;
   argsiter->args_value_len = args_end - header_end;
 
-  if (!argsiter->value) {
+  // This means valueiter was nexted, so we need to next our value also.
+  if (valueiter->value_start != argsiter->value) {
     argsiter->value = valueiter->value_start;
     argsiter->value_len = --args_start - valueiter->value_start;
   }
