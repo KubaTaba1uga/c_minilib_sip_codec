@@ -32,6 +32,7 @@ field_tests = [
   'expires',
   'subject',
   'organization',
+  'user_agent',
   # Add more fields here
 ]
 

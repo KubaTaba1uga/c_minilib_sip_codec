@@ -43,6 +43,7 @@ struct cmsc_SipMsg {
   uint32_t expires;
   const char *subject;
   const char *organization;
+  const char *user_agent;
   // Add new fields here
   struct cmsc_DynamicBuffer content;
 };
