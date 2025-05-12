@@ -12,8 +12,8 @@
 /* Invite is composed of:
      - Allow (done)
      - Accept (done)
-     - Expires
-     - Subject
+     - Expires (done)
+     - Subject (done)
      - Organization
      - User-Agent
      - Body

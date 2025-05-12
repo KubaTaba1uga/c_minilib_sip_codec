@@ -41,6 +41,7 @@ struct cmsc_SipMsg {
   uint32_t allow_mask;
   struct cmsc_AcceptList accept;
   uint32_t expires;
+  const char *subject;
   // Add new fields here
   struct cmsc_DynamicBuffer content;
 };
