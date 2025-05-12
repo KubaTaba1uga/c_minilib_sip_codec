@@ -10,8 +10,7 @@
 #include "supported_messages/common_supported_messages.h"
 
 /* Invite is composed of:
-     - Allow
-     - Supported
+     - Allow (done)
      - Accept
      - Expires
      - Subject

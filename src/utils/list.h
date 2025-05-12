@@ -10,4 +10,6 @@
 
 STAILQ_HEAD(cmsc_ViaList, cmsc_Field_Via);
 
+STAILQ_HEAD(cmsc_AcceptList, cmsc_Field_Accept);
+
 #endif // C_MINILIB_SIP_CODEC_LIST_H

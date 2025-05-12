@@ -141,6 +141,11 @@ struct cmsc_Field_Via {
   STAILQ_ENTRY(cmsc_Field_Via) vias_l; // This is linked list
 };
 
+struct cmsc_Field_Accept {
+  const char *mime;                          // We are not parsing MIME args.
+  STAILQ_ENTRY(cmsc_Field_Accept) accepts_l; // This is linked list
+};
+
 typedef struct cmsc_SipMsg *cmsc_sipmsg_t;
 
 bool cmsc_sipmsg_get_is_request(const cmsc_sipmsg_t msg);
