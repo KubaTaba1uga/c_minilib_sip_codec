@@ -51,7 +51,6 @@ error_out:
 };
 
 // This function return true if it filled argsiter
-// This function returns true if it filled argsiter
 static inline bool
 cmsc_argsiter_next(const struct cmsc_ValueIterator *valueiter,
                    struct cmsc_ArgsIterator *argsiter) {

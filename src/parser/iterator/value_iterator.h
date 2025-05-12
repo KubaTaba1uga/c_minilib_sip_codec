@@ -70,6 +70,10 @@ cmsc_valueiter_next(const struct cmsc_HeaderIterator *headeriter,
   }
 
   uint32_t available_space = headeriter->line_end - valueiter->value_start;
+  if (valueiter->value_start && isblank(*valueiter->value_start)) {
+    available_space--;
+  }
+
   if (available_space == 0) {
     valueiter->value_start = NULL;
     valueiter->value_end = NULL;

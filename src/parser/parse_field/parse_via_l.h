@@ -14,7 +14,6 @@
 #include "sipmsg/sipmsg.h"
 #include "utils/string.h"
 
-#include <asm-generic/errno-base.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h>
@@ -26,10 +25,6 @@ static inline cme_error_t
 cmsc_parser_parse_via_l(const struct cmsc_HeaderIterator *header_iter,
                         struct cmsc_ValueIterator *value_iter,
                         cmsc_sipmsg_t msg) {
-  puts("Parsing argsiter");
-
-  STAILQ_INIT(&msg->via);
-
   struct cmsc_ArgsIterator args_iter;
   cme_error_t err;
 
@@ -43,15 +38,16 @@ cmsc_parser_parse_via_l(const struct cmsc_HeaderIterator *header_iter,
 
     uint32_t i = 0;
     while (cmsc_argsiter_next(value_iter, &args_iter)) {
-      if (!args_iter.value || !args_iter.value_len) {
+      if (!args_iter.value || !args_iter.value_len ||
+          !value_iter->value_start) {
         break;
       }
 
-      if (i == 0) {
+      if (i++ == 0) {
+        // Find transport protocol enum
         const char *trans_proto = NULL;
         for (int proto = cmsc_TransportProtocols_NONE + 1;
              proto < cmsc_TransportProtocols_MAX; proto++) {
-
           if ((trans_proto = cmsc_strnstr(args_iter.value,
                                           cmsc_sipmsg_dump_transp_proto(proto),
                                           args_iter.value_len))) {
@@ -76,28 +72,26 @@ cmsc_parser_parse_via_l(const struct cmsc_HeaderIterator *header_iter,
             (args_iter.value + args_iter.value_len) - trans_proto, trans_proto,
             &msg);
       }
-      i++;
 
       if (args_iter.args_header) {
-
         if (cmsc_strnstr(args_iter.args_header, "branch",
                          args_iter.args_header_len)) {
           via->branch = cmsc_sipmsg_insert_str(args_iter.args_value_len,
                                                args_iter.args_value, &msg);
-          printf("Parsed branch: %.*s\n", args_iter.args_value_len,
-                 args_iter.args_value);
-        }
-
-        if (cmsc_strnstr(args_iter.args_header, "addr",
-                         args_iter.args_header_len)) {
+        } else if (cmsc_strnstr(args_iter.args_header, "addr",
+                                args_iter.args_header_len)) {
           via->addr = cmsc_sipmsg_insert_str(args_iter.args_value_len,
                                              args_iter.args_value, &msg);
-          printf("Parsed addr: %.*s\n", args_iter.args_value_len,
-                 args_iter.args_value);
+        } else if (cmsc_strnstr(args_iter.args_header, "received",
+                                args_iter.args_header_len)) {
+          via->received = cmsc_sipmsg_insert_str(args_iter.args_value_len,
+                                                 args_iter.args_value, &msg);
+        } else if (cmsc_strnstr(args_iter.args_header, "ttl",
+                                args_iter.args_header_len)) {
+          via->ttl = atoi(args_iter.args_value);
         }
       }
     }
-
   } while (cmsc_valueiter_next(header_iter, value_iter));
 
   cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_VIA_L);

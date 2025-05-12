@@ -103,7 +103,8 @@ void test_parse_via_missing_proto_returns_error(void) {
 
 void test_parse_via_multiple_entries_two_parsed(void) {
   const char *line =
-      "Via: SIP/2.0/UDP host1;branch=b1, SIP/2.0/UDP host2;branch=b2\r\n";
+      "Via: SIP/2.0/UDP host1;branch=b1;addr=10.0.0.1;ttl=42, "
+      "SIP/2.0/UDP host2;branch=b2;addr=10.0.0.2;ttl=43\r\n";
   struct cmsc_HeaderIterator header_iter;
   struct cmsc_ValueIterator value_iter;
   prepare_iterators(line, &header_iter, &value_iter);
@@ -117,6 +118,8 @@ void test_parse_via_multiple_entries_two_parsed(void) {
   TEST_ASSERT_EQUAL(cmsc_TransportProtocols_UDP, via1->transp_proto);
   TEST_ASSERT_EQUAL_STRING("host1", via1->sent_by);
   TEST_ASSERT_EQUAL_STRING("b1", via1->branch);
+  TEST_ASSERT_EQUAL_STRING("10.0.0.1", via1->addr);
+  TEST_ASSERT_EQUAL(42, via1->ttl);  // if ttl is uint32_t
 
   // Second Via entry
   struct cmsc_Field_Via *via2 = STAILQ_NEXT(via1, vias_l);
@@ -124,8 +127,9 @@ void test_parse_via_multiple_entries_two_parsed(void) {
   TEST_ASSERT_EQUAL(cmsc_TransportProtocols_UDP, via2->transp_proto);
   TEST_ASSERT_EQUAL_STRING("host2", via2->sent_by);
   TEST_ASSERT_EQUAL_STRING("b2", via2->branch);
+  TEST_ASSERT_EQUAL_STRING("10.0.0.2", via2->addr);
+  TEST_ASSERT_EQUAL(43, via2->ttl);  // if ttl is uint32_t
 
   // No more entries
   TEST_ASSERT_NULL(STAILQ_NEXT(via2, vias_l));
 }
-

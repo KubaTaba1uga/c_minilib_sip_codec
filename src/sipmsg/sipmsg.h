@@ -20,12 +20,11 @@
 #define CMSC_SIPMSG_DYNBUF_SIZE 512
 #endif
 
-enum cmsc_SupportedMessages {
-  cmsc_SupportedMessages_NONE = 0,
-  cmsc_SupportedMessages_INVITE,
-  cmsc_SupportedMessages_200_OK,
-  cmsc_SupportedMessages_MAX,
-};
+#define CMSC_SUPPORTED_MESSAGES_FOREACH(var)                                   \
+  for (uint32_t var = 1; var < cmsc_SupportedMessages_MAX; var *= 2)
+
+#define CMSC_SUPPORTED_FIELDS_FOREACH(var)                                     \
+  for (uint32_t var = 1; var < cmsc_SupportedFields_MAX; var *= 2)
 
 struct cmsc_SipMsg {
   uint32_t presence_mask;
@@ -39,6 +38,7 @@ struct cmsc_SipMsg {
   const char *call_id;
   uint32_t max_forwards;
   struct cmsc_ViaList via;
+  uint32_t allow_mask;
   // Add new fields here
   struct cmsc_DynamicBuffer content;
 };
@@ -63,6 +63,8 @@ static inline cme_error_t cmsc_sipmsg_create(cmsc_sipmsg_t *sipmsg) {
     goto error_out;
   }
 
+  STAILQ_INIT(&local_msg->via);
+
   *sipmsg = local_msg;
 
   return 0;
@@ -86,14 +88,22 @@ error_out:
 
 static inline const char *
 cmsc_dump_supported_messages_string(enum cmsc_SupportedMessages supmsg) {
-  static const char *strings[] = {"INVITE", "200 OK"};
+  static const char *strings[] = {
+      [cmsc_SupportedMessages_INVITE] = "INVITE",
+      [cmsc_SupportedMessages_ACK] = "ACK",
+      [cmsc_SupportedMessages_OPTIONS] = "OPTIONS",
+      [cmsc_SupportedMessages_CANCEL] = "CANCEL",
+      [cmsc_SupportedMessages_BYE] = "BYE",
+      [cmsc_SupportedMessages_200_OK] = "200 OK",
+
+  };
 
   if (supmsg <= cmsc_SupportedMessages_NONE ||
       supmsg >= cmsc_SupportedMessages_MAX) {
     return NULL;
   }
 
-  return strings[supmsg - 1];
+  return strings[supmsg];
 }
 
 static inline void

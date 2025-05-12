@@ -27,6 +27,7 @@ field_tests = [
   'cseq',
   'call_id',
   'via',
+  'allow',
   # Add more fields here
 ]
 

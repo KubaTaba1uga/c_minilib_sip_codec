@@ -23,8 +23,7 @@ cmsc_parser_parse_supported_msg(const uint32_t buffer_len, const char *buffer,
   const char *supported_msg_id = NULL;
   cme_error_t err;
 
-  for (uint32_t i = cmsc_SupportedMessages_NONE + 1;
-       i < cmsc_SupportedMessages_MAX; i++) {
+  CMSC_SUPPORTED_MESSAGES_FOREACH(i) {
     if ((supported_msg_id = cmsc_strnstr(
              buffer, cmsc_dump_supported_messages_string(i), buffer_len))) {
       cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_SUPPORTED_MSG);

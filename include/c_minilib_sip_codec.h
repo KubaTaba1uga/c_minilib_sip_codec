@@ -52,7 +52,20 @@ struct cmsc_CharBufferView {
    values in ctx of single sip message.
 */
 
+enum cmsc_SupportedMessages {
+  cmsc_SupportedMessages_NONE = 0,
+  cmsc_SupportedMessages_INVITE = 1,
+  cmsc_SupportedMessages_ACK = 2,
+  cmsc_SupportedMessages_OPTIONS = 4,
+  cmsc_SupportedMessages_CANCEL = 8,
+  cmsc_SupportedMessages_BYE = 16,
+  cmsc_SupportedMessages_200_OK = 32,
+  // Add more messages here
+  cmsc_SupportedMessages_MAX,
+};
+
 enum cmsc_SupportedFields {
+  cmsc_SupportedFields_NONE = 0,
   cmsc_SupportedFields_SUPPORTED_MSG = 1,
   cmsc_SupportedFields_REQUEST_LINE = 2,
   cmsc_SupportedFields_STATUS_LINE = 4,
@@ -63,7 +76,9 @@ enum cmsc_SupportedFields {
   cmsc_SupportedFields_CALL_ID = 128,
   cmsc_SupportedFields_MAX_FORWARDS = 256,
   cmsc_SupportedFields_VIA_L = 512,
+  cmsc_SupportedFields_ALLOW = 1024,
   // Add more fields here
+  cmsc_SupportedFields_MAX,
 };
 
 struct cmsc_Field_SipProtoVer {
