@@ -39,6 +39,7 @@ struct cmsc_SipMsg {
   uint32_t max_forwards;
   struct cmsc_ViaList via;
   uint32_t allow_mask;
+  struct cmsc_AcceptList accept;
   // Add new fields here
   struct cmsc_DynamicBuffer content;
 };
@@ -64,6 +65,7 @@ static inline cme_error_t cmsc_sipmsg_create(cmsc_sipmsg_t *sipmsg) {
   }
 
   STAILQ_INIT(&local_msg->via);
+  STAILQ_INIT(&local_msg->accept);
 
   *sipmsg = local_msg;
 

@@ -14,6 +14,13 @@ void cmsc_sipmsg_destroy(cmsc_sipmsg_t *sipmsg) {
     free(via);
   }
 
+  struct cmsc_Field_Accept *accept;
+  while (!STAILQ_EMPTY(&(*sipmsg)->accept)) {
+    accept = STAILQ_FIRST(&(*sipmsg)->accept);
+    STAILQ_REMOVE_HEAD(&(*sipmsg)->accept, accepts_l);
+    free(accept);
+  }
+
   free(*sipmsg);
   *sipmsg = NULL;
 }
