@@ -18,15 +18,15 @@ void test_line_iterator_valid_lines(void) {
 
   struct cmsc_Line *l1 = cmsc_line_iterator_next(&iter, &line);
   TEST_ASSERT_NOT_NULL(l1);
-  TEST_ASSERT_EQUAL_STRING_LEN("Line-One", line.line_start, line.line_len);
+  TEST_ASSERT_EQUAL_STRING_LEN("Line-One", line.start, line.len);
 
   struct cmsc_Line *l2 = cmsc_line_iterator_next(&iter, &line);
   TEST_ASSERT_NOT_NULL(l2);
-  TEST_ASSERT_EQUAL_STRING_LEN("Line-Two", line.line_start, line.line_len);
+  TEST_ASSERT_EQUAL_STRING_LEN("Line-Two", line.start, line.len);
 
   struct cmsc_Line *l3 = cmsc_line_iterator_next(&iter, &line);
   TEST_ASSERT_NOT_NULL(l3);
-  TEST_ASSERT_EQUAL_STRING_LEN("Line-Three", line.line_start, line.line_len);
+  TEST_ASSERT_EQUAL_STRING_LEN("Line-Three", line.start, line.len);
 
   // No more lines
   struct cmsc_Line *l4 = cmsc_line_iterator_next(&iter, &line);
@@ -42,7 +42,7 @@ void test_line_iterator_empty_line(void) {
 
   struct cmsc_Line *l = cmsc_line_iterator_next(&iter, &line);
   TEST_ASSERT_NOT_NULL(l);
-  TEST_ASSERT_EQUAL(0, line.line_len);
+  TEST_ASSERT_EQUAL(0, line.len);
 }
 
 void test_line_iterator_no_crlf(void) {

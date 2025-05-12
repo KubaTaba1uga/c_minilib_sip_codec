@@ -15,14 +15,14 @@
 #include "utils/string.h"
 
 struct cmsc_LineIterator {
-  const char *buf;
+  const char *buf; // This buffer can hold multiple lines
   uint32_t buf_len;
 };
 
 struct cmsc_Line {
-  const char *line_start;
-  const char *line_end;
-  uint32_t line_len;
+  const char *start;
+  const char *end;
+  uint32_t len;
 };
 
 static inline cme_error_t
@@ -56,17 +56,17 @@ cmsc_line_iterator_next(struct cmsc_LineIterator *line_iter,
     goto error_out;
   }
 
-  next_line->line_start = line_iter->buf;
-  next_line->line_end = line_end;
-  next_line->line_len = next_line->line_end - next_line->line_start;
+  next_line->start = line_iter->buf;
+  next_line->end = line_end;
+  next_line->len = next_line->end - next_line->start;
 
   // Detect overflow
-  if (next_line->line_len > (line_iter->buf_len - 2)) {
+  if (next_line->len > (line_iter->buf_len - 2)) {
     goto error_out;
   }
 
-  line_iter->buf_len -= next_line->line_len + 2;
-  line_iter->buf += next_line->line_len + 2;
+  line_iter->buf_len -= next_line->len + 2;
+  line_iter->buf += next_line->len + 2;
 
   return next_line;
 
