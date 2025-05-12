@@ -23,6 +23,9 @@
 static inline cme_error_t
 cmsc_parser_parse_call_id(const struct cmsc_ValueIterator *value_iter,
                           cmsc_sipmsg_t msg) {
+  if (!value_iter->value_start) {
+    return 0;
+  }
 
   msg->call_id =
       cmsc_sipmsg_insert_str(value_iter->value_end - value_iter->value_start,

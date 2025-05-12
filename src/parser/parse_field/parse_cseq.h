@@ -23,6 +23,10 @@
 static inline cme_error_t
 cmsc_parser_parse_cseq(const struct cmsc_ValueIterator *value_iter,
                        cmsc_sipmsg_t msg) {
+  if (!value_iter->value_start) {
+    return 0;
+  }
+
   const char *method = value_iter->value_start;
 
   while (isspace(*method) || isdigit(*method)) {

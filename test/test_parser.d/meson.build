@@ -29,6 +29,7 @@ field_tests = [
   'via',
   'allow',
   'accept',
+  'expires',
   # Add more fields here
 ]
 

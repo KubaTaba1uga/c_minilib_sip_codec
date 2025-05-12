@@ -40,6 +40,7 @@ struct cmsc_SipMsg {
   struct cmsc_ViaList via;
   uint32_t allow_mask;
   struct cmsc_AcceptList accept;
+  uint32_t expires;
   // Add new fields here
   struct cmsc_DynamicBuffer content;
 };

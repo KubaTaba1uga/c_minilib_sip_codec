@@ -11,7 +11,7 @@
 
 /* Invite is composed of:
      - Allow (done)
-     - Accept
+     - Accept (done)
      - Expires
      - Subject
      - Organization
