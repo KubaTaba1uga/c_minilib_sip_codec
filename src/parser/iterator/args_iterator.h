@@ -72,7 +72,6 @@ cmsc_argsiter_next(const struct cmsc_ValueIterator *valueiter,
   const char *args_start;
   if (!argsiter->args_value) {
     args_start = cmsc_strnstr(valueiter->value_start, ";", value_len);
-
   } else {
     args_start = argsiter->args_value + argsiter->args_value_len;
   }

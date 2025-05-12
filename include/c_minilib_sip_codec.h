@@ -8,6 +8,7 @@
 #define C_MINILIB_SIP_CODEC_H
 
 #include <stdint.h>
+#include <sys/queue.h>
 
 #include <c_minilib_error.h>
 
@@ -98,9 +99,31 @@ struct cmsc_Field_CSeq {
   uint32_t seq_number;
 };
 
-struct cmsc_Field_Via_l {
-  const char *method;
-  uint32_t seq_number;
+enum cmsc_TransportProtocols {
+  cmsc_TransportProtocols_NONE = 0,
+  cmsc_TransportProtocols_UDP,
+  // Add more transport protocols here
+  cmsc_TransportProtocols_MAX,
+};
+
+static inline const char *
+cmsc_sipmsg_dump_transp_proto(enum cmsc_TransportProtocols trans_proto) {
+  switch (trans_proto) {
+  case cmsc_TransportProtocols_UDP:
+    return "UDP";
+  default:
+    return "UNKOWN";
+  }
+}
+
+struct cmsc_Field_Via {
+  enum cmsc_TransportProtocols transp_proto;
+  const char *sent_by;
+  const char *addr;
+  const char *branch;
+  const char *received;
+  uint32_t ttl;
+  STAILQ_ENTRY(cmsc_Field_Via) vias_l; // This is linked list
 };
 
 typedef struct cmsc_SipMsg *cmsc_sipmsg_t;

@@ -14,6 +14,7 @@
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
 #include "utils/dynamic_buffer.h"
+#include "utils/list.h"
 
 #ifndef CMSC_SIPMSG_DYNBUF_SIZE
 #define CMSC_SIPMSG_DYNBUF_SIZE 512
@@ -37,6 +38,7 @@ struct cmsc_SipMsg {
   struct cmsc_Field_CSeq cseq;
   const char *call_id;
   uint32_t max_forwards;
+  struct cmsc_ViaList via;
   // Add new fields here
   struct cmsc_DynamicBuffer content;
 };
