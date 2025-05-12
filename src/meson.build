@@ -3,8 +3,10 @@ sources = files(
 )
 
 subdir('parser')
-subdir('scheme')
-subdir('settings')
-subdir('sipmsg')
 subdir('utils')
-subdir('supported_messages')
+
+# subdir('scheme')
+# subdir('settings')
+# subdir('sipmsg')
+
+# subdir('supported_messages')

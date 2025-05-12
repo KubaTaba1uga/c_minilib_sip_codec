@@ -7,94 +7,71 @@
 #ifndef C_MINILIB_SIP_CODEC_LINE_ITERATOR_H
 #define C_MINILIB_SIP_CODEC_LINE_ITERATOR_H
 
+#include <asm-generic/errno-base.h>
 #include <stdint.h>
 
 #include "c_minilib_error.h"
 #include "utils/dynamic_buffer.h"
 #include "utils/string.h"
 
-struct cmsc_HeaderIterator {
+struct cmsc_LineIterator {
+  const char *buf;
+  uint32_t buf_len;
+};
+
+struct cmsc_Line {
   const char *line_start;
   const char *line_end;
-  const char *colon;
   uint32_t line_len;
 };
 
 static inline cme_error_t
-cmsc_headeriter_init(struct cmsc_HeaderIterator *headeriter) {
+cmsc_line_iterator_init(const char *buf, uint32_t buf_len,
+                        struct cmsc_LineIterator *line_iter) {
   cme_error_t err;
-
-  if (!headeriter) {
-    err = cme_error(EINVAL, "`charbuffer` and `headeriter` cannot be NULL");
+  if (!buf || !line_iter || buf_len == 0) {
+    err = cme_error(EINVAL, "`buf` and `line_iter` cannot be NULL");
     goto error_out;
   }
 
-  headeriter->line_start = NULL;
-  headeriter->line_end = NULL;
-  headeriter->line_len = 0;
-  headeriter->colon = NULL;
+  line_iter->buf = buf;
+  line_iter->buf_len = buf_len;
 
   return 0;
 
 error_out:
   return cme_return(err);
-};
+}
 
-// This function returns true if it filled headeriter
-static inline bool
-cmsc_headeriter_next(struct cmsc_DynamicBuffer *buffer,
-                     struct cmsc_HeaderIterator *headeriter) {
-  if (!buffer || !headeriter) {
-    return false;
+static inline struct cmsc_Line *
+cmsc_line_iterator_next(struct cmsc_LineIterator *line_iter,
+                        struct cmsc_Line *next_line) {
+  if (!line_iter || !next_line) {
+    goto error_out;
   }
 
-  if (!headeriter->line_start) {
-    headeriter->line_start = buffer->buf;
-  } else {
-    // +2 for skipping "\r\n"
-    headeriter->line_start = headeriter->line_end + 2;
+  const char *line_end =
+      cmsc_strnstr(line_iter->buf, "\r\n", line_iter->buf_len);
+  if (!line_end) {
+    goto error_out;
   }
 
-  const uint32_t available_space = CMSC_DYNBUF_GET_END(buffer) - buffer->buf;
+  next_line->line_start = line_iter->buf;
+  next_line->line_end = line_end;
+  next_line->line_len = next_line->line_end - next_line->line_start;
 
-  headeriter->line_end =
-      cmsc_strnstr(headeriter->line_start, "\r\n", available_space);
-
-  if (!headeriter->line_end) {
-    printf("HeaderIter: incomplete header line detected (no CRLF)\n");
-    goto false_out;
+  // Detect overflow
+  if (next_line->line_len > (line_iter->buf_len - 2)) {
+    goto error_out;
   }
 
-  headeriter->colon =
-      cmsc_strnstr(headeriter->line_start, ":",
-                   headeriter->line_end - headeriter->line_start);
+  line_iter->buf_len -= next_line->line_len + 2;
+  line_iter->buf += next_line->line_len + 2;
 
-  if (headeriter->line_end == headeriter->line_start) {
-    // We hit the body headeriter wont be usefull for us no more.
-    // headeriter is not filled with valid data, we now need to use
-    // struct cmsc_BodyIterator.
+  return next_line;
 
-    printf("HeaderIter: reached end of headers (empty line)\n");
-    goto false_out;
-  }
-
-  headeriter->line_len = headeriter->line_end - headeriter->line_start;
-
-  printf("HeaderIter: parsed header line: '%.*s'\n", headeriter->line_len,
-         headeriter->line_start);
-
-  if (headeriter->colon) {
-    printf("HeaderIter: colon found at position %ld\n",
-           headeriter->colon - headeriter->line_start);
-  } else {
-    printf("HeaderIter: no colon found in header line\n");
-  }
-
-  return true;
-
-false_out:
-  cmsc_headeriter_init(headeriter);
-  return false;
+error_out:
+  return NULL;
 }
 
 #endif
