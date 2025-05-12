@@ -9,15 +9,6 @@
 #include "sipmsg/sipmsg.h"
 #include "supported_messages/common_supported_messages.h"
 
-/* Invite is composed of:
-     - Allow (done)
-     - Accept (done)
-     - Expires (done)
-     - Subject (done)
-     - Organization (done)
-     - User-Agent
-     - Body
-*/
 static inline cme_error_t cmsc_supmsg_invite_init(void) {
   struct cmsc_Scheme invite_scheme;
   cme_error_t err;

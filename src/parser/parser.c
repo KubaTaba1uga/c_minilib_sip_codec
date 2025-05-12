@@ -78,6 +78,11 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     goto error_out;
   }
 
+  // TO-DO: make all parse fields func take value iterator and header iterator
+  // TO-DO: make all parse fields take ptr to msg, msg can be realloced!
+  // TO-DO: use number of bytes in flush so we leave not used data in conetent.
+  //        in case it is needed in further parse.
+
   bool is_next;
   do {
     is_next = false;
