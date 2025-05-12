@@ -42,6 +42,7 @@ struct cmsc_SipMsg {
   struct cmsc_AcceptList accept;
   uint32_t expires;
   const char *subject;
+  const char *organization;
   // Add new fields here
   struct cmsc_DynamicBuffer content;
 };

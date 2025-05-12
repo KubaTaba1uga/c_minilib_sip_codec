@@ -31,6 +31,7 @@ field_tests = [
   'accept',
   'expires',
   'subject',
+  'organization',
   # Add more fields here
 ]
 

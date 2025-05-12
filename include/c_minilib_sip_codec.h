@@ -80,6 +80,7 @@ enum cmsc_SupportedFields {
   cmsc_SupportedFields_ACCEPT = 2048,
   cmsc_SupportedFields_EXPIRES = 4096,
   cmsc_SupportedFields_SUBJECT = 8192,
+  cmsc_SupportedFields_ORGANIZATION = 16284,
   // Add more fields here
   cmsc_SupportedFields_MAX,
 };
