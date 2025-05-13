@@ -65,6 +65,10 @@ cmsc_args_iterator_next(struct cmsc_ArgsLine *args,
       value_end = args_iter->line.value.end;
     }
 
+    if (value_end - args_iter->line.value.start == 0) {
+      return cmsc_ArgsNextResults_NONE;
+    }
+
     CMSC_LINE_SET(args_iter->line.value.start, value_end, args->value);
     CMSC_LINE_TRAVERSE(args_iter->line.value, args->value.len);
 

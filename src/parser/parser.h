@@ -7,7 +7,7 @@
 #ifndef C_MINILIB_SIP_CODEC_PARSER_H
 #define C_MINILIB_SIP_CODEC_PARSER_H
 
-#include <asm-generic/errno-base.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -73,6 +73,15 @@ cmsc_parser_parse_first_line(struct cmsc_Line *line) {
 error_sipmsg_cleanup:
   cmsc_sipmsg_destroy(&sipmsg);
 error_out:
+  return NULL;
+}
+
+static inline cmsc_sipmsg_t
+cmsc_parser_parse_sip_header(struct cmsc_ValueLine *value_line,
+                             cmsc_sipmsg_t *sipmsg) {
+  // 1. find scheme
+  //
+
   return NULL;
 }
 

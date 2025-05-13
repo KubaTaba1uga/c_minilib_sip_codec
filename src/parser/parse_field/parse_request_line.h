@@ -28,20 +28,28 @@ cmsc_parser_parse_request_line(const uint32_t buffer_len, const char *buffer,
   */
   cme_error_t err;
 
-  const char *method = buffer;
+  const char *method_end = buffer;
   uint32_t method_len = 0;
 
-  while (isalpha(*method)) {
+  while (isalpha(*method_end)) {
+    if (method_len >= buffer_len) {
+      break;
+    }
     method_len++;
+    method_end++;
   }
 
-  if (!isspace(*method)) {
+  if (!isspace(*method_end)) {
     err = cme_error(EINVAL, "No space after method in request line");
     goto error_out;
   }
 
   const char *sip_version =
-      cmsc_strnstr(method, "SIP/", buffer_len - method_len);
+      cmsc_strnstr(method_end, "SIP/", buffer_len - method_len);
+  if (!sip_version) {
+    err = cme_error(EINVAL, "No sip version in request line");
+    goto error_out;
+  }
 
   if ((err = cmsc_parser_parse_sip_proto_ver(
            (buffer + buffer_len) - sip_version, sip_version,
@@ -49,8 +57,8 @@ cmsc_parser_parse_request_line(const uint32_t buffer_len, const char *buffer,
     goto error_out;
   }
 
-  const char *request_uri = method + method_len + 1;
-  uint32_t request_uri_len = sip_version - request_uri;
+  const char *request_uri = method_end + 1;
+  uint32_t request_uri_len = sip_version - request_uri - 1;
 
   (*msg)->request_line.request_uri =
       cmsc_sipmsg_insert_str(request_uri_len, request_uri, msg);

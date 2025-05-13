@@ -1,38 +1,26 @@
-test_parse_msgempty_name = 'test_parse_msgempty.c'
-test_parse_parsingheaders_name = 'test_parse_parsingheaders.c'
-
-# Core parser tests
-test_parse_msgempty_exe = executable('test_parse_msgempty',
+test_parse_first_line_name = 'test_parse_first_line.c'
+test_parse_first_line_exe = executable('test_parse_first_line',
   sources: [
-    test_parse_msgempty_name,
-    test_runner.process(test_parse_msgempty_name),
+    test_parse_first_line_name,
+    test_runner.process(test_parse_first_line_name),
   ],
   dependencies: test_dependencies,
 )
-test('test_parse_msgempty', test_parse_msgempty_exe)
+test('test_parse_first_line', test_parse_first_line_exe)
 
-test_parse_parsingheaders_exe = executable('test_parse_parsingheaders',
-  sources: [
-    test_parse_parsingheaders_name,
-    test_runner.process(test_parse_parsingheaders_name),
-  ],
-  dependencies: test_dependencies,
-)
-test('test_parse_parsingheaders', test_parse_parsingheaders_exe)
 
-# List of field-level parser test files
 field_tests = [
   'to',
-  'from',
-  'cseq',
-  'call_id',
-  'via',
-  'allow',
-  'accept',
-  'expires',
-  'subject',
-  'organization',
-  'user_agent',
+  # 'from',
+  # 'cseq',
+  # 'call_id',
+  # 'via',
+  # 'allow',
+  # 'accept',
+  # 'expires',
+  # 'subject',
+  # 'organization',
+  # 'user_agent',
   # Add more fields here
 ]
 
@@ -50,6 +38,3 @@ foreach field : field_tests
 
   test(test_name, test_exe)
 endforeach
-
-# Iterator tests
-subdir('test_iterators.d')

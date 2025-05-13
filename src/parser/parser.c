@@ -90,8 +90,12 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     switch ((*parser)->state) {
     case cmsc_ParserStates_MsgEmpty: {
       if (cmsc_line_iterator_next(&value_iter.line_iter, &value_iter.line)) {
-        // Parse first line
+        (*parser)->msg = cmsc_parser_parse_first_line(&value_iter.line);
+        if (!(*parser)->msg) {
+          goto error_out;
+        }
 
+        (*parser)->state = cmsc_ParserStates_ParsingHeaders;
         is_next = true;
       }
       break;
@@ -99,7 +103,7 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
 
     case cmsc_ParserStates_ParsingHeaders: {
       struct cmsc_ValueLine value_line = {0};
-      if (cmsc_value_iterator_next(&value_iter, &value_line)) {
+      while (cmsc_value_iterator_next(&value_iter, &value_line)) {
         // Parse header
 
         is_next = true;
@@ -122,10 +126,6 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     }
 
     printf("is_next=%d, (*parser)->state=%d\n", is_next, (*parser)->state);
-
-    if (is_next) {
-      (*parser)->state = ((*parser)->state % cmsc_ParserStates_MsgReady) + 1;
-    }
   } while (is_next);
 
   // Once we processed all data we can flush the parser content.

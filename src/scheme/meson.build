@@ -1,4 +1,4 @@
 sources += files(
-  'scheme.h', 'scheme.c',
+  'scheme.h',
   'scheme_register.h', 'scheme_register.c'  
 )
