@@ -19,64 +19,56 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static inline cme_error_t
-cmsc_parser_parse_from(const struct cmsc_ValueIterator *value_iter,
-                       cmsc_sipmsg_t msg) {
-  if (!value_iter->value_start) {
-    return 0;
-  }
-
+cmsc_parser_parse_from(const struct cmsc_ValueLine *line, cmsc_sipmsg_t *msg) {
   struct cmsc_ArgsIterator args_iter;
   cme_error_t err;
 
-  if ((err = cmsc_argsiter_init(&args_iter))) {
+  if ((err = cmsc_args_iterator_init(line, &args_iter))) {
     goto error_out;
   }
 
-  uint32_t i = 0;
-  while (cmsc_argsiter_next(value_iter, &args_iter)) {
-    if (!args_iter.value || !args_iter.value_len) {
+  struct cmsc_ArgsLine args = {0};
+  bool do_loop = true;
+  while (do_loop) {
+    enum cmsc_ArgsNextResults result =
+        cmsc_args_iterator_next(&args, &args_iter);
+    switch (result) {
+    case cmsc_ArgsNextResults_NONE:
+      do_loop = false;
+      break;
+    case cmsc_ArgsNextResults_VALUE: {
+      const char *display_name_end =
+          cmsc_strnstr(args.value.start, "<", args.value.len);
+
+      if (display_name_end == args.value.start) {
+        (*msg)->from.uri =
+            cmsc_sipmsg_insert_str(args.value.len, args.value.start, msg);
+
+      } else {
+        (*msg)->from.uri = cmsc_sipmsg_insert_str(
+            args.value.end - display_name_end, display_name_end, msg);
+
+        display_name_end--;
+        (*msg)->from.display_name = cmsc_sipmsg_insert_str(
+            display_name_end - args.value.start, args.value.start, msg);
+      }
+
       break;
     }
-
-    if (i++ == 0) {
-      const char *display_name_end_cp, *display_name_start = args_iter.value;
-      const char *display_name_end = display_name_end_cp =
-          cmsc_strnstr(args_iter.value, "<", args_iter.value_len);
-      if (display_name_end) {
-        while (isspace(*display_name_start)) {
-          display_name_start++;
-        }
-
-        while (isspace(*(display_name_end - 1))) {
-          display_name_end--;
-        }
-
-        if (display_name_start < display_name_end) {
-          msg->from.display_name = cmsc_sipmsg_insert_str(
-              display_name_end - display_name_start, display_name_start, &msg);
-
-          args_iter.value = display_name_end_cp;
-          args_iter.value_len -= (display_name_end_cp - display_name_start);
-        }
+    case cmsc_ArgsNextResults_ARG:
+      if (strncmp(args.arg_key.start, "tag", args.arg_key.len) == 0) {
+        (*msg)->from.tag = cmsc_sipmsg_insert_str(args.arg_value.len,
+                                                  args.arg_value.start, msg);
       }
-
-      msg->from.uri =
-          cmsc_sipmsg_insert_str(args_iter.value_len, args_iter.value, &msg);
-    }
-
-    if (args_iter.args_header) {
-      if (cmsc_strnstr(args_iter.args_header, "tag",
-                       args_iter.args_header_len)) {
-        msg->from.tag = cmsc_sipmsg_insert_str(args_iter.args_value_len,
-                                               args_iter.args_value, &msg);
-      }
+      break;
     }
   }
 
-  if (i > 0) {
-    cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_FROM);
+  if ((*msg)->from.uri) {
+    cmsc_sipmsg_mark_field_present(*msg, cmsc_SupportedFields_FROM);
   }
 
   return 0;

@@ -4,4 +4,5 @@ sources += files(
    'parse_status_line.h',
    'parse_supported_msg.h',
    'parse_to.h',   
+   'parse_from.h',   
 )

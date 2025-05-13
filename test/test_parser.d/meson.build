@@ -1,15 +1,6 @@
-test_parse_first_line_name = 'test_parse_first_line.c'
-test_parse_first_line_exe = executable('test_parse_first_line',
-  sources: [
-    test_parse_first_line_name,
-    test_runner.process(test_parse_first_line_name),
-  ],
-  dependencies: test_dependencies,
-)
-test('test_parse_first_line', test_parse_first_line_exe)
-
-
 field_tests = [
+  'first_line',
+  'parsingheaders',
   'to',
   # 'from',
   # 'cseq',

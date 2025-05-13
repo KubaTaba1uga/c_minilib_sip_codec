@@ -76,12 +76,43 @@ error_out:
   return NULL;
 }
 
-static inline cmsc_sipmsg_t
+static inline cmsc_sipmsg_t *
 cmsc_parser_parse_sip_header(struct cmsc_ValueLine *value_line,
                              cmsc_sipmsg_t *sipmsg) {
   // 1. find scheme
   //
+  struct cmsc_Scheme *scheme =
+      cmsc_schemes_register_get_scheme((*sipmsg)->supmsg);
+  if (!scheme) {
+    goto error_out;
+  }
 
+  struct cmsc_SchemeField *field;
+  uint32_t scheme_i;
+
+  CMSC_FOREACH_SCHEME_MANDATORY(scheme, scheme_i, field) {
+    cme_error_t err;
+    bool is_match;
+
+    if (field->is_field_func) {
+      is_match = field->is_field_func(value_line->header.len,
+                                      value_line->header.start);
+    } else {
+      is_match = cmsc_default_is_field_func(
+          value_line->header.len, value_line->header.start, field->id);
+    }
+
+    if (is_match) {
+      if ((err = field->parse_field_func(value_line, sipmsg))) {
+        goto error_out;
+      }
+      break;
+    }
+  }
+
+  return sipmsg;
+
+error_out:
   return NULL;
 }
 
