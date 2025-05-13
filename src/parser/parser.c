@@ -45,7 +45,7 @@ void cmsc_parser_destroy(cmsc_parser_t *parser) {
     return;
   }
 
-  free((*parser)->msg);
+  cmsc_sipmsg_destroy(&(*parser)->msg);
   free(*parser);
 
   *parser = NULL;

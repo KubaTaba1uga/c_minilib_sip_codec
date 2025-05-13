@@ -17,34 +17,66 @@ static inline cme_error_t cmsc_supmsg_invite_init(void) {
     goto error_out;
   }
 
+  // --- Mandatory Fields ---
   if ((err = cmsc_scheme_add_mandatory_field(&cmsc_field_to, &invite_scheme))) {
     goto error_out;
-  };
+  }
 
   if ((err =
            cmsc_scheme_add_mandatory_field(&cmsc_field_from, &invite_scheme))) {
     goto error_out;
-  };
+  }
 
-  /* if ((err = cmsc_scheme_add_mandatory_field(&cmsc_field_cseq,
-   * local_scheme)))
-   * { */
-  /*   goto error_out; */
-  /* }; */
+  if ((err = cmsc_scheme_add_mandatory_field(&cmsc_field_call_id,
+                                             &invite_scheme))) {
+    goto error_out;
+  }
 
-  /* if ((err = */
-  /*          cmsc_scheme_add_mandatory_field(&cmsc_field_callid,
-   * local_scheme)))
-   * { */
-  /*   goto error_out; */
-  /* }; */
+  if ((err =
+           cmsc_scheme_add_mandatory_field(&cmsc_field_cseq, &invite_scheme))) {
+    goto error_out;
+  }
 
-  /* if ((err = cmsc_scheme_add_mandatory_field(&cmsc_field_max_forwards, */
-  /*                                            local_scheme))) { */
-  /*   goto error_out; */
-  /* }; */
+  if ((err =
+           cmsc_scheme_add_mandatory_field(&cmsc_field_via, &invite_scheme))) {
+    goto error_out;
+  }
 
-  /* *scheme = local_scheme; */
+  if ((err = cmsc_scheme_add_mandatory_field(&cmsc_field_max_forwards,
+                                             &invite_scheme))) {
+    goto error_out;
+  }
+
+  // --- Optional Fields ---
+  if ((err = cmsc_scheme_add_optional_field(&cmsc_field_subject,
+                                            &invite_scheme))) {
+    goto error_out;
+  }
+
+  if ((err = cmsc_scheme_add_optional_field(&cmsc_field_user_agent,
+                                            &invite_scheme))) {
+    goto error_out;
+  }
+
+  if ((err =
+           cmsc_scheme_add_optional_field(&cmsc_field_allow, &invite_scheme))) {
+    goto error_out;
+  }
+
+  if ((err = cmsc_scheme_add_optional_field(&cmsc_field_organization,
+                                            &invite_scheme))) {
+    goto error_out;
+  }
+
+  if ((err = cmsc_scheme_add_optional_field(&cmsc_field_accept,
+                                            &invite_scheme))) {
+    goto error_out;
+  }
+
+  if ((err = cmsc_scheme_add_optional_field(&cmsc_field_expires,
+                                            &invite_scheme))) {
+    goto error_out;
+  }
 
   if ((err = cmsc_schemes_register_add_scheme(invite_scheme))) {
     goto error_out;
@@ -53,9 +85,10 @@ static inline cme_error_t cmsc_supmsg_invite_init(void) {
   return 0;
 
 error_out:
+  puts(err->msg);
   cmsc_scheme_destroy(&invite_scheme);
   return cme_return(err);
-};
+}
 
 static inline void cmsc_supmsg_invite_destroy(void) {
   struct cmsc_Scheme *invite_scheme;

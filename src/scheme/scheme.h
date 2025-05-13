@@ -131,11 +131,10 @@ cmsc_scheme_add_optional_field(const struct cmsc_SchemeField *field,
   struct cmsc_SchemeField *olocal_fields;
   cme_error_t err;
 
-  if (!field || !scheme || !field->generate_field_func ||
-      !field->parse_field_func || !field->id) {
+  if (!field || !scheme || !field->parse_field_func || !field->id) {
     err = cme_error(
         EINVAL,
-        "`field`, `field->generate_field_func`, "
+        "`field`, "
         "`field->parse_field_func`, `field->id` and `scheme` cannot be NULL");
     goto error_out;
   }

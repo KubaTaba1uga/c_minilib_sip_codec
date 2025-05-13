@@ -21,8 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static inline cme_error_t cmsc_parser_parse_allow(struct cmsc_ValueLine *line,
-                                                  cmsc_sipmsg_t *msg) {
+static inline cme_error_t
+cmsc_parser_parse_allow(const struct cmsc_ValueLine *line, cmsc_sipmsg_t *msg) {
   CMSC_SUPPORTED_MESSAGES_FOREACH(supmsg) {
     if (cmsc_strnstr(line->value.start,
                      cmsc_dump_supported_messages_string(supmsg),

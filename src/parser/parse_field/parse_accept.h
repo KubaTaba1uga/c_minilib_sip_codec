@@ -22,26 +22,19 @@
 #include <string.h>
 
 static inline cme_error_t
-cmsc_parser_parse_accept(const struct cmsc_HeaderIterator *header_iter,
-                         struct cmsc_ValueIterator *value_iter,
-                         cmsc_sipmsg_t msg) {
-  do {
-    if (!value_iter->value_start) {
-      break;
-    }
+cmsc_parser_parse_accept(const struct cmsc_ValueLine *line,
+                         cmsc_sipmsg_t *msg) {
+  struct cmsc_Field_Accept *accept =
+      calloc(1, sizeof(struct cmsc_Field_Accept));
 
-    struct cmsc_Field_Accept *accept =
-        calloc(1, sizeof(struct cmsc_Field_Accept));
-    STAILQ_INSERT_TAIL(&msg->accept, accept, accepts_l);
+  accept->mime =
+      cmsc_sipmsg_insert_str(line->value.len, line->value.start, msg);
 
-    accept->mime =
-        cmsc_sipmsg_insert_str(value_iter->value_end - value_iter->value_start,
-                               value_iter->value_start, &msg);
-  } while (cmsc_valueiter_next(header_iter, value_iter));
+  STAILQ_INSERT_TAIL(&(*msg)->accept, accept, accepts_l);
 
-  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_ACCEPT);
+  cmsc_sipmsg_mark_field_present((*msg), cmsc_SupportedFields_ACCEPT);
 
-  return 0;
+  return NULL;
 }
 
 #endif

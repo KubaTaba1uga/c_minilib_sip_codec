@@ -91,23 +91,48 @@ cmsc_parser_parse_sip_header(struct cmsc_ValueLine *value_line,
   struct cmsc_SchemeField *field;
   uint32_t scheme_i;
 
+  bool is_match = false;
   CMSC_FOREACH_SCHEME_MANDATORY(scheme, scheme_i, field) {
     cme_error_t err;
-    bool is_match;
+    bool local_is_match;
 
     if (field->is_field_func) {
-      is_match = field->is_field_func(value_line->header.len,
-                                      value_line->header.start);
+      local_is_match = field->is_field_func(value_line->header.len,
+                                            value_line->header.start);
     } else {
-      is_match = cmsc_default_is_field_func(
+      local_is_match = cmsc_default_is_field_func(
           value_line->header.len, value_line->header.start, field->id);
     }
 
-    if (is_match) {
+    if (local_is_match) {
       if ((err = field->parse_field_func(value_line, sipmsg))) {
         goto error_out;
       }
+      is_match = true;
       break;
+    }
+  }
+
+  if (!is_match && scheme->optional.fields) {
+    CMSC_FOREACH_SCHEME_OPTIONAL(scheme, scheme_i, field) {
+      cme_error_t err;
+      bool local_is_match;
+
+      if (field->is_field_func) {
+        local_is_match = field->is_field_func(value_line->header.len,
+                                              value_line->header.start);
+      } else {
+        local_is_match = cmsc_default_is_field_func(
+            value_line->header.len, value_line->header.start, field->id);
+      }
+
+      if (local_is_match) {
+        if ((err = field->parse_field_func(value_line, sipmsg))) {
+          goto error_out;
+        }
+        is_match = true;
+        break;
+      }
     }
   }
 
