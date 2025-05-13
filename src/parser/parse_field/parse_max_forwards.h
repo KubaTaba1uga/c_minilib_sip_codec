@@ -21,14 +21,10 @@
 #include <stdlib.h>
 
 static inline cme_error_t
-cmsc_parser_parse_max_forwards(const struct cmsc_ValueIterator *value_iter,
-                               cmsc_sipmsg_t msg) {
-  if (!value_iter->value_start) {
-    return 0;
-  }
-
-  msg->max_forwards = atoi(value_iter->value_start);
-  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_MAX_FORWARDS);
+cmsc_parser_parse_max_forwards(const struct cmsc_ValueLine *value_line,
+                               cmsc_sipmsg_t *msg) {
+  (*msg)->max_forwards = atoi(value_line->value.start);
+  cmsc_sipmsg_mark_field_present((*msg), cmsc_SupportedFields_MAX_FORWARDS);
 
   return 0;
 }

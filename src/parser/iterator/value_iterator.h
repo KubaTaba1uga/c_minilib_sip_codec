@@ -58,7 +58,7 @@ _cmsc_value_iterator_next(struct cmsc_ValueIterator *value_iter,
   }
 
   // Skip all spaces at the end
-  while (isspace(*(value_end - 1))) {
+  while (value_end > value_iter->line.start && isspace(*(value_end - 1))) {
     value_end--;
   }
 
@@ -74,9 +74,10 @@ _cmsc_value_iterator_next(struct cmsc_ValueIterator *value_iter,
   }
 
   /* Skip all spaces at the beginning */
-  do {
+  while (value_iter->line.start < value_end &&
+         isspace(*value_iter->line.start)) {
     value_iter->line.start++;
-  } while (isspace(*value_iter->line.start));
+  }
 
   CMSC_LINE_SET(value_iter->line.start, value_end, next_value->value);
   CMSC_LINE_TRAVERSE(value_iter->line, next_value->value.len + 1);

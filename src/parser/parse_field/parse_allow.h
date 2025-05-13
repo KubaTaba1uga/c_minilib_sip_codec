@@ -21,27 +21,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-static inline cme_error_t
-cmsc_parser_parse_allow(const struct cmsc_HeaderIterator *header_iter,
-                        struct cmsc_ValueIterator *value_iter,
-                        cmsc_sipmsg_t msg) {
-  do {
-    if (!value_iter->value_start) {
+static inline cme_error_t cmsc_parser_parse_allow(struct cmsc_ValueLine *line,
+                                                  cmsc_sipmsg_t *msg) {
+  CMSC_SUPPORTED_MESSAGES_FOREACH(supmsg) {
+    if (cmsc_strnstr(line->value.start,
+                     cmsc_dump_supported_messages_string(supmsg),
+                     line->value.len)) {
+      (*msg)->allow_mask |= supmsg;
       break;
     }
+  }
 
-    CMSC_SUPPORTED_MESSAGES_FOREACH(supmsg) {
-      if (cmsc_strnstr(value_iter->value_start,
-                       cmsc_dump_supported_messages_string(supmsg),
-                       value_iter->value_end - value_iter->value_start)) {
-        msg->allow_mask |= supmsg;
-        break;
-      }
-    }
-  } while (cmsc_valueiter_next(header_iter, value_iter));
-
-  if (msg->allow_mask) {
-    cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_ALLOW);
+  if ((*msg)->allow_mask) {
+    cmsc_sipmsg_mark_field_present((*msg), cmsc_SupportedFields_ALLOW);
   }
 
   return 0;

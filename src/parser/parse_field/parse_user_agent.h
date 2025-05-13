@@ -21,17 +21,12 @@
 #include <stdlib.h>
 
 static inline cme_error_t
-cmsc_parser_parse_user_agent(const struct cmsc_ValueIterator *value_iter,
-                          cmsc_sipmsg_t msg) {
-  if (!value_iter->value_start) {
-    return 0;
-  }
+cmsc_parser_parse_user_agent(const struct cmsc_ValueLine *line,
+                             cmsc_sipmsg_t *msg) {
+  (*msg)->user_agent =
+      cmsc_sipmsg_insert_str(line->value.len, line->value.start, msg);
 
-  msg->user_agent =
-      cmsc_sipmsg_insert_str(value_iter->value_end - value_iter->value_start,
-                             value_iter->value_start, &msg);
-
-  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_USER_AGENT);
+  cmsc_sipmsg_mark_field_present((*msg), cmsc_SupportedFields_USER_AGENT);
 
   return 0;
 }

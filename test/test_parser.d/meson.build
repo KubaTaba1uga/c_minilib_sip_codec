@@ -5,9 +5,10 @@ field_tests = [
   'via',
   # 'from',
   'cseq',
+  'allow',
   # 'call_id',
 
-  # 'allow',
+
   # 'accept',
   # 'expires',
   # 'subject',
