@@ -16,7 +16,7 @@ struct cmsc_ValueIterator {
   struct cmsc_Line line;
 };
 
-struct cmsc_Value {
+struct cmsc_ValueLine {
   struct cmsc_Line header;
   struct cmsc_Line value;
   bool is_inited;
@@ -32,6 +32,8 @@ cmsc_value_iterator_init(const char *buf, uint32_t buf_len,
     goto error_out;
   }
 
+  memset(value_iter, 0, sizeof(struct cmsc_ValueIterator));
+
   if ((err = cmsc_line_iterator_init(buf, buf_len, &value_iter->line_iter))) {
     goto error_out;
   }
@@ -42,9 +44,9 @@ error_out:
   return cme_return(err);
 }
 
-static inline struct cmsc_Value *
+static inline struct cmsc_ValueLine *
 _cmsc_value_iterator_next(struct cmsc_ValueIterator *value_iter,
-                          struct cmsc_Value *next_value) {
+                          struct cmsc_ValueLine *next_value) {
   if (!next_value) {
     goto error_out;
   }
@@ -99,16 +101,16 @@ error_out:
   return NULL;
 }
 
-static inline struct cmsc_Value *
+static inline struct cmsc_ValueLine *
 cmsc_value_iterator_next(struct cmsc_ValueIterator *value_iter,
-                         struct cmsc_Value *next_value) {
+                         struct cmsc_ValueLine *next_value) {
   if (!value_iter || !next_value) {
     goto error_out;
   }
 
-  // Detect end of line
+  /* Detect end of line */
   if (next_value->value.end && next_value->value.end == value_iter->line.end) {
-    goto error_out;
+    next_value->is_inited = false;
   }
 
   if (!next_value->is_inited) {

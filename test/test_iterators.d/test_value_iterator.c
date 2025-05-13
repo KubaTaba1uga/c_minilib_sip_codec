@@ -11,14 +11,14 @@ static const char *test_buf = "Via: host1;branch=xyz, host2;branch=abc\r\n"
 
 void test_value_iterator_single_header_with_values(void) {
   struct cmsc_ValueIterator iter;
-  struct cmsc_Value value = {0};
+  struct cmsc_ValueLine value = {0};
 
   const char *buf = "Allow: INVITE, ACK\r\n";
   cme_error_t err = cmsc_value_iterator_init(buf, strlen(buf), &iter);
   TEST_ASSERT_NULL(err);
 
   // First value (INVITE)
-  struct cmsc_Value *v = cmsc_value_iterator_next(&iter, &value);
+  struct cmsc_ValueLine *v = cmsc_value_iterator_next(&iter, &value);
   TEST_ASSERT_NOT_NULL(v);
   TEST_ASSERT_EQUAL_STRING_LEN("Allow", v->header.start, v->header.len);
   TEST_ASSERT_EQUAL_STRING_LEN("INVITE", v->value.start,
@@ -37,12 +37,12 @@ void test_value_iterator_single_header_with_values(void) {
 
 void test_value_iterator_multiple_headers(void) {
   struct cmsc_ValueIterator iter;
-  struct cmsc_Value value = {0};
+  struct cmsc_ValueLine value = {0};
 
   cme_error_t err = cmsc_value_iterator_init(test_buf, strlen(test_buf), &iter);
   TEST_ASSERT_NULL(err);
 
-  struct cmsc_Value *v;
+  struct cmsc_ValueLine *v;
 
   // First header: Via
   v = cmsc_value_iterator_next(&iter, &value);
@@ -54,11 +54,11 @@ void test_value_iterator_multiple_headers(void) {
   // Second value: host2
   v = cmsc_value_iterator_next(&iter, &value);
   TEST_ASSERT_NOT_NULL(v);
+  TEST_ASSERT_EQUAL_STRING_LEN("Via", v->header.start, v->header.len);
   TEST_ASSERT_EQUAL_STRING_LEN("host2;branch=abc", v->value.start,
                                v->value.end - v->value.start);
 
   // New header: Allow
-  value = (struct cmsc_Value){0}; // reset state
   v = cmsc_value_iterator_next(&iter, &value);
   TEST_ASSERT_NOT_NULL(v);
   TEST_ASSERT_EQUAL_STRING_LEN("Allow", v->header.start, v->header.len);
@@ -76,14 +76,13 @@ void test_value_iterator_multiple_headers(void) {
                                v->value.end - v->value.start);
 
   // Next line is malformed: should return NULL
-  value = (struct cmsc_Value){0};
   v = cmsc_value_iterator_next(&iter, &value);
   TEST_ASSERT_NULL(v);
 }
 
 void test_value_iterator_null_args(void) {
   struct cmsc_ValueIterator iter;
-  struct cmsc_Value value;
+  struct cmsc_ValueLine value;
 
   // NULL buf
   TEST_ASSERT_NOT_NULL(cmsc_value_iterator_init(NULL, 10, &iter));
