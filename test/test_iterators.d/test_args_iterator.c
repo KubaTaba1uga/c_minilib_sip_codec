@@ -3,82 +3,121 @@
 #include <unity.h>
 
 #include "parser/iterator/args_iterator.h"
-#include "parser/iterator/line_iterator.h"
 #include "parser/iterator/value_iterator.h"
 #include "utils/string.h"
 
-void prepare_value(const char *line, struct cmsc_Value *value) {
-  struct cmsc_ValueIterator value_iter;
-  struct cmsc_LineIterator line_iter;
-  struct cmsc_Line line;
+/* static const char *example_line = */
+/*     "From: sip:user@example.com;tag=123;ttl=70\r\n"; */
 
-  // Init line iterator
-  TEST_ASSERT_NULL(cmsc_line_iterator_init(line, strlen(line), &line_iter));
-  TEST_ASSERT_TRUE(cmsc_line_iterator_next(&line_iter, &line));
+void test_args_iterator_null_inputs(void) {
+  struct cmsc_ArgsIterator args_iter;
+  struct cmsc_ArgsLine args;
 
-  // Init value iterator from single line
-  TEST_ASSERT_NULL(cmsc_value_iterator_init(line.start, line.len, &value_iter));
-  TEST_ASSERT_TRUE(cmsc_value_iterator_next(&value_iter, value));
+  TEST_ASSERT_NULL(cmsc_args_iterator_next(NULL, NULL));
+  TEST_ASSERT_NULL(cmsc_args_iterator_next(&args, NULL));
+  TEST_ASSERT_NULL(cmsc_args_iterator_next(NULL, &args_iter));
 }
 
-void test_args_iterator_single_argument(void) {
-  struct cmsc_Value value = {0};
-  prepare_value("X-Test: param=value\r\n", &value);
-
-  struct cmsc_ArgsIterator iter;
-  struct cmsc_Args arg = {0};
-
-  TEST_ASSERT_NULL(cmsc_args_iterator_init(&value, &iter));
-  struct cmsc_Args *a = cmsc_args_iterator_next(&arg, &iter);
-  TEST_ASSERT_NOT_NULL(a);
-  TEST_ASSERT_EQUAL_STRING_LEN("param=value", a->value.start, a->value.len);
+void test_args_iterator_init_null(void) {
+  struct cmsc_ArgsIterator args_iter;
+  TEST_ASSERT_NOT_NULL(cmsc_args_iterator_init(NULL, &args_iter));
+  struct cmsc_ValueLine val = {0};
+  TEST_ASSERT_NOT_NULL(cmsc_args_iterator_init(&val, NULL));
 }
 
-void test_args_iterator_multiple_arguments(void) {
-  struct cmsc_Value value = {0};
-  prepare_value("Via: host;branch=abc;ttl=50\r\n", &value);
+void test_args_iterator_valid_simple_uri_and_param(void) {
+  const char *line = "From: sip:user@example.com;tag=123\r\n";
+  struct cmsc_ValueIterator viter;
+  struct cmsc_ValueLine vline = {0};
 
-  struct cmsc_ArgsIterator iter;
-  struct cmsc_Args arg = {0};
+  cme_error_t err = cmsc_value_iterator_init(line, strlen(line), &viter);
+  TEST_ASSERT_NULL(err);
+  TEST_ASSERT_NOT_NULL(cmsc_value_iterator_next(&viter, &vline));
 
-  TEST_ASSERT_NULL(cmsc_args_iterator_init(&value, &iter));
+  struct cmsc_ArgsIterator args_iter;
+  TEST_ASSERT_NULL(cmsc_args_iterator_init(&vline, &args_iter));
 
-  struct cmsc_Args *a;
+  struct cmsc_ArgsLine args = {0};
+  struct cmsc_ArgsLine *a;
 
-  a = cmsc_args_iterator_next(&arg, &iter);
+  // URI
+  a = cmsc_args_iterator_next(&args, &args_iter);
   TEST_ASSERT_NOT_NULL(a);
-  TEST_ASSERT_EQUAL_STRING_LEN("host", a->value.start, a->value.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("sip:user@example.com", a->value.start,
+                               a->value.len);
 
-  a = cmsc_args_iterator_next(&arg, &iter);
+  // tag param
+  a = cmsc_args_iterator_next(&args, &args_iter);
   TEST_ASSERT_NOT_NULL(a);
-  TEST_ASSERT_EQUAL_STRING_LEN("branch=abc", a->value.start, a->value.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("tag", a->arg_key.start,
+                               a->arg_key.end - a->arg_key.start);
+  TEST_ASSERT_EQUAL_STRING_LEN("123", a->arg_value.start,
+                               a->arg_value.end - a->arg_value.start);
 
-  a = cmsc_args_iterator_next(&arg, &iter);
-  TEST_ASSERT_NOT_NULL(a);
-  TEST_ASSERT_EQUAL_STRING_LEN("ttl=50", a->value.start, a->value.len);
-
-  a = cmsc_args_iterator_next(&arg, &iter);
+  // done
+  a = cmsc_args_iterator_next(&args, &args_iter);
   TEST_ASSERT_NULL(a);
 }
 
-void test_args_iterator_empty_value(void) {
-  struct cmsc_Value value = {0};
-  prepare_value("Empty: \r\n", &value);
+void test_args_iterator_multiple_params(void) {
+  const char *line = "Via: sip:host;branch=abc;ttl=42\r\n";
+  struct cmsc_ValueIterator viter;
+  struct cmsc_ValueLine vline = {0};
 
-  struct cmsc_ArgsIterator iter;
-  struct cmsc_Args arg = {0};
+  TEST_ASSERT_NULL(cmsc_value_iterator_init(line, strlen(line), &viter));
+  TEST_ASSERT_NOT_NULL(cmsc_value_iterator_next(&viter, &vline));
 
-  TEST_ASSERT_NULL(cmsc_args_iterator_init(&value, &iter));
-  struct cmsc_Args *a = cmsc_args_iterator_next(&arg, &iter);
+  struct cmsc_ArgsIterator args_iter;
+  TEST_ASSERT_NULL(cmsc_args_iterator_init(&vline, &args_iter));
+
+  struct cmsc_ArgsLine args = {0};
+  struct cmsc_ArgsLine *a;
+
+  // value
+  a = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_NOT_NULL(a);
+  TEST_ASSERT_EQUAL_STRING_LEN("sip:host", a->value.start, a->value.len);
+
+  // branch=abc
+  a = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_NOT_NULL(a);
+  TEST_ASSERT_EQUAL_STRING_LEN("branch", a->arg_key.start,
+                               a->arg_key.end - a->arg_key.start);
+  TEST_ASSERT_EQUAL_STRING_LEN("abc", a->arg_value.start,
+                               a->arg_value.end - a->arg_value.start);
+
+  // ttl=42
+  a = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_NOT_NULL(a);
+  TEST_ASSERT_EQUAL_STRING_LEN("ttl", a->arg_key.start,
+                               a->arg_key.end - a->arg_key.start);
+  TEST_ASSERT_EQUAL_STRING_LEN("42", a->arg_value.start,
+                               a->arg_value.end - a->arg_value.start);
+
+  // end
+  a = cmsc_args_iterator_next(&args, &args_iter);
   TEST_ASSERT_NULL(a);
 }
 
-void test_args_iterator_null_arguments(void) {
-  struct cmsc_ArgsIterator iter;
-  struct cmsc_Args arg;
+void test_args_iterator_malformed_missing_equal_fails(void) {
+  const char *line = "From: sip:user@example.com;badparam\r\n";
+  struct cmsc_ValueIterator viter;
+  struct cmsc_ValueLine vline = {0};
 
-  TEST_ASSERT_NULL(cmsc_args_iterator_next(NULL, &iter));
-  TEST_ASSERT_NULL(cmsc_args_iterator_next(&arg, NULL));
-  TEST_ASSERT_NOT_NULL(cmsc_args_iterator_init(NULL, &iter));
-  TEST_ASSERT_NOT_NULL(cmsc_args_iterator_init((void *)1, NULL));
+  TEST_ASSERT_NULL(cmsc_value_iterator_init(line, strlen(line), &viter));
+  TEST_ASSERT_NOT_NULL(cmsc_value_iterator_next(&viter, &vline));
+
+  struct cmsc_ArgsIterator args_iter;
+  TEST_ASSERT_NULL(cmsc_args_iterator_init(&vline, &args_iter));
+
+  struct cmsc_ArgsLine args = {0};
+  struct cmsc_ArgsLine *a;
+
+  // URI
+  a = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_NOT_NULL(a);
+
+  // malformed param
+  a = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_NULL(a);
 }
