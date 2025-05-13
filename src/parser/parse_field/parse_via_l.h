@@ -4,8 +4,8 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#ifndef C_MINILIB_SIP_CODEC_PARSE_VIA_L_H
-#define C_MINILIB_SIP_CODEC_PARSE_VIA_L_H
+#ifndef C_MINILIB_SIP_CODEC_PARSE_VIA_H
+#define C_MINILIB_SIP_CODEC_PARSE_VIA_H
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
@@ -19,91 +19,86 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/queue.h>
+#include <string.h>
 
+/* "Via: SIP/2.0/UDP sip.test.org;branch=z9hG4bK-123;addr=10.0.0.1\r\n"; */
 static inline cme_error_t
-cmsc_parser_parse_via_l(const struct cmsc_HeaderIterator *header_iter,
-                        struct cmsc_ValueIterator *value_iter,
-                        cmsc_sipmsg_t msg) {
-  if (!value_iter->value_start) {
-    return 0;
-  }
-
+cmsc_parser_parse_via(const struct cmsc_ValueLine *line, cmsc_sipmsg_t *msg) {
   struct cmsc_ArgsIterator args_iter;
   cme_error_t err;
 
-  if ((err = cmsc_argsiter_init(&args_iter))) {
+  if ((err = cmsc_args_iterator_init(line, &args_iter))) {
     goto error_out;
   }
 
-  do {
-    struct cmsc_Field_Via *via = calloc(1, sizeof(struct cmsc_Field_Via));
-    STAILQ_INSERT_TAIL(&msg->via, via, vias_l);
+  struct cmsc_Field_Via *via = calloc(1, sizeof(struct cmsc_Field_Via));
 
-    uint32_t i = 0;
-    while (cmsc_argsiter_next(value_iter, &args_iter)) {
-      if (!args_iter.value || !args_iter.value_len ||
-          !value_iter->value_start) {
-        break;
-      }
-
-      if (i++ == 0) {
-        // Find transport protocol enum
-        const char *trans_proto = NULL;
-        for (int proto = cmsc_TransportProtocols_NONE + 1;
-             proto < cmsc_TransportProtocols_MAX; proto++) {
-          if ((trans_proto = cmsc_strnstr(args_iter.value,
-                                          cmsc_sipmsg_dump_transp_proto(proto),
-                                          args_iter.value_len))) {
-            via->transp_proto = proto;
-            break;
-          }
-        }
-
-        if (!trans_proto) {
-          err = cme_error(EINVAL, "No transport protocol in via field");
-          goto error_out;
-        }
-
-        while (isalnum(*trans_proto)) {
-          trans_proto++;
-        }
-        while (isspace(*trans_proto)) {
-          trans_proto++;
-        }
-
-        via->sent_by = cmsc_sipmsg_insert_str(
-            (args_iter.value + args_iter.value_len) - trans_proto, trans_proto,
-            &msg);
-      }
-
-      if (args_iter.args_header) {
-        if (cmsc_strnstr(args_iter.args_header, "branch",
-                         args_iter.args_header_len)) {
-          via->branch = cmsc_sipmsg_insert_str(args_iter.args_value_len,
-                                               args_iter.args_value, &msg);
-        } else if (cmsc_strnstr(args_iter.args_header, "addr",
-                                args_iter.args_header_len)) {
-          via->addr = cmsc_sipmsg_insert_str(args_iter.args_value_len,
-                                             args_iter.args_value, &msg);
-        } else if (cmsc_strnstr(args_iter.args_header, "received",
-                                args_iter.args_header_len)) {
-          via->received = cmsc_sipmsg_insert_str(args_iter.args_value_len,
-                                                 args_iter.args_value, &msg);
-        } else if (cmsc_strnstr(args_iter.args_header, "ttl",
-                                args_iter.args_header_len)) {
-          via->ttl = atoi(args_iter.args_value);
-        }
-      }
+  struct cmsc_ArgsLine args = {0};
+  bool do_loop = true;
+  while (do_loop) {
+    switch (cmsc_args_iterator_next(&args, &args_iter)) {
+    case cmsc_ArgsNextResults_NONE: {
+      do_loop = false;
+      break;
     }
-  } while (cmsc_valueiter_next(header_iter, value_iter));
+    case cmsc_ArgsNextResults_VALUE: {
+      const char *trans_proto = NULL;
+      for (int proto = cmsc_TransportProtocols_NONE + 1;
+           proto < cmsc_TransportProtocols_MAX; proto++) {
+        if ((trans_proto = cmsc_strnstr(line->value.start,
+                                        cmsc_sipmsg_dump_transp_proto(proto),
+                                        line->value.len))) {
+          via->transp_proto = proto;
+          break;
+        }
+      }
 
-  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_VIA_L);
+      if (!trans_proto) {
+        err = cme_error(EINVAL, "No transport protocol in via field");
+        goto error_via_cleanup;
+      }
+
+      while (isalnum(*trans_proto)) {
+        trans_proto++;
+      }
+      while (isspace(*trans_proto)) {
+        trans_proto++;
+      }
+
+      via->sent_by = cmsc_sipmsg_insert_str(args.value.end - trans_proto,
+                                            trans_proto, msg);
+
+      break;
+    }
+    case cmsc_ArgsNextResults_ARG: {
+      if (cmsc_strnstr(args.arg_key.start, "branch", args.arg_key.len)) {
+        via->branch = cmsc_sipmsg_insert_str(args.arg_value.len,
+                                             args.arg_value.start, msg);
+      } else if (cmsc_strnstr(args.arg_key.start, "addr", args.arg_key.len)) {
+        via->addr = cmsc_sipmsg_insert_str(args.arg_value.len,
+                                           args.arg_value.start, msg);
+      } else if (cmsc_strnstr(args.arg_key.start, "received",
+                              args.arg_key.len)) {
+        via->received = cmsc_sipmsg_insert_str(args.arg_value.len,
+                                               args.arg_value.start, msg);
+      } else if (cmsc_strnstr(args.arg_key.start, "ttl", args.arg_key.len)) {
+        via->ttl = atoi(args.arg_value.start);
+      }
+
+      break;
+    }
+    }
+  }
+
+  cmsc_sipmsg_mark_field_present(*msg, cmsc_SupportedFields_VIA_L);
+  STAILQ_INSERT_TAIL(&(*msg)->via, via, vias_l);
 
   return 0;
 
+error_via_cleanup:
+  free(via);
 error_out:
   return cme_return(err);
-}
+};
 
 #endif

@@ -2,10 +2,11 @@ field_tests = [
   'first_line',
   'parsingheaders',
   'to',
+  'via',
   # 'from',
-  # 'cseq',
+  'cseq',
   # 'call_id',
-  # 'via',
+
   # 'allow',
   # 'accept',
   # 'expires',

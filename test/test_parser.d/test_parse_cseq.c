@@ -20,28 +20,18 @@ void tearDown(void) {
   cme_destroy();
 }
 
-static void prepare_value_iterator(struct cmsc_ValueIterator *viter,
-                                   const char *line) {
-  const char *colon = strchr(line, ':');
-  TEST_ASSERT_NOT_NULL(colon);
-
-  viter->header_start = line;
-  viter->header_len = (uint32_t)(colon - line);
-  viter->value_start = colon + 1;
-
-  while (isspace(*viter->value_start)) {
-    viter->value_start++;
-  }
-
-  viter->value_end = line + strlen(line);
+static void prepare_value_line(struct cmsc_ValueLine *vline, const char *line) {
+  struct cmsc_ValueIterator iter;
+  TEST_ASSERT_NULL(cmsc_value_iterator_init(line, strlen(line), &iter));
+  TEST_ASSERT_NOT_NULL(cmsc_value_iterator_next(&iter, vline));
 }
 
 void test_parse_cseq_valid_invite(void) {
-  const char *line = "CSeq: 123 INVITE";
-  struct cmsc_ValueIterator viter;
-  prepare_value_iterator(&viter, line);
+  const char *line = "CSeq: 123 INVITE\r\n";
+  struct cmsc_ValueLine vline = {0};
+  prepare_value_line(&vline, line);
 
-  cme_error_t err = cmsc_parser_parse_cseq(&viter, msg);
+  cme_error_t err = cmsc_parser_parse_cseq(&vline, &msg);
   TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_EQUAL_UINT32(123, msg->cseq.seq_number);
@@ -50,11 +40,11 @@ void test_parse_cseq_valid_invite(void) {
 }
 
 void test_parse_cseq_valid_ack_with_spaces(void) {
-  const char *line = "CSeq:   456     ACK";
-  struct cmsc_ValueIterator viter;
-  prepare_value_iterator(&viter, line);
+  const char *line = "CSeq:   456     ACK\r\n";
+  struct cmsc_ValueLine vline = {0};
+  prepare_value_line(&vline, line);
 
-  cme_error_t err = cmsc_parser_parse_cseq(&viter, msg);
+  cme_error_t err = cmsc_parser_parse_cseq(&vline, &msg);
   TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_EQUAL_UINT32(456, msg->cseq.seq_number);
@@ -62,11 +52,11 @@ void test_parse_cseq_valid_ack_with_spaces(void) {
 }
 
 void test_parse_cseq_missing_method(void) {
-  const char *line = "CSeq: 789";
-  struct cmsc_ValueIterator viter;
-  prepare_value_iterator(&viter, line);
+  const char *line = "CSeq: 789\r\n";
+  struct cmsc_ValueLine vline = {0};
+  prepare_value_line(&vline, line);
 
-  cme_error_t err = cmsc_parser_parse_cseq(&viter, msg);
+  cme_error_t err = cmsc_parser_parse_cseq(&vline, &msg);
   TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_EQUAL_UINT32(789, msg->cseq.seq_number);
@@ -74,13 +64,13 @@ void test_parse_cseq_missing_method(void) {
 }
 
 void test_parse_cseq_missing_number(void) {
-  const char *line = "CSeq: INVITE";
-  struct cmsc_ValueIterator viter;
-  prepare_value_iterator(&viter, line);
+  const char *line = "CSeq: INVITE\r\n";
+  struct cmsc_ValueLine vline = {0};
+  prepare_value_line(&vline, line);
 
-  cme_error_t err = cmsc_parser_parse_cseq(&viter, msg);
+  cme_error_t err = cmsc_parser_parse_cseq(&vline, &msg);
   TEST_ASSERT_NULL(err);
 
-  TEST_ASSERT_EQUAL_UINT32(0, msg->cseq.seq_number); // atoi of method fails
+  TEST_ASSERT_EQUAL_UINT32(0, msg->cseq.seq_number); // atoi fails
   TEST_ASSERT_EQUAL_STRING("INVITE", msg->cseq.method);
 }

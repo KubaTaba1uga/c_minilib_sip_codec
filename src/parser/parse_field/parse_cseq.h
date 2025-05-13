@@ -21,24 +21,22 @@
 #include <stdlib.h>
 
 static inline cme_error_t
-cmsc_parser_parse_cseq(const struct cmsc_ValueIterator *value_iter,
-                       cmsc_sipmsg_t msg) {
-  if (!value_iter->value_start) {
-    return 0;
-  }
+cmsc_parser_parse_cseq(const struct cmsc_ValueLine *line, cmsc_sipmsg_t *msg) {
+  const char *method = line->value.start;
 
-  const char *method = value_iter->value_start;
-
-  while (isspace(*method) || isdigit(*method)) {
+  while (isdigit(*method) || isspace(*method)) {
+    if (method == line->value.end) {
+      break;
+    }
     method++;
   }
 
-  msg->cseq.seq_number = atoi(value_iter->value_start);
+  (*msg)->cseq.seq_number = atoi(line->value.start);
 
-  msg->cseq.method =
-      cmsc_sipmsg_insert_str(value_iter->value_end - method, method, &msg);
+  (*msg)->cseq.method =
+      cmsc_sipmsg_insert_str(line->value.end - method, method, msg);
 
-  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_CSEQ);
+  cmsc_sipmsg_mark_field_present(*msg, cmsc_SupportedFields_CSEQ);
 
   return 0;
 }
