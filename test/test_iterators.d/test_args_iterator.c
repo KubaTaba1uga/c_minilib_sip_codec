@@ -6,16 +6,16 @@
 #include "parser/iterator/value_iterator.h"
 #include "utils/string.h"
 
-/* static const char *example_line = */
-/*     "From: sip:user@example.com;tag=123;ttl=70\r\n"; */
-
 void test_args_iterator_null_inputs(void) {
   struct cmsc_ArgsIterator args_iter;
   struct cmsc_ArgsLine args;
 
-  TEST_ASSERT_NULL(cmsc_args_iterator_next(NULL, NULL));
-  TEST_ASSERT_NULL(cmsc_args_iterator_next(&args, NULL));
-  TEST_ASSERT_NULL(cmsc_args_iterator_next(NULL, &args_iter));
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_NONE,
+                    cmsc_args_iterator_next(NULL, NULL));
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_NONE,
+                    cmsc_args_iterator_next(&args, NULL));
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_NONE,
+                    cmsc_args_iterator_next(NULL, &args_iter));
 }
 
 void test_args_iterator_init_null(void) {
@@ -38,25 +38,22 @@ void test_args_iterator_valid_simple_uri_and_param(void) {
   TEST_ASSERT_NULL(cmsc_args_iterator_init(&vline, &args_iter));
 
   struct cmsc_ArgsLine args = {0};
-  struct cmsc_ArgsLine *a;
 
-  // URI
-  a = cmsc_args_iterator_next(&args, &args_iter);
-  TEST_ASSERT_NOT_NULL(a);
-  TEST_ASSERT_EQUAL_STRING_LEN("sip:user@example.com", a->value.start,
-                               a->value.len);
+  // URI value
+  enum cmsc_ArgsNextResults r = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_VALUE, r);
+  TEST_ASSERT_EQUAL_STRING_LEN("sip:user@example.com", args.value.start,
+                               args.value.len);
 
-  // tag param
-  a = cmsc_args_iterator_next(&args, &args_iter);
-  TEST_ASSERT_NOT_NULL(a);
-  TEST_ASSERT_EQUAL_STRING_LEN("tag", a->arg_key.start,
-                               a->arg_key.end - a->arg_key.start);
-  TEST_ASSERT_EQUAL_STRING_LEN("123", a->arg_value.start,
-                               a->arg_value.end - a->arg_value.start);
+  // tag=123
+  r = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_ARG, r);
+  TEST_ASSERT_EQUAL_STRING_LEN("tag", args.arg_key.start, args.arg_key.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("123", args.arg_value.start, args.arg_value.len);
 
   // done
-  a = cmsc_args_iterator_next(&args, &args_iter);
-  TEST_ASSERT_NULL(a);
+  r = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_NONE, r);
 }
 
 void test_args_iterator_multiple_params(void) {
@@ -71,32 +68,27 @@ void test_args_iterator_multiple_params(void) {
   TEST_ASSERT_NULL(cmsc_args_iterator_init(&vline, &args_iter));
 
   struct cmsc_ArgsLine args = {0};
-  struct cmsc_ArgsLine *a;
 
   // value
-  a = cmsc_args_iterator_next(&args, &args_iter);
-  TEST_ASSERT_NOT_NULL(a);
-  TEST_ASSERT_EQUAL_STRING_LEN("sip:host", a->value.start, a->value.len);
+  enum cmsc_ArgsNextResults r = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_VALUE, r);
+  TEST_ASSERT_EQUAL_STRING_LEN("sip:host", args.value.start, args.value.len);
 
   // branch=abc
-  a = cmsc_args_iterator_next(&args, &args_iter);
-  TEST_ASSERT_NOT_NULL(a);
-  TEST_ASSERT_EQUAL_STRING_LEN("branch", a->arg_key.start,
-                               a->arg_key.end - a->arg_key.start);
-  TEST_ASSERT_EQUAL_STRING_LEN("abc", a->arg_value.start,
-                               a->arg_value.end - a->arg_value.start);
+  r = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_ARG, r);
+  TEST_ASSERT_EQUAL_STRING_LEN("branch", args.arg_key.start, args.arg_key.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("abc", args.arg_value.start, args.arg_value.len);
 
   // ttl=42
-  a = cmsc_args_iterator_next(&args, &args_iter);
-  TEST_ASSERT_NOT_NULL(a);
-  TEST_ASSERT_EQUAL_STRING_LEN("ttl", a->arg_key.start,
-                               a->arg_key.end - a->arg_key.start);
-  TEST_ASSERT_EQUAL_STRING_LEN("42", a->arg_value.start,
-                               a->arg_value.end - a->arg_value.start);
+  r = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_ARG, r);
+  TEST_ASSERT_EQUAL_STRING_LEN("ttl", args.arg_key.start, args.arg_key.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("42", args.arg_value.start, args.arg_value.len);
 
-  // end
-  a = cmsc_args_iterator_next(&args, &args_iter);
-  TEST_ASSERT_NULL(a);
+  // done
+  r = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_NONE, r);
 }
 
 void test_args_iterator_malformed_missing_equal_fails(void) {
@@ -111,13 +103,12 @@ void test_args_iterator_malformed_missing_equal_fails(void) {
   TEST_ASSERT_NULL(cmsc_args_iterator_init(&vline, &args_iter));
 
   struct cmsc_ArgsLine args = {0};
-  struct cmsc_ArgsLine *a;
 
-  // URI
-  a = cmsc_args_iterator_next(&args, &args_iter);
-  TEST_ASSERT_NOT_NULL(a);
+  // value
+  enum cmsc_ArgsNextResults r = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_VALUE, r);
 
-  // malformed param
-  a = cmsc_args_iterator_next(&args, &args_iter);
-  TEST_ASSERT_NULL(a);
+  // badparam → no '='
+  r = cmsc_args_iterator_next(&args, &args_iter);
+  TEST_ASSERT_EQUAL(cmsc_ArgsNextResults_NONE, r);
 }

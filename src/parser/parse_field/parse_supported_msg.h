@@ -18,7 +18,7 @@
 
 static inline cme_error_t
 cmsc_parser_parse_supported_msg(const uint32_t buffer_len, const char *buffer,
-                                cmsc_sipmsg_t msg,
+                                cmsc_sipmsg_t *msg,
                                 const char **supported_msg_id_ptr) {
   const char *supported_msg_id = NULL;
   cme_error_t err;
@@ -26,8 +26,8 @@ cmsc_parser_parse_supported_msg(const uint32_t buffer_len, const char *buffer,
   CMSC_SUPPORTED_MESSAGES_FOREACH(i) {
     if ((supported_msg_id = cmsc_strnstr(
              buffer, cmsc_dump_supported_messages_string(i), buffer_len))) {
-      cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_SUPPORTED_MSG);
-      msg->supmsg = i;
+      cmsc_sipmsg_mark_field_present(*msg, cmsc_SupportedFields_SUPPORTED_MSG);
+      (*msg)->supmsg = i;
       break;
     }
   }

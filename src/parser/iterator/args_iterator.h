@@ -50,7 +50,7 @@ error_out:
   return cme_return(err);
 }
 
-static inline struct cmsc_ArgsLine *
+static inline enum cmsc_ArgsNextResults
 cmsc_args_iterator_next(struct cmsc_ArgsLine *args,
                         struct cmsc_ArgsIterator *args_iter) {
   if (!args || !args_iter) {
@@ -71,7 +71,7 @@ cmsc_args_iterator_next(struct cmsc_ArgsLine *args,
     printf("ArgsIter: Parsed value = '%.*s'\n", (int)args->value.len,
            args->value.start);
 
-    return args;
+    return cmsc_ArgsNextResults_VALUE;
   }
 
   // We need to skip `;`
@@ -92,30 +92,20 @@ cmsc_args_iterator_next(struct cmsc_ArgsLine *args,
     value_end = args_iter->line.value.end;
   }
 
-  /* CMSC_LINE_SET(args_iter->line.value.start, key_end, args->arg_key); */
+  CMSC_LINE_SET(args_iter->line.value.start, key_end, args->arg_key);
+  CMSC_LINE_TRAVERSE(args_iter->line.value, args->arg_key.len + 1);
 
-  args->arg_key.start = args_iter->line.value.start;
-  args->arg_key.end = key_end;
-  args->arg_key.len = args->arg_key.end - args->arg_key.start;
-
-  args_iter->line.value.start += args->arg_key.len + 1; // +1 to skip '='
-  args_iter->line.value.len -= args->arg_key.len + 1;
-
-  args->arg_value.start = args_iter->line.value.start;
-  args->arg_value.end = value_end;
-  args->arg_value.len = args->arg_value.end - args->arg_value.start;
+  CMSC_LINE_SET(args_iter->line.value.start, value_end, args->arg_value);
+  CMSC_LINE_TRAVERSE(args_iter->line.value, args->arg_value.len);
 
   printf("ArgsIter: Parsed param: key = '%.*s', value = '%.*s'\n",
          (int)args->arg_key.len, args->arg_key.start, (int)args->arg_value.len,
          args->arg_value.start);
 
-  args_iter->line.value.start += args->arg_value.len;
-  args_iter->line.value.len -= args->arg_value.len;
-
-  return args;
+  return cmsc_ArgsNextResults_ARG;
 
 error_out:
-  return NULL;
+  return cmsc_ArgsNextResults_NONE;
 }
 
 #endif

@@ -2,6 +2,7 @@
 
 #include "c_minilib_sip_codec.h"
 #include "parser/iterator/line_iterator.h"
+#include "parser/iterator/value_iterator.h"
 #include "parser/parser.h"
 #include "sipmsg/sipmsg.h"
 #include "utils/dynamic_buffer.h"
@@ -73,12 +74,11 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     goto error_out;
   };
 
-  struct cmsc_HeaderIterator header_iter;
-  if ((err = cmsc_headeriter_init(&header_iter))) {
+  struct cmsc_ValueIterator value_iter;
+  if ((err = cmsc_value_iterator_init(data.buf, data.buf_len, &value_iter))) {
     goto error_out;
   }
 
-  // TO-DO: make all parse fields func take value iterator and header iterator
   // TO-DO: make all parse fields take ptr to msg, msg can be realloced!
   // TO-DO: use number of bytes in flush so we leave not used data in conetent.
   //        in case it is needed in further parse.
@@ -88,12 +88,26 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     is_next = false;
 
     switch ((*parser)->state) {
-    case cmsc_ParserStates_MsgEmpty:
-      err = cmsc_parser_parse_msgempty(&header_iter, *parser, &is_next);
+    case cmsc_ParserStates_MsgEmpty: {
+      if (cmsc_line_iterator_next(&value_iter.line_iter, &value_iter.line)) {
+        // Parse first line
+
+        is_next = true;
+      }
       break;
-    case cmsc_ParserStates_ParsingHeaders:
-      err = cmsc_parser_parse_headers(&header_iter, *parser, &is_next);
+    }
+
+    case cmsc_ParserStates_ParsingHeaders: {
+      struct cmsc_ValueLine value_line = {0};
+      if (cmsc_value_iterator_next(&value_iter, &value_line)) {
+        // Parse header
+
+        is_next = true;
+      }
       break;
+    }
+
+    break;
     case cmsc_ParserStates_ParsingBody:
       // ParsingHeaders -> ParsingBody
     case cmsc_ParserStates_MsgReady:
@@ -108,6 +122,7 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
     }
 
     printf("is_next=%d, (*parser)->state=%d\n", is_next, (*parser)->state);
+
     if (is_next) {
       (*parser)->state = ((*parser)->state % cmsc_ParserStates_MsgReady) + 1;
     }

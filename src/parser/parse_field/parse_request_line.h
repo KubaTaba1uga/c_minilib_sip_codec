@@ -15,33 +15,47 @@
 
 #include "c_minilib_sip_codec.h"
 #include "parser/iterator/line_iterator.h"
+#include "parser/parse_field/parse_sip_proto_ver.h"
 #include "sipmsg/sipmsg.h"
 #include "utils/string.h"
 
 static inline cme_error_t
 cmsc_parser_parse_request_line(const uint32_t buffer_len, const char *buffer,
-                               cmsc_sipmsg_t msg) {
+                               cmsc_sipmsg_t *msg) {
+  /*
+    According RFC 3261 25 request line looks like this:
+      Method SP Request-URI SP SIP-Version CRLF
+  */
   cme_error_t err;
 
-  const char *first_space = cmsc_strnstr(buffer, " ", buffer_len);
-  if (!first_space) {
-    err = cme_error(EINVAL, "Malformed request line");
+  const char *method = buffer;
+  uint32_t method_len = 0;
+
+  while (isalpha(*method)) {
+    method_len++;
+  }
+
+  if (!isspace(*method)) {
+    err = cme_error(EINVAL, "No space after method in request line");
     goto error_out;
   }
 
-  first_space++;
+  const char *sip_version =
+      cmsc_strnstr(method, "SIP/", buffer_len - method_len);
 
-  const char *second_space =
-      cmsc_strnstr(first_space, " ", (buffer + buffer_len - 1) - first_space);
-  if (!second_space) {
-    err = cme_error(EINVAL, "Malformed request line");
+  if ((err = cmsc_parser_parse_sip_proto_ver(
+           (buffer + buffer_len) - sip_version, sip_version,
+           &(*msg)->request_line.sip_proto_ver))) {
     goto error_out;
   }
 
-  msg->request_line.request_uri =
-      cmsc_sipmsg_insert_str(second_space - first_space, first_space, &msg);
+  const char *request_uri = method + method_len + 1;
+  uint32_t request_uri_len = sip_version - request_uri;
 
-  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedFields_REQUEST_LINE);
+  (*msg)->request_line.request_uri =
+      cmsc_sipmsg_insert_str(request_uri_len, request_uri, msg);
+
+  cmsc_sipmsg_mark_field_present(*msg, cmsc_SupportedFields_REQUEST_LINE);
 
   return NULL;
 error_out:

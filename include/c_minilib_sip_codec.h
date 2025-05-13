@@ -38,7 +38,7 @@ cme_error_t cmsc_init(void);
 void cmsc_destroy(void);
 
 struct cmsc_CharBufferView {
-  const uint8_t *buf;
+  const char *buf;
   const uint32_t buf_len;
 };
 
