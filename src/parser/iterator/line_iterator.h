@@ -7,12 +7,29 @@
 #ifndef C_MINILIB_SIP_CODEC_LINE_ITERATOR_H
 #define C_MINILIB_SIP_CODEC_LINE_ITERATOR_H
 
-#include <asm-generic/errno-base.h>
 #include <stdint.h>
 
 #include "c_minilib_error.h"
 #include "utils/dynamic_buffer.h"
 #include "utils/string.h"
+
+#define CMSC_LINE_SET(_start, _end, line)                                      \
+  line.start = _start;                                                         \
+  line.end = _end;                                                             \
+  line.len = _end - _start;
+
+#define CMSC_LINE_TRAVERSE(line, offset)                                       \
+  line.start += offset;                                                        \
+  line.len -= offset;
+
+#define CMSC_LINE_SET_PTR(_start, _end, line)                                  \
+  line->start = _start;                                                        \
+  line->end = _end;                                                            \
+  line->len = _end - _start;
+
+#define CMSC_LINE_TRAVERSE_PTR(line, offset)                                   \
+  line->start += offset;                                                       \
+  line->len -= offset;
 
 struct cmsc_LineIterator {
   const char *buf; // This buffer can hold multiple lines
@@ -56,9 +73,7 @@ cmsc_line_iterator_next(struct cmsc_LineIterator *line_iter,
     goto error_out;
   }
 
-  next_line->start = line_iter->buf;
-  next_line->end = line_end;
-  next_line->len = next_line->end - next_line->start;
+  CMSC_LINE_SET_PTR(line_iter->buf, line_end, next_line);
 
   // Detect overflow
   if (next_line->len > (line_iter->buf_len - 2)) {

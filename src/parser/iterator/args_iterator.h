@@ -22,6 +22,12 @@ struct cmsc_ArgsLine {
   struct cmsc_Line value;
 };
 
+enum cmsc_ArgsNextResults {
+  cmsc_ArgsNextResults_NONE = 0,
+  cmsc_ArgsNextResults_VALUE,
+  cmsc_ArgsNextResults_ARG,
+};
+
 // Args iterator take value line and allows for iterating over it splited into
 // arg and value.
 static inline cme_error_t
@@ -59,23 +65,18 @@ cmsc_args_iterator_next(struct cmsc_ArgsLine *args,
       value_end = args_iter->line.value.end;
     }
 
-    args->value.start = args_iter->line.value.start;
-    args->value.end = value_end;
-    args->value.len = args->value.end - args->value.start;
+    CMSC_LINE_SET(args_iter->line.value.start, value_end, args->value);
+    CMSC_LINE_TRAVERSE(args_iter->line.value, args->value.len);
 
     printf("ArgsIter: Parsed value = '%.*s'\n", (int)args->value.len,
            args->value.start);
-
-    args_iter->line.value.start += args->value.len;
-    args_iter->line.value.len -= args->value.len;
 
     return args;
   }
 
   // We need to skip `;`
   if (args_iter->line.value.len > 0) {
-    args_iter->line.value.start++;
-    args_iter->line.value.len--;
+    CMSC_LINE_TRAVERSE(args_iter->line.value, 1);
   }
 
   const char *key_end =
@@ -90,6 +91,8 @@ cmsc_args_iterator_next(struct cmsc_ArgsLine *args,
   if (!value_end) {
     value_end = args_iter->line.value.end;
   }
+
+  /* CMSC_LINE_SET(args_iter->line.value.start, key_end, args->arg_key); */
 
   args->arg_key.start = args_iter->line.value.start;
   args->arg_key.end = key_end;

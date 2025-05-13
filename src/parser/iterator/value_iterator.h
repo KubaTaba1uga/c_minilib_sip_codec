@@ -69,12 +69,8 @@ _cmsc_value_iterator_next(struct cmsc_ValueIterator *value_iter,
       goto error_out;
     }
 
-    next_value->header.start = value_iter->line.start;
-    next_value->header.end = header_end;
-    next_value->header.len = next_value->header.end - next_value->header.start;
-
-    value_iter->line.start += next_value->header.len + 1;
-    value_iter->line.len -= next_value->header.len + 1;
+    CMSC_LINE_SET(value_iter->line.start, header_end, next_value->header);
+    CMSC_LINE_TRAVERSE(value_iter->line, next_value->header.len + 1);
   }
 
   /* Skip all spaces at the beginning */
@@ -82,13 +78,8 @@ _cmsc_value_iterator_next(struct cmsc_ValueIterator *value_iter,
     value_iter->line.start++;
   } while (isspace(*value_iter->line.start));
 
-  next_value->value.start = value_iter->line.start;
-  next_value->value.end = value_end;
-  next_value->value.len = next_value->value.end - next_value->value.start;
-
-  // Move single line
-  value_iter->line.start += next_value->value.len + 1;
-  value_iter->line.len -= next_value->value.len + 1;
+  CMSC_LINE_SET(value_iter->line.start, value_end, next_value->value);
+  CMSC_LINE_TRAVERSE(value_iter->line, next_value->value.len + 1);
 
   printf("ValueIter: parsed header = '%.*s'\n", (int)next_value->header.len,
          next_value->header.start);
