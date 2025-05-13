@@ -21,11 +21,10 @@ static inline cme_error_t cmsc_supmsg_invite_init(void) {
     goto error_out;
   };
 
-  /* if ((err = cmsc_scheme_add_mandatory_field(&cmsc_field_from,
-   * local_scheme)))
-   * { */
-  /*   goto error_out; */
-  /* }; */
+  if ((err =
+           cmsc_scheme_add_mandatory_field(&cmsc_field_from, &invite_scheme))) {
+    goto error_out;
+  };
 
   /* if ((err = cmsc_scheme_add_mandatory_field(&cmsc_field_cseq,
    * local_scheme)))

@@ -1,4 +1,5 @@
 #include <c_minilib_error.h>
+#include <stdio.h>
 
 #include "c_minilib_sip_codec.h"
 #include "parser/iterator/line_iterator.h"
@@ -105,8 +106,13 @@ cme_error_t cmsc_parser_feed_data(struct cmsc_CharBufferView data,
       struct cmsc_ValueLine value_line = {0};
       while (cmsc_value_iterator_next(&value_iter, &value_line)) {
         // Parse header
-
-        is_next = true;
+        if (cmsc_parser_parse_sip_header(&value_line, &(*parser)->msg)) {
+          is_next = true;
+        } else {
+          puts("Hit");
+          is_next = false;
+          break;
+        }
       }
       break;
     }

@@ -6,6 +6,7 @@ field_tests = [
   # 'from',
   'cseq',
   'allow',
+  'invite',
   # 'call_id',
 
 
