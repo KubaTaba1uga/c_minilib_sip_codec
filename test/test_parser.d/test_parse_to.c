@@ -77,8 +77,8 @@ void test_parse_to_with_display_name_ignored(void) {
 
   TEST_ASSERT_TRUE(cmsc_sipmsg_is_field_present(msg, cmsc_SupportedFields_TO));
   TEST_ASSERT_EQUAL_STRING("<sip:alice@example.com>", msg->to.uri);
+  TEST_ASSERT_EQUAL_STRING("\"Alice\"", msg->to.display_name);
   TEST_ASSERT_EQUAL_STRING("abc", msg->to.tag);
-  // Display name is not handled in new implementation
 }
 
 void test_parse_to_without_display_name(void) {

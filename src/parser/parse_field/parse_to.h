@@ -35,15 +35,29 @@ cmsc_parser_parse_to(const struct cmsc_ValueLine *line, cmsc_sipmsg_t *msg) {
   while (do_loop) {
     enum cmsc_ArgsNextResults result =
         cmsc_args_iterator_next(&args, &args_iter);
-
     switch (result) {
     case cmsc_ArgsNextResults_NONE:
       do_loop = false;
       break;
-    case cmsc_ArgsNextResults_VALUE:
-      (*msg)->to.uri =
-          cmsc_sipmsg_insert_str(args.value.len, args.value.start, msg);
+    case cmsc_ArgsNextResults_VALUE: {
+      const char *display_name_end =
+          cmsc_strnstr(args.value.start, "<", args.value.len);
+
+      if (display_name_end == args.value.start) {
+        (*msg)->to.uri =
+            cmsc_sipmsg_insert_str(args.value.len, args.value.start, msg);
+
+      } else {
+        (*msg)->to.uri = cmsc_sipmsg_insert_str(
+            args.value.end - display_name_end, display_name_end, msg);
+
+        display_name_end--;
+        (*msg)->to.display_name = cmsc_sipmsg_insert_str(
+            display_name_end - args.value.start, args.value.start, msg);
+      }
+
       break;
+    }
     case cmsc_ArgsNextResults_ARG:
       if (strncmp(args.arg_key.start, "tag", args.arg_key.len) == 0) {
         (*msg)->to.tag = cmsc_sipmsg_insert_str(args.arg_value.len,
