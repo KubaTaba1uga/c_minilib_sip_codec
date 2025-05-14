@@ -1,6 +1,7 @@
 #include <c_minilib_error.h>
 
 #include "c_minilib_sip_codec.h"
+#include "utils/parser.h"
 #include "utils/sipmsg.h"
 
 cme_error_t cmsc_init(void) {
@@ -29,6 +30,17 @@ cme_error_t cmsc_parse_sip(uint32_t buf_len, const char *buf,
 
   err = cmsc_sipmsg_create(
       (struct cmsc_Buffer){.buf = buf, .len = buf_len, .size = buf_len}, msg);
+  if (err) {
+    goto error_out;
+  }
+
+  struct cmsc_Buffer parse_buf = {.buf = buf, .len = buf_len, .size = buf_len};
+  err = cmsc_parse_sip_first_line(&parse_buf, (*msg));
+  if (err) {
+    goto error_out;
+  }
+
+  err = cmsc_parse_sip_headers(&parse_buf, (*msg));
   if (err) {
     goto error_out;
   }

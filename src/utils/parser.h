@@ -17,16 +17,17 @@
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
 
-static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_SipMessage *msg) {
+static inline cme_error_t cmsc_parse_sip_headers(const struct cmsc_Buffer *buf,
+                                                 struct cmsc_SipMessage *msg) {
   cme_error_t err;
   if (!msg) {
     err = cme_error(EINVAL, "`msg` cannot be NULL");
     goto error_out;
   }
 
-  const char *max_char = msg->_buf.buf + msg->_buf.len;
-  const char *current_char = msg->_buf.buf;
-  const char *line_start = msg->_buf.buf;
+  const char *max_char = buf->buf + buf->len;
+  const char *current_char = buf->buf;
+  const char *line_start = buf->buf;
   struct cmsc_SipHeader *header = NULL;
   uint32_t clrf_counter = 0;
 
@@ -78,24 +79,23 @@ error_out:
   return cme_return(err);
 }
 
-static inline cme_error_t cmsc_parse_request_line(const uint32_t buffer_len,
-                                                  const char *buf,
+static inline cme_error_t cmsc_parse_request_line(const struct cmsc_Buffer *buf,
                                                   struct cmsc_SipMessage *msg) {
   /*
     According RFC 3261 25 request line looks like this:
       Method SP Request-URI SP SIP-Version CRLF
   */
-  char buffer[buffer_len + 1];
+  char buffer[buf->len + 1];
   cme_error_t err;
 
-  memcpy(buffer, buf, buffer_len);
-  buffer[buffer_len] = 0;
+  memcpy(buffer, buf->buf, buf->len);
+  buffer[buf->len] = 0;
 
   char *method_end = (char *)buffer;
   uint32_t method_len = 0;
 
   while (isalpha(*method_end)) {
-    if (method_len >= buffer_len) {
+    if (method_len >= buf->len) {
       break;
     }
     method_len++;
@@ -112,7 +112,7 @@ static inline cme_error_t cmsc_parse_request_line(const uint32_t buffer_len,
     err = cme_error(EINVAL, "No sip version in request line");
     goto error_out;
   }
-  uint32_t sip_version_len = (buffer + buffer_len) - sip_version;
+  uint32_t sip_version_len = (buffer + buf->len) - sip_version;
 
   const char *request_uri = method_end++;
   while (isspace(*request_uri)) {
@@ -124,13 +124,13 @@ static inline cme_error_t cmsc_parse_request_line(const uint32_t buffer_len,
     request_uri_len++;
   }
 
-  msg->request_line.sip_method.buf = buf;
+  msg->request_line.sip_method.buf = buf->buf;
   msg->request_line.sip_method.len = method_len;
 
-  msg->request_line.sip_proto_ver.buf = buf + (sip_version - buffer);
+  msg->request_line.sip_proto_ver.buf = buf->buf + (sip_version - buffer);
   msg->request_line.sip_proto_ver.len = sip_version_len;
 
-  msg->request_line.request_uri.buf = buf + (request_uri - buffer);
+  msg->request_line.request_uri.buf = buf->buf + (request_uri - buffer);
   msg->request_line.request_uri.len = request_uri_len;
 
   return NULL;
@@ -138,18 +138,17 @@ error_out:
   return cme_return(err);
 };
 
-static inline cme_error_t cmsc_parse_status_line(const uint32_t buffer_len,
-                                                 const char *buf,
+static inline cme_error_t cmsc_parse_status_line(const struct cmsc_Buffer *buf,
                                                  struct cmsc_SipMessage *msg) {
   /*
     According RFC 3261 25 status line looks like this:
       SIP-Version SP Status-Code SP Reason-Phrase CRLF
   */
-  char buffer[buffer_len + 1];
+  char buffer[buf->len + 1];
   cme_error_t err;
 
-  memcpy(buffer, buf, buffer_len);
-  buffer[buffer_len] = 0;
+  memcpy(buffer, buf->buf, buf->len);
+  buffer[buf->len] = 0;
 
   char *sip_version = (char *)buffer;
   char *space = strstr(sip_version, " ");
@@ -167,7 +166,7 @@ static inline cme_error_t cmsc_parse_status_line(const uint32_t buffer_len,
   }
 
   const char *reason_phrase = space + 1;
-  uint32_t reason_phrase_len = (buffer + buffer_len) - reason_phrase;
+  uint32_t reason_phrase_len = (buffer + buf->len) - reason_phrase;
 
   uint32_t code = atoi(status_code);
   if (!code) {
@@ -175,12 +174,12 @@ static inline cme_error_t cmsc_parse_status_line(const uint32_t buffer_len,
     goto error_out;
   }
 
-  msg->status_line.sip_proto_ver.buf = buf;
+  msg->status_line.sip_proto_ver.buf = buf->buf;
   msg->status_line.sip_proto_ver.len = sip_version_len;
 
   msg->status_line.status_code = code;
 
-  msg->status_line.reason_phrase.buf = buf + (reason_phrase - buffer);
+  msg->status_line.reason_phrase.buf = buf->buf + (reason_phrase - buffer);
   msg->status_line.reason_phrase.len = reason_phrase_len;
 
   return NULL;
@@ -189,7 +188,8 @@ error_out:
 };
 
 static inline cme_error_t
-cmsc_parse_sip_first_line(struct cmsc_SipMessage *msg) {
+cmsc_parse_sip_first_line(struct cmsc_Buffer *buf,
+                          struct cmsc_SipMessage *msg) {
   /*
     According RFC 3261 25 request line looks like this:
       Method SP Request-URI SP SIP-Version CRLF
@@ -197,39 +197,52 @@ cmsc_parse_sip_first_line(struct cmsc_SipMessage *msg) {
       SIP-Version SP Status-Code SP Reason-Phrase CRLF
   */
   cme_error_t err;
+
   if (!msg) {
     err = cme_error(EINVAL, "`msg` cannot be NULL");
     goto error_out;
   }
 
-  const char *line_end = strstr(msg->_buf.buf, "\r\n");
-  if (!line_end) {
+  const char *line_max = strstr(buf->buf, "\r\n");
+  if (!line_max) {
     err = cme_error(EINVAL, "No CLRF");
     goto error_out;
   }
 
-  const char *sip_version = strstr(msg->_buf.buf, "SIP/");
+  const char *sip_version = strstr(buf->buf, "SIP/");
   if (!sip_version) {
     err = cme_error(EINVAL, "No sip version");
     goto error_out;
   }
 
-  if (sip_version > line_end) {
+  if (sip_version > line_max) {
     err = cme_error(EINVAL, "Sip version has to be in first line");
     goto error_out;
   }
 
-  if (sip_version == msg->_buf.buf) {
-    err = cmsc_parse_status_line(line_end - msg->_buf.buf, msg->_buf.buf, msg);
+  if (sip_version == buf->buf) {
+    err = cmsc_parse_status_line(
+        &(struct cmsc_Buffer){.buf = buf->buf,
+                              .size = line_max - buf->buf,
+                              .len = line_max - buf->buf},
+        msg);
     if (err) {
       goto error_out;
     }
   } else {
-    err = cmsc_parse_request_line(line_end - msg->_buf.buf, msg->_buf.buf, msg);
+    err = cmsc_parse_request_line(
+        &(struct cmsc_Buffer){.buf = buf->buf,
+                              .size = line_max - buf->buf,
+                              .len = line_max - buf->buf},
+        msg);
     if (err) {
       goto error_out;
     }
   }
+
+  uint32_t first_line_offset = buf->buf - line_max + strlen("\r\n");
+  buf->buf += first_line_offset;
+  buf->len -= first_line_offset;
 
   return 0;
 
