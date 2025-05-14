@@ -138,6 +138,56 @@ error_out:
   return cme_return(err);
 };
 
+static inline cme_error_t cmsc_parse_status_line(const uint32_t buffer_len,
+                                                 const char *buf,
+                                                 struct cmsc_SipMessage *msg) {
+  /*
+    According RFC 3261 25 status line looks like this:
+      SIP-Version SP Status-Code SP Reason-Phrase CRLF
+  */
+  char buffer[buffer_len + 1];
+  cme_error_t err;
+
+  memcpy(buffer, buf, buffer_len);
+  buffer[buffer_len] = 0;
+
+  char *sip_version = (char *)buffer;
+  char *space = strstr(sip_version, " ");
+  if (!space) {
+    err = cme_error(EINVAL, "No sip version in status line");
+    goto error_out;
+  }
+  uint32_t sip_version_len = space - sip_version;
+
+  const char *status_code = space + 1;
+  space = strstr(status_code, " ");
+  if (!space) {
+    err = cme_error(EINVAL, "No status code in status line");
+    goto error_out;
+  }
+
+  const char *reason_phrase = space + 1;
+  uint32_t reason_phrase_len = (buffer + buffer_len) - reason_phrase;
+
+  uint32_t code = atoi(status_code);
+  if (!code) {
+    err = cme_error(EINVAL, "Malformed status code in status line");
+    goto error_out;
+  }
+
+  msg->status_line.sip_proto_ver.buf = buf;
+  msg->status_line.sip_proto_ver.len = sip_version_len;
+
+  msg->status_line.status_code = code;
+
+  msg->status_line.reason_phrase.buf = buf + (reason_phrase - buffer);
+  msg->status_line.reason_phrase.len = reason_phrase_len;
+
+  return NULL;
+error_out:
+  return cme_return(err);
+};
+
 static inline cme_error_t
 cmsc_parse_sip_first_line(struct cmsc_SipMessage *msg) {
   /*
@@ -170,7 +220,10 @@ cmsc_parse_sip_first_line(struct cmsc_SipMessage *msg) {
   }
 
   if (sip_version == msg->_buf.buf) {
-
+    err = cmsc_parse_status_line(line_end - msg->_buf.buf, msg->_buf.buf, msg);
+    if (err) {
+      goto error_out;
+    }
   } else {
     err = cmsc_parse_request_line(line_end - msg->_buf.buf, msg->_buf.buf, msg);
     if (err) {

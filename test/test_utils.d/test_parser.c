@@ -18,7 +18,7 @@ static void make_msg(const char *raw) {
       .buf = raw, .len = (uint32_t)strlen(raw), .size = (uint32_t)strlen(raw)};
 
   cme_error_t err = cmsc_sipmsg_create(buf, &msg);
-  TEST_ASSERT_EQUAL(0, err);
+  TEST_ASSERT_NULL(err);
 }
 
 void test_parse_null_msg(void) {
@@ -30,7 +30,7 @@ void test_parse_single_header(void) {
   make_msg("Content-Type: application/sdp\r\n");
 
   cme_error_t err = cmsc_parse_sip_headers(msg);
-  TEST_ASSERT_EQUAL(0, err);
+  TEST_ASSERT_NULL(err);
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
@@ -44,7 +44,7 @@ void test_parse_multiple_headers(void) {
            "Content-Length: 123\r\n");
 
   cme_error_t err = cmsc_parse_sip_headers(msg);
-  TEST_ASSERT_EQUAL(0, err);
+  TEST_ASSERT_NULL(err);
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
@@ -59,7 +59,7 @@ void test_parse_empty_buffer(void) {
   make_msg("");
 
   cme_error_t err = cmsc_parse_sip_headers(msg);
-  TEST_ASSERT_EQUAL(0, err);
+  TEST_ASSERT_NULL(err);
   TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
 }
 
@@ -67,7 +67,7 @@ void test_parse_header_without_value(void) {
   make_msg("X-Empty:\r\n");
 
   cme_error_t err = cmsc_parse_sip_headers(msg);
-  TEST_ASSERT_EQUAL(0, err);
+  TEST_ASSERT_NULL(err);
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
@@ -79,7 +79,7 @@ void test_parse_header_with_lf_only(void) {
   make_msg("X-Bad: value\n"); // Missing \r
 
   cme_error_t err = cmsc_parse_sip_headers(msg);
-  TEST_ASSERT_EQUAL(0, err);
+  TEST_ASSERT_NULL(err);
 
   // Should skip the header — no \r\n means not valid SIP header end
   TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
@@ -89,7 +89,7 @@ void test_parse_header_without_colon(void) {
   make_msg("BadHeaderNoColon\r\n");
 
   cme_error_t err = cmsc_parse_sip_headers(msg);
-  TEST_ASSERT_EQUAL(0, err);
+  TEST_ASSERT_NULL(err);
 
   // No colon means header was never created — should be ignored
   TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
@@ -103,7 +103,7 @@ void test_parse_multiple_mixed_headers(void) {
            "Bad\n");
 
   cme_error_t err = cmsc_parse_sip_headers(msg);
-  TEST_ASSERT_EQUAL(0, err);
+  TEST_ASSERT_NULL(err);
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
@@ -125,7 +125,7 @@ void test_valid_request_line(void) {
   make_msg("INVITE sip:bob@biloxi.com SIP/2.0\r\n");
 
   cme_error_t err = cmsc_parse_sip_first_line(msg);
-  TEST_ASSERT_EQUAL(0, err);
+  TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->request_line.sip_method.buf,
                                msg->request_line.sip_method.len);
@@ -161,7 +161,7 @@ void test_invalid_request_line_extra_space(void) {
   make_msg("INVITE  sip:bob@biloxi.com  SIP/2.0\r\n");
 
   cme_error_t err = cmsc_parse_sip_first_line(msg);
-  TEST_ASSERT_EQUAL(0, err); // still valid
+  TEST_ASSERT_NULL(err); // still valid
   TEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->request_line.sip_method.buf,
                                msg->request_line.sip_method.len);
   TEST_ASSERT_EQUAL_STRING_LEN("sip:bob@biloxi.com",
@@ -176,4 +176,48 @@ void test_sip_version_not_in_first_line(void) {
 
   cme_error_t err = cmsc_parse_sip_first_line(msg);
   TEST_ASSERT_NOT_EQUAL(0, err); // SIP version not in first line
+}
+
+void test_valid_status_line_parsing(void) {
+  make_msg("SIP/2.0 200 OK\r\n");
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_NULL(err);
+
+  TEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0", msg->status_line.sip_proto_ver.buf,
+                               msg->status_line.sip_proto_ver.len);
+
+  TEST_ASSERT_EQUAL(200, msg->status_line.status_code);
+
+  TEST_ASSERT_EQUAL_STRING_LEN("OK", msg->status_line.reason_phrase.buf,
+                               msg->status_line.reason_phrase.len);
+}
+
+void test_status_line_with_reason_phrase_spaces(void) {
+  make_msg("SIP/2.0 486 Busy Here\r\n");
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_NULL(err);
+
+  TEST_ASSERT_EQUAL(486, msg->status_line.status_code);
+
+  TEST_ASSERT_EQUAL_STRING_LEN("Busy Here", msg->status_line.reason_phrase.buf,
+                               msg->status_line.reason_phrase.len);
+}
+
+void test_status_line_missing_reason_phrase(void) {
+  make_msg("SIP/2.0 100 \r\n");
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_NULL(err);
+
+  TEST_ASSERT_EQUAL(100, msg->status_line.status_code);
+  TEST_ASSERT_EQUAL(0, msg->status_line.reason_phrase.len);
+}
+
+void test_status_line_not_numeric_code(void) {
+  make_msg("SIP/2.0 twohundred OK\r\n"); // non-numeric
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_NOT_NULL(err);
 }
