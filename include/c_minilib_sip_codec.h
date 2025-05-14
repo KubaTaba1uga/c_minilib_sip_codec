@@ -43,6 +43,19 @@ void cmsc_destroy(void);
 /******************************************************************************
  *                             Message                                        *
  ******************************************************************************/
+
+struct cmsc_SipRequestLine {
+  struct cmsc_String sip_proto_ver;
+  struct cmsc_String request_uri;
+  struct cmsc_String sip_method;
+};
+
+struct cmsc_SipStatusLine {
+  struct cmsc_String sip_proto_ver;
+  struct cmsc_String reason_phrase;
+  uint32_t status_code;
+};
+
 struct cmsc_SipHeader {
   struct cmsc_String key;
   struct cmsc_String value;
@@ -52,6 +65,8 @@ struct cmsc_SipHeader {
 STAILQ_HEAD(cmsc_SipHeadersList, cmsc_SipHeader);
 
 struct cmsc_SipMessage {
+  struct cmsc_SipRequestLine request_line;
+  struct cmsc_SipStatusLine status_line;
   struct cmsc_SipHeadersList sip_headers;
   struct cmsc_Buffer body;
   struct cmsc_Buffer _buf; // This is buffer passed during parse

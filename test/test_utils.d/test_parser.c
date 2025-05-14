@@ -120,3 +120,60 @@ void test_parse_multiple_mixed_headers(void) {
 
   TEST_ASSERT_NULL(STAILQ_NEXT(h, _next)); // Only 3 valid headers
 }
+
+void test_valid_request_line(void) {
+  make_msg("INVITE sip:bob@biloxi.com SIP/2.0\r\n");
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_EQUAL(0, err);
+
+  TEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->request_line.sip_method.buf,
+                               msg->request_line.sip_method.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("sip:bob@biloxi.com",
+                               msg->request_line.request_uri.buf,
+                               msg->request_line.request_uri.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0", msg->request_line.sip_proto_ver.buf,
+                               msg->request_line.sip_proto_ver.len);
+}
+
+void test_missing_crlf(void) {
+  make_msg("INVITE sip:bob@biloxi.com SIP/2.0"); // No \r\n
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_NOT_EQUAL(0, err);
+}
+
+void test_missing_sip_version(void) {
+  make_msg("INVITE sip:bob@biloxi.com\r\n");
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_NOT_EQUAL(0, err);
+}
+
+void test_malformed_method_line(void) {
+  make_msg("INVITE123sip:bob@biloxi.com SIP/2.0\r\n");
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_NOT_EQUAL(0, err);
+}
+
+void test_invalid_request_line_extra_space(void) {
+  make_msg("INVITE  sip:bob@biloxi.com  SIP/2.0\r\n");
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_EQUAL(0, err); // still valid
+  TEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->request_line.sip_method.buf,
+                               msg->request_line.sip_method.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("sip:bob@biloxi.com",
+                               msg->request_line.request_uri.buf,
+                               msg->request_line.request_uri.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0", msg->request_line.sip_proto_ver.buf,
+                               msg->request_line.sip_proto_ver.len);
+}
+
+void test_sip_version_not_in_first_line(void) {
+  make_msg("Hello world\r\nFoo: bar\r\nSIP/2.0\r\n");
+
+  cme_error_t err = cmsc_parse_sip_first_line(msg);
+  TEST_ASSERT_NOT_EQUAL(0, err); // SIP version not in first line
+}
