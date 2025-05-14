@@ -1,7 +1,7 @@
 # List of test source files (extend this list as needed)
 test_files = [
   'test_parser.c',
-  # 'test_parse_sip.c',
+  'test_parse_sip.c',
 ]
 
 foreach test_file : test_files

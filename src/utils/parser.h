@@ -240,7 +240,7 @@ cmsc_parse_sip_first_line(struct cmsc_Buffer *buf,
     }
   }
 
-  uint32_t first_line_offset = buf->buf - line_max + strlen("\r\n");
+  uint32_t first_line_offset = (line_max - buf->buf) + strlen("\r\n");
   buf->buf += first_line_offset;
   buf->len -= first_line_offset;
 
