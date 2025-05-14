@@ -1,12 +1,9 @@
-test_string_name = 'test_string.c'
-
-test_string_exe = executable('test_string',
+test_parser_name = 'test_parser.c'
+test_parser_exe = executable('test_parser',
   sources: [
-    test_string_name,
-    test_runner.process(test_string_name),
+    test_parser_name,
+    test_runner.process(test_parser_name),
   ],
   dependencies: test_dependencies,
-  # include_directories: include_directories('../../include'),
 )
-
-test('test_string', test_string_exe)
+test('test_parser', test_parser_exe)

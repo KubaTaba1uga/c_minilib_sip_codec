@@ -1,3 +1,5 @@
 sources += files(
-   'string.h',
+   'list.h',
+   'parser.h',
+   'sipmsg.h',
 )
