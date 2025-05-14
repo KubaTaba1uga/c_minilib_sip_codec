@@ -62,3 +62,61 @@ void test_parse_empty_buffer(void) {
   TEST_ASSERT_EQUAL(0, err);
   TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
 }
+
+void test_parse_header_without_value(void) {
+  make_msg("X-Empty:\r\n");
+
+  cme_error_t err = cmsc_parse_sip_headers(msg);
+  TEST_ASSERT_EQUAL(0, err);
+
+  struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
+  TEST_ASSERT_NOT_NULL(h);
+  TEST_ASSERT_EQUAL_STRING_LEN("X-Empty", h->key.buf, h->key.len);
+  TEST_ASSERT_EQUAL(0, h->value.len); // No value after ':'
+}
+
+void test_parse_header_with_lf_only(void) {
+  make_msg("X-Bad: value\n"); // Missing \r
+
+  cme_error_t err = cmsc_parse_sip_headers(msg);
+  TEST_ASSERT_EQUAL(0, err);
+
+  // Should skip the header — no \r\n means not valid SIP header end
+  TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
+}
+
+void test_parse_header_without_colon(void) {
+  make_msg("BadHeaderNoColon\r\n");
+
+  cme_error_t err = cmsc_parse_sip_headers(msg);
+  TEST_ASSERT_EQUAL(0, err);
+
+  // No colon means header was never created — should be ignored
+  TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
+}
+
+void test_parse_multiple_mixed_headers(void) {
+  make_msg("X-Good: yes\r\n"
+           "NoColon\r\n"
+           "X-Empty:\r\n"
+           "Y-Good: again\r\n"
+           "Bad\n");
+
+  cme_error_t err = cmsc_parse_sip_headers(msg);
+  TEST_ASSERT_EQUAL(0, err);
+
+  struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
+  TEST_ASSERT_NOT_NULL(h);
+  TEST_ASSERT_EQUAL_STRING_LEN("X-Good", h->key.buf, h->key.len);
+
+  h = STAILQ_NEXT(h, _next);
+  TEST_ASSERT_NOT_NULL(h);
+  TEST_ASSERT_EQUAL_STRING_LEN("X-Empty", h->key.buf, h->key.len);
+  TEST_ASSERT_EQUAL(0, h->value.len);
+
+  h = STAILQ_NEXT(h, _next);
+  TEST_ASSERT_NOT_NULL(h);
+  TEST_ASSERT_EQUAL_STRING_LEN("Y-Good", h->key.buf, h->key.len);
+
+  TEST_ASSERT_NULL(STAILQ_NEXT(h, _next)); // Only 3 valid headers
+}

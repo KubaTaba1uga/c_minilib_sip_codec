@@ -46,18 +46,26 @@ static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_SipMessage *msg) {
     }
     case '\n': {
       if (*(current_char - 1) == '\r') {
-        header->value.buf = header->key.buf + header->key.len + 1;
-        header->value.len = (current_char - header->value.buf) - 1;
-        STAILQ_INSERT_TAIL(&msg->sip_headers, header, _next);
-        header = NULL;
+        if (header) {
+          header->value.buf = header->key.buf + header->key.len + 1;
+          header->value.len = (current_char - header->value.buf) - 1;
+          STAILQ_INSERT_TAIL(&msg->sip_headers, header, _next);
+          header = NULL;
+        }
 
         clrf_counter++;
         line_start = current_char + 1;
       }
+      break;
     }
     }
 
     current_char++;
+  }
+
+  // If not full line parsed we need to clean it up
+  if (clrf_counter == 0 && header) {
+    free(header);
   }
 
   (void)clrf_counter;
