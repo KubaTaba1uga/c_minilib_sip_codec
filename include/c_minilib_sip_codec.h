@@ -97,6 +97,18 @@ struct cmsc_SipHeaderCSeq {
   uint32_t seq_number;
 };
 
+struct cmsc_SipHeaderVia {
+  struct cmsc_String proto;
+  struct cmsc_String sent_by;
+  struct cmsc_String addr;
+  struct cmsc_String branch;
+  struct cmsc_String received;
+  uint32_t ttl;
+  STAILQ_ENTRY(cmsc_SipHeaderVia) _next;
+};
+
+STAILQ_HEAD(cmsc_SipViasList, cmsc_SipHeaderVia);
+
 struct cmsc_SipMessage {
   uint32_t presence_mask;
   struct cmsc_SipRequestLine request_line;
@@ -106,6 +118,8 @@ struct cmsc_SipMessage {
   struct cmsc_SipHeaderTo from;
   struct cmsc_SipHeaderCSeq cseq;
   struct cmsc_String call_id;
+  uint32_t max_forwards;
+  struct cmsc_SipViasList vias;
   // Supported headers end
   struct cmsc_SipHeadersList sip_headers;
   struct cmsc_Buffer body;

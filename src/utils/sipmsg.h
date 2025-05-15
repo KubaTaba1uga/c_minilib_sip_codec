@@ -31,6 +31,7 @@ static inline cme_error_t cmsc_sipmsg_create(struct cmsc_Buffer buf,
   }
 
   STAILQ_INIT(&local_msg->sip_headers);
+  STAILQ_INIT(&local_msg->vias);
 
   local_msg->_buf = buf;
   *msg = local_msg;
@@ -51,6 +52,12 @@ static inline void cmsc_sipmsg_destroy(struct cmsc_SipMessage **msg) {
     header = STAILQ_FIRST(&(*msg)->sip_headers);
     STAILQ_REMOVE_HEAD(&(*msg)->sip_headers, _next);
     free(header);
+  }
+  struct cmsc_SipHeaderVia *via;
+  while (!STAILQ_EMPTY(&(*msg)->vias)) {
+    via = STAILQ_FIRST(&(*msg)->vias);
+    STAILQ_REMOVE_HEAD(&(*msg)->vias, _next);
+    free(via);
   }
 
   free(*msg);

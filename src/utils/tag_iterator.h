@@ -7,6 +7,7 @@
 #ifndef C_MINILIB_SIP_CODEC_ARG_ITERATOR_H
 #define C_MINILIB_SIP_CODEC_ARG_ITERATOR_H
 
+#include <ctype.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -62,6 +63,9 @@ cmsc_arg_iterator_emit_arg(struct cmsc_ArgIterator *arg_iter,
                            const char *current_char, uint32_t offset) {
   arg_iter->arg_value.buf = arg_iter->arg_key.buf + arg_iter->arg_key.len + 1;
   arg_iter->arg_value.len = (uint32_t)(current_char - arg_iter->arg_value.buf);
+  if (arg_iter->arg_value.buf[arg_iter->arg_value.len - 1] == ',') {
+    arg_iter->arg_value.len--;
+  }
   cmsc_arg_iterator_traverse(arg_iter, current_char, offset);
   return cmsc_ArgNextResults_ARG;
 }
@@ -96,7 +100,7 @@ cmsc_arg_iterator_next(struct cmsc_ArgIterator *arg_iter) {
       if (arg_iter->value.buf) {
         memset(&arg_iter->value, 0, sizeof(struct cmsc_String));
         if (arg_iter->arg_key.buf) {
-          return cmsc_arg_iterator_emit_arg(arg_iter, current_char, 1);
+          return cmsc_arg_iterator_emit_arg(arg_iter, current_char + 1, 1);
         }
       }
       break;
