@@ -31,29 +31,40 @@ enum cmsc_ArgNextResults {
 static inline cme_error_t
 cmsc_arg_iterator_init(const struct cmsc_String buf,
                        struct cmsc_ArgIterator *arg_iter) {
-
-  cme_error_t err;
   if (!arg_iter) {
-    err = cme_error(EINVAL, "`arg_iter` cannot be NULL");
-    goto error_out;
+    return cme_error(EINVAL, "`arg_iter` cannot be NULL");
   }
 
   memset(arg_iter, 0, sizeof(struct cmsc_ArgIterator));
-
   arg_iter->buf = buf;
-
   return 0;
-
-error_out:
-  return cme_return(err);
 }
 
-#define CMSC_ARG_ITER_TRAVERSE(arg_iter, current_char, offset)                 \
-  do {                                                                         \
-    const uint32_t skip_n = (current_char) - (arg_iter)->buf.buf + (offset);   \
-    (arg_iter)->buf.buf += skip_n;                                             \
-    (arg_iter)->buf.len -= skip_n;                                             \
-  } while (0)
+static inline void cmsc_arg_iterator_traverse(struct cmsc_ArgIterator *arg_iter,
+                                              const char *current_char,
+                                              uint32_t offset) {
+  uint32_t skip_n = (uint32_t)(current_char - arg_iter->buf.buf + offset);
+  arg_iter->buf.buf += skip_n;
+  arg_iter->buf.len -= skip_n;
+}
+
+static inline enum cmsc_ArgNextResults
+cmsc_arg_iterator_emit_value(struct cmsc_ArgIterator *arg_iter,
+                             const char *current_char) {
+  arg_iter->value.buf = arg_iter->buf.buf;
+  arg_iter->value.len = (uint32_t)(current_char - arg_iter->buf.buf);
+  cmsc_arg_iterator_traverse(arg_iter, current_char, 1);
+  return cmsc_ArgNextResults_VALUE;
+}
+
+static inline enum cmsc_ArgNextResults
+cmsc_arg_iterator_emit_arg(struct cmsc_ArgIterator *arg_iter,
+                           const char *current_char, uint32_t offset) {
+  arg_iter->arg_value.buf = arg_iter->arg_key.buf + arg_iter->arg_key.len + 1;
+  arg_iter->arg_value.len = (uint32_t)(current_char - arg_iter->arg_value.buf);
+  cmsc_arg_iterator_traverse(arg_iter, current_char, offset);
+  return cmsc_ArgNextResults_ARG;
+}
 
 static inline enum cmsc_ArgNextResults
 cmsc_arg_iterator_next(struct cmsc_ArgIterator *arg_iter) {
@@ -62,68 +73,50 @@ cmsc_arg_iterator_next(struct cmsc_ArgIterator *arg_iter) {
 
   const char *current_char = arg_iter->buf.buf;
   const char *max_char = arg_iter->buf.buf + arg_iter->buf.len;
+
   while (current_char != max_char) {
     switch (*current_char) {
-    case ';': {
+    case ';':
       if (!arg_iter->value.buf) {
-        arg_iter->value.buf = arg_iter->buf.buf;
-        arg_iter->value.len = current_char - arg_iter->buf.buf;
-        CMSC_ARG_ITER_TRAVERSE(arg_iter, current_char, 1);
-        return cmsc_ArgNextResults_VALUE;
+        return cmsc_arg_iterator_emit_value(arg_iter, current_char);
       }
-
       if (arg_iter->arg_key.buf) {
-        arg_iter->arg_value.buf =
-            arg_iter->arg_key.buf + arg_iter->arg_key.len + 1;
-        arg_iter->arg_value.len = current_char - arg_iter->arg_value.buf;
-        CMSC_ARG_ITER_TRAVERSE(arg_iter, current_char, 1);
-        return cmsc_ArgNextResults_ARG;
+        return cmsc_arg_iterator_emit_arg(arg_iter, current_char, 1);
       }
       break;
-    };
-    case '=': {
+
+    case '=':
       if (arg_iter->value.buf && !arg_iter->arg_key.buf) {
         arg_iter->arg_key.buf = arg_iter->buf.buf;
-        arg_iter->arg_key.len = current_char - arg_iter->buf.buf;
+        arg_iter->arg_key.len = (uint32_t)(current_char - arg_iter->buf.buf);
       }
       break;
-    };
-    case ',': {
+
+    case ',':
       if (arg_iter->value.buf) {
         memset(&arg_iter->value, 0, sizeof(struct cmsc_String));
         if (arg_iter->arg_key.buf) {
-          arg_iter->arg_value.buf =
-              arg_iter->arg_key.buf + arg_iter->arg_key.len + 1;
-          arg_iter->arg_value.len = current_char - arg_iter->arg_value.buf;
-          CMSC_ARG_ITER_TRAVERSE(arg_iter, current_char, 1);
-          return cmsc_ArgNextResults_ARG;
+          return cmsc_arg_iterator_emit_arg(arg_iter, current_char, 1);
         }
       }
-
       break;
-    };
-    default:;
+
+    default:
+      break;
     }
+
     current_char++;
   }
 
   if (!arg_iter->value.buf) {
-    arg_iter->value.buf = arg_iter->buf.buf;
-    arg_iter->value.len = current_char - arg_iter->buf.buf;
-    CMSC_ARG_ITER_TRAVERSE(arg_iter, current_char, 1);
-    return cmsc_ArgNextResults_VALUE;
+    return cmsc_arg_iterator_emit_value(arg_iter, current_char);
   }
 
   if (arg_iter->arg_key.buf) {
-    arg_iter->arg_value.buf = arg_iter->arg_key.buf + arg_iter->arg_key.len + 1;
-    arg_iter->arg_value.len = current_char - arg_iter->arg_value.buf;
-    CMSC_ARG_ITER_TRAVERSE(arg_iter, current_char, 0);
-    return cmsc_ArgNextResults_ARG;
+    return cmsc_arg_iterator_emit_arg(arg_iter, current_char, 0);
   }
 
   return cmsc_ArgNextResults_NONE;
 }
-
-#undef CMSC_ARG_ITER_TRAVERSE
 
 #endif
