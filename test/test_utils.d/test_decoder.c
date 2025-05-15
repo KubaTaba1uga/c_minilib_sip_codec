@@ -1,0 +1,81 @@
+#include <stdlib.h>
+#include <string.h>
+#include <unity.h>
+
+#include "c_minilib_sip_codec.h"
+#include "utils/decoder.h"
+#include "utils/sipmsg.h"
+
+static struct cmsc_SipMessage *msg = NULL;
+
+void setUp(void) {}
+void tearDown(void) { cmsc_sipmsg_destroy(&msg); }
+
+void test_decode_to_header(void) {
+  const char *raw_to_value = "<sip:bob@example.com>;tag=123abc";
+
+  // Allocate and initialize the SIP message
+  struct cmsc_Buffer buf = {.buf = raw_to_value,
+                            .len = (uint32_t)strlen(raw_to_value),
+                            .size = (uint32_t)strlen(raw_to_value)};
+
+  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
+  TEST_ASSERT_NULL(err);
+
+  // Allocate and insert To header
+  struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
+  TEST_ASSERT_NOT_NULL(hdr);
+
+  hdr->key.buf = "To";
+  hdr->key.len = 2;
+  hdr->value.buf = raw_to_value;
+  hdr->value.len = (uint32_t)strlen(raw_to_value);
+
+  STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next);
+
+  // Call decoder
+  err = cmsc_decode_sip_headers(msg);
+  TEST_ASSERT_NULL(err);
+
+  // Ensure header was consumed
+  TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
+
+  // Validate decoded fields
+  TEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com", msg->to.uri.buf,
+                               msg->to.uri.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("123abc", msg->to.tag.buf, msg->to.tag.len);
+}
+
+void test_decode_from_header(void) {
+  const char *raw_to_value = "sip:alice@example.com";
+
+  // Allocate and initialize the SIP message
+  struct cmsc_Buffer buf = {.buf = raw_to_value,
+                            .len = (uint32_t)strlen(raw_to_value),
+                            .size = (uint32_t)strlen(raw_to_value)};
+
+  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
+  TEST_ASSERT_NULL(err);
+
+  // Allocate and insert To header
+  struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
+  TEST_ASSERT_NOT_NULL(hdr);
+
+  hdr->key.buf = "From";
+  hdr->key.len = 4;
+  hdr->value.buf = raw_to_value;
+  hdr->value.len = (uint32_t)strlen(raw_to_value);
+
+  STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next);
+
+  // Call decoder
+  err = cmsc_decode_sip_headers(msg);
+  TEST_ASSERT_NULL(err);
+
+  // Ensure header was consumed
+  TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
+
+  // Validate decoded fields
+  TEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com", msg->from.uri.buf,
+                               msg->from.uri.len);
+}

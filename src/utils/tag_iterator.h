@@ -50,10 +50,10 @@ static inline void cmsc_arg_iterator_traverse(struct cmsc_ArgIterator *arg_iter,
 
 static inline enum cmsc_ArgNextResults
 cmsc_arg_iterator_emit_value(struct cmsc_ArgIterator *arg_iter,
-                             const char *current_char) {
+                             const char *current_char, uint32_t offset) {
   arg_iter->value.buf = arg_iter->buf.buf;
   arg_iter->value.len = (uint32_t)(current_char - arg_iter->buf.buf);
-  cmsc_arg_iterator_traverse(arg_iter, current_char, 1);
+  cmsc_arg_iterator_traverse(arg_iter, current_char, offset);
   return cmsc_ArgNextResults_VALUE;
 }
 
@@ -78,7 +78,7 @@ cmsc_arg_iterator_next(struct cmsc_ArgIterator *arg_iter) {
     switch (*current_char) {
     case ';':
       if (!arg_iter->value.buf) {
-        return cmsc_arg_iterator_emit_value(arg_iter, current_char);
+        return cmsc_arg_iterator_emit_value(arg_iter, current_char, 1);
       }
       if (arg_iter->arg_key.buf) {
         return cmsc_arg_iterator_emit_arg(arg_iter, current_char, 1);
@@ -109,7 +109,7 @@ cmsc_arg_iterator_next(struct cmsc_ArgIterator *arg_iter) {
   }
 
   if (!arg_iter->value.buf) {
-    return cmsc_arg_iterator_emit_value(arg_iter, current_char);
+    return cmsc_arg_iterator_emit_value(arg_iter, current_char, 0);
   }
 
   if (arg_iter->arg_key.buf) {

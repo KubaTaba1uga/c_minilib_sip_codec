@@ -86,7 +86,11 @@ STAILQ_HEAD(cmsc_SipHeadersList, cmsc_SipHeader);
 struct cmsc_SipHeaderTo {
   struct cmsc_String uri;
   struct cmsc_String tag;
-  struct cmsc_String display_name;
+};
+
+struct cmsc_SipHeaderFrom {
+  struct cmsc_String uri;
+  struct cmsc_String tag;
 };
 
 struct cmsc_SipMessage {
@@ -95,6 +99,7 @@ struct cmsc_SipMessage {
   struct cmsc_SipStatusLine status_line;
   // Supported headers start
   struct cmsc_SipHeaderTo to;
+  struct cmsc_SipHeaderTo from;
   // Supported headers end
   struct cmsc_SipHeadersList sip_headers;
   struct cmsc_Buffer body;
