@@ -57,4 +57,16 @@ static inline void cmsc_sipmsg_destroy(struct cmsc_SipMessage **msg) {
   *msg = NULL;
 }
 
+static inline void
+cmsc_sipmsg_mark_field_present(struct cmsc_SipMessage *msg,
+                               enum cmsc_SupportedSipHeaders header_id) {
+  msg->presence_mask = msg->presence_mask | header_id;
+}
+
+static inline bool
+cmsc_sipmsg_is_field_present(struct cmsc_SipMessage *msg,
+                             enum cmsc_SupportedSipHeaders header_id) {
+  return msg->presence_mask & header_id;
+}
+
 #endif
