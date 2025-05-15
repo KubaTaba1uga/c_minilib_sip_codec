@@ -1,6 +1,7 @@
 #include <c_minilib_error.h>
 
 #include "c_minilib_sip_codec.h"
+#include "utils/decoder.h"
 #include "utils/parser.h"
 #include "utils/sipmsg.h"
 
@@ -41,6 +42,11 @@ cme_error_t cmsc_parse_sip(uint32_t buf_len, const char *buf,
   }
 
   err = cmsc_parse_sip_headers(&parse_buf, (*msg));
+  if (err) {
+    goto error_out;
+  }
+
+  err = cmsc_decode_sip_headers((*msg));
   if (err) {
     goto error_out;
   }

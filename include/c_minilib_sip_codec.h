@@ -49,8 +49,8 @@ enum cmsc_SupportedSipHeaders {
   cmsc_SupportedSipHeaders_STATUS_LINE = 2,
   cmsc_SupportedSipHeaders_TO = 4,
   cmsc_SupportedSipHeaders_FROM = 8,
-  /* cmsc_SupportedSipHeaders_CSEQ = 64, */
-  /* cmsc_SupportedSipHeaders_CALL_ID = 128, */
+  cmsc_SupportedSipHeaders_CSEQ = 16,
+  cmsc_SupportedSipHeaders_CALL_ID = 32,
   /* cmsc_SupportedSipHeaders_MAX_FORWARDS = 256, */
   /* cmsc_SupportedSipHeaders_VIA_L = 512, */
   /* cmsc_SupportedSipHeaders_ALLOW = 1024, */
@@ -92,6 +92,10 @@ struct cmsc_SipHeaderFrom {
   struct cmsc_String uri;
   struct cmsc_String tag;
 };
+struct cmsc_SipHeaderCSeq {
+  struct cmsc_String method;
+  uint32_t seq_number;
+};
 
 struct cmsc_SipMessage {
   uint32_t presence_mask;
@@ -100,6 +104,8 @@ struct cmsc_SipMessage {
   // Supported headers start
   struct cmsc_SipHeaderTo to;
   struct cmsc_SipHeaderTo from;
+  struct cmsc_SipHeaderCSeq cseq;
+  struct cmsc_String call_id;
   // Supported headers end
   struct cmsc_SipHeadersList sip_headers;
   struct cmsc_Buffer body;
