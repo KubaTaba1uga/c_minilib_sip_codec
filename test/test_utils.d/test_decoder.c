@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <unity.h>
 
 #include "c_minilib_sip_codec.h"
 #include "unity_wrapper.h"
@@ -44,6 +45,8 @@ void test_decode_to_header(void) {
   MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com", msg->to.uri.buf,
                                  msg->to.uri.len);
   MYTEST_ASSERT_EQUAL_STRING_LEN("123abc", msg->to.tag.buf, msg->to.tag.len);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_TO));
 }
 
 void test_decode_from_header(void) {
@@ -78,6 +81,8 @@ void test_decode_from_header(void) {
   // Validate decoded fields
   MYTEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com", msg->from.uri.buf,
                                  msg->from.uri.len);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_FROM));
 }
 
 void test_decode_cseq_header(void) {
@@ -105,6 +110,8 @@ void test_decode_cseq_header(void) {
   TEST_ASSERT_EQUAL(42, msg->cseq.seq_number);
   MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->cseq.method.buf,
                                  msg->cseq.method.len);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CSEQ));
 }
 
 void test_decode_call_id_header(void) {
@@ -131,6 +138,8 @@ void test_decode_call_id_header(void) {
 
   MYTEST_ASSERT_EQUAL_STRING_LEN("abcd-1234", msg->call_id.buf,
                                  msg->call_id.len);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CALL_ID));
 }
 
 void test_decode_max_forwards_header(void) {
@@ -156,6 +165,8 @@ void test_decode_max_forwards_header(void) {
   TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_EQUAL(70, msg->max_forwards);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_MAX_FORWARDS));
 }
 
 void test_decode_via_header_single(void) {
@@ -186,4 +197,8 @@ void test_decode_via_header_single(void) {
   MYTEST_ASSERT_EQUAL_STRING_LEN("host.example.com", via->sent_by.buf,
                                  via->sent_by.len);
   MYTEST_ASSERT_EQUAL_STRING_LEN("z9hG4bK", via->branch.buf, via->branch.len);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_VIAS));
+  /* cmsc */
+  /* TEST_ASSERT_TRUE(cmsc); */
 }
