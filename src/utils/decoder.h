@@ -45,6 +45,9 @@ cmsc_decode_func_max_forwards(const struct cmsc_SipHeader *sip_header,
 static inline cme_error_t
 cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
                      struct cmsc_SipMessage *msg);
+static inline cme_error_t
+cmsc_decode_func_content_length(const struct cmsc_SipHeader *sip_header,
+                                struct cmsc_SipMessage *msg);
 
 static inline cme_error_t cmsc_decode_sip_headers(struct cmsc_SipMessage *msg) {
   static struct cmsc_DecoderLogic decoders[] = {
@@ -60,7 +63,8 @@ static inline cme_error_t cmsc_decode_sip_headers(struct cmsc_SipMessage *msg) {
        .decode_func = cmsc_decode_func_call_id},
       {.header_id = {.buf = "Max-Forwards", .len = 11},
        .decode_func = cmsc_decode_func_max_forwards},
-
+      {.header_id = {.buf = "Content-Length", .len = 11},
+       .decode_func = cmsc_decode_func_content_length},
   };
   cme_error_t err;
   if (!msg) {
@@ -316,5 +320,13 @@ cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
 error_out:
   return cme_return(err);
 };
+
+static inline cme_error_t
+cmsc_decode_func_content_length(const struct cmsc_SipHeader *sip_header,
+                                struct cmsc_SipMessage *msg) {
+  msg->content_length = atoi(sip_header->value.buf);
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CONTENT_LENGTH);
+  return 0;
+}
 
 #endif

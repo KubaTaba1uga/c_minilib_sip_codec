@@ -53,6 +53,7 @@ enum cmsc_SupportedSipHeaders {
   cmsc_SupportedSipHeaders_CALL_ID = 32,
   cmsc_SupportedSipHeaders_MAX_FORWARDS = 64,
   cmsc_SupportedSipHeaders_VIAS = 128,
+  cmsc_SupportedSipHeaders_CONTENT_LENGTH = 256,
   // Add more fields here
   cmsc_SupportedSipHeaders_MAX,
 };
@@ -114,6 +115,7 @@ struct cmsc_SipMessage {
   struct cmsc_String call_id;
   uint32_t max_forwards;
   struct cmsc_SipViasList vias;
+  uint32_t content_length;
   // Supported headers end
   struct cmsc_SipHeadersList sip_headers;
   struct cmsc_Buffer body;

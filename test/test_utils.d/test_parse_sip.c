@@ -124,3 +124,35 @@ void test_parse_multiple_via_headers(void) {
   via = STAILQ_NEXT(via, _next);
   TEST_ASSERT_NULL(via); // Only 3 vias expected
 }
+
+void test_parse_message_with_body(void) {
+  const char *raw = "INVITE sip:bob@example.com SIP/2.0\r\n"
+                    "To: <sip:bob@example.com>\r\n"
+                    "From: <sip:alice@example.com>;tag=tag123\r\n"
+                    "Call-ID: call123\r\n"
+                    "CSeq: 1 INVITE\r\n"
+                    "Content-Length: 16\r\n"
+                    "\r\n"
+                    "Hello from body!";
+
+  parse_msg(raw);
+
+  // Basic field checks
+  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com", msg->to.uri.buf,
+                                 msg->to.uri.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com", msg->from.uri.buf,
+                                 msg->from.uri.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("tag123", msg->from.tag.buf,
+                                 msg->from.tag.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->cseq.method.buf,
+                                 msg->cseq.method.len);
+  TEST_ASSERT_EQUAL(1, msg->cseq.seq_number);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("call123", msg->call_id.buf, msg->call_id.len);
+
+  // Check body
+  printf("body: %.*s\n", msg->body.len, msg->body.buf);
+  TEST_ASSERT_EQUAL(16, msg->body.len);
+  TEST_ASSERT_EQUAL(16, msg->content_length);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("Hello from body!", msg->body.buf,
+                                 msg->body.len);
+}

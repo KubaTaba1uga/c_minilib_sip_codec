@@ -199,6 +199,38 @@ void test_decode_via_header_single(void) {
   MYTEST_ASSERT_EQUAL_STRING_LEN("z9hG4bK", via->branch.buf, via->branch.len);
   TEST_ASSERT_TRUE(
       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_VIAS));
-  /* cmsc */
-  /* TEST_ASSERT_TRUE(cmsc); */
+}
+
+void test_decode_content_length_header(void) {
+  const char *raw_value = "123";
+
+  // Initialize buffer and SIP message
+  struct cmsc_Buffer buf = {.buf = raw_value,
+                            .len = (uint32_t)strlen(raw_value),
+                            .size = (uint32_t)strlen(raw_value)};
+  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
+  TEST_ASSERT_NULL(err);
+
+  // Allocate and insert Content-Length header
+  struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
+  TEST_ASSERT_NOT_NULL(hdr);
+
+  hdr->key.buf = "Content-Length";
+  hdr->key.len = (uint32_t)strlen("Content-Length");
+  hdr->value.buf = raw_value;
+  hdr->value.len = (uint32_t)strlen(raw_value);
+
+  STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next);
+
+  // Call decoder
+  err = cmsc_decode_sip_headers(msg);
+  TEST_ASSERT_NULL(err);
+
+  // Custom check: if implemented in future decoder logic
+  // For now just confirm that header was not erroneously left
+  TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
+
+  // Optional: verify value if `content_length` field is added to
+  // `cmsc_SipMessage`
+  TEST_ASSERT_EQUAL(123, msg->content_length);
 }

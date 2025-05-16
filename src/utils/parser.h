@@ -16,8 +16,9 @@
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
+#include "utils/sipmsg.h"
 
-static inline cme_error_t cmsc_parse_sip_headers(const struct cmsc_Buffer *buf,
+static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_Buffer *buf,
                                                  struct cmsc_SipMessage *msg) {
   cme_error_t err;
   if (!msg) {
@@ -49,15 +50,23 @@ static inline cme_error_t cmsc_parse_sip_headers(const struct cmsc_Buffer *buf,
     }
     case '\n': {
       if (*(current_char - 1) == '\r') {
+
+        clrf_counter++;
+
+        const char *old_line_start = line_start;
+        line_start = current_char + 1;
+        if (clrf_counter == 2 &&
+            (current_char - old_line_start) <= 2) { // We hit the body
+          current_char = max_char - 1;              // So let's stop the loop
+          break;
+        }
+
         if (header) {
           header->value.buf = header->key.buf + header->key.len + 1;
           header->value.len = (current_char - header->value.buf) - 1;
           STAILQ_INSERT_TAIL(&msg->sip_headers, header, _next);
           header = NULL;
         }
-
-        clrf_counter++;
-        line_start = current_char + 1;
       }
       break;
     }
@@ -71,7 +80,9 @@ static inline cme_error_t cmsc_parse_sip_headers(const struct cmsc_Buffer *buf,
     free(header);
   }
 
-  (void)clrf_counter;
+  uint32_t body_offset = (line_start - buf->buf);
+  buf->buf += body_offset;
+  buf->len -= body_offset;
 
   return 0;
 
@@ -248,6 +259,23 @@ cmsc_parse_sip_first_line(struct cmsc_Buffer *buf,
 
 error_out:
   return cme_return(err);
+}
+
+static inline cme_error_t cmsc_parse_sip_body(struct cmsc_Buffer *buf,
+                                              struct cmsc_SipMessage *msg) {
+  if (!cmsc_sipmsg_is_field_present(msg,
+                                    cmsc_SupportedSipHeaders_CONTENT_LENGTH) ||
+      msg->content_length == 0) {
+    return 0;
+  }
+
+  msg->body = *buf;
+
+  if (msg->body.len > msg->content_length) {
+    msg->body.len = msg->content_length;
+  }
+
+  return 0;
 }
 
 #endif

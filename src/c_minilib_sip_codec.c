@@ -51,6 +51,11 @@ cme_error_t cmsc_parse_sip(uint32_t buf_len, const char *buf,
     goto error_out;
   }
 
+  err = cmsc_parse_sip_body(&parse_buf, (*msg));
+  if (err) {
+    goto error_out;
+  }
+
   return 0;
 
 error_out:
