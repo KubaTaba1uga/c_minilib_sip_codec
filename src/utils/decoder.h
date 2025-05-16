@@ -11,12 +11,14 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/queue.h>
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
+#include "utils/sipmsg.h"
 #include "utils/tag_iterator.h"
 
 struct cmsc_DecoderLogic {
@@ -77,7 +79,7 @@ static inline cme_error_t cmsc_decode_sip_headers(struct cmsc_SipMessage *msg) {
       generic_header->value.len--;
     }
 
-    while (isspace(generic_header->value.buf[generic_header->value.len])) {
+    while (isspace(generic_header->value.buf[generic_header->value.len - 1])) {
       generic_header->value.len--;
     }
 
@@ -135,6 +137,7 @@ cmsc_decode_func_to(const struct cmsc_SipHeader *sip_header,
         it.value.len--;
       }
       msg->to.uri = it.value;
+      cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_TO);
       break;
     }
     case cmsc_ArgNextResults_ARG: {
@@ -177,6 +180,7 @@ cmsc_decode_func_from(const struct cmsc_SipHeader *sip_header,
         it.value.len--;
       }
       msg->from.uri = it.value;
+      cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_FROM);
       break;
     }
     case cmsc_ArgNextResults_ARG: {
@@ -210,11 +214,13 @@ cmsc_decode_func_cseq(const struct cmsc_SipHeader *sip_header,
   while (isspace(*method)) {
     method++;
   }
+  printf("Method: l=%d %.*s\n", sip_header->value.len, (int)(end - method),
+         method);
 
   msg->cseq.seq_number = atoi(sip_header->value.buf);
   msg->cseq.method.buf = method;
   msg->cseq.method.len = end - method;
-
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CSEQ);
   return 0;
 }
 
@@ -222,6 +228,7 @@ static inline cme_error_t
 cmsc_decode_func_call_id(const struct cmsc_SipHeader *sip_header,
                          struct cmsc_SipMessage *msg) {
   msg->call_id = sip_header->value;
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CALL_ID);
   return 0;
 };
 
@@ -229,6 +236,7 @@ static inline cme_error_t
 cmsc_decode_func_max_forwards(const struct cmsc_SipHeader *sip_header,
                               struct cmsc_SipMessage *msg) {
   msg->max_forwards = atoi(sip_header->value.buf);
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_MAX_FORWARDS);
   return 0;
 };
 
@@ -265,9 +273,10 @@ cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
           if (slash) {
             via->proto.buf = slash + 1;
             via->proto.len = sent_by - via->proto.buf;
+            via->sent_by.buf = sent_by + 1;
+            via->sent_by.len = max - via->sent_by.buf;
+            printf("Value: %.*s\n", via->sent_by.len, via->sent_by.buf);
           }
-          via->sent_by.buf = sent_by + 1;
-          via->sent_by.len = via->sent_by.buf - it.value.buf;
           break;
         }
         sent_by++;
@@ -281,6 +290,7 @@ cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
       }
 
       STAILQ_INSERT_TAIL(&msg->vias, via, _next);
+      cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_VIAS);
       break;
     }
     case cmsc_ArgNextResults_ARG: {

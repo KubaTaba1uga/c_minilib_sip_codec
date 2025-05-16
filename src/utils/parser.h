@@ -52,6 +52,8 @@ static inline cme_error_t cmsc_parse_sip_headers(const struct cmsc_Buffer *buf,
         if (header) {
           header->value.buf = header->key.buf + header->key.len + 1;
           header->value.len = (current_char - header->value.buf) - 1;
+          printf("Value: %.*s, Orig len: %d\n", header->value.len,
+                 header->value.buf, header->value.len);
           STAILQ_INSERT_TAIL(&msg->sip_headers, header, _next);
           header = NULL;
         }

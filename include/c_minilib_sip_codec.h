@@ -51,14 +51,8 @@ enum cmsc_SupportedSipHeaders {
   cmsc_SupportedSipHeaders_FROM = 8,
   cmsc_SupportedSipHeaders_CSEQ = 16,
   cmsc_SupportedSipHeaders_CALL_ID = 32,
-  /* cmsc_SupportedSipHeaders_MAX_FORWARDS = 256, */
-  /* cmsc_SupportedSipHeaders_VIA_L = 512, */
-  /* cmsc_SupportedSipHeaders_ALLOW = 1024, */
-  /* cmsc_SupportedSipHeaders_ACCEPT = 2048, */
-  /* cmsc_SupportedSipHeaders_EXPIRES = 4096, */
-  /* cmsc_SupportedSipHeaders_SUBJECT = 8192, */
-  /* cmsc_SupportedSipHeaders_ORGANIZATION = 16284, */
-  /* cmsc_SupportedSipHeaders_USER_AGENT = 32562, */
+  cmsc_SupportedSipHeaders_MAX_FORWARDS = 64,
+  cmsc_SupportedSipHeaders_VIAS = 128,
   // Add more fields here
   cmsc_SupportedSipHeaders_MAX,
 };

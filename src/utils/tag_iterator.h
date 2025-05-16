@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -54,6 +55,14 @@ cmsc_arg_iterator_emit_value(struct cmsc_ArgIterator *arg_iter,
                              const char *current_char, uint32_t offset) {
   arg_iter->value.buf = arg_iter->buf.buf;
   arg_iter->value.len = (uint32_t)(current_char - arg_iter->buf.buf);
+  if (arg_iter->value.len > 0) {
+    printf("Hit:`%c`\n", arg_iter->value.buf[arg_iter->value.len - 1]);
+  }
+  if (arg_iter->arg_value.buf && isspace(*arg_iter->arg_value.buf)) {
+    arg_iter->arg_value.buf++;
+    arg_iter->arg_value.len--;
+  }
+
   cmsc_arg_iterator_traverse(arg_iter, current_char, offset);
   return cmsc_ArgNextResults_VALUE;
 }
@@ -63,9 +72,19 @@ cmsc_arg_iterator_emit_arg(struct cmsc_ArgIterator *arg_iter,
                            const char *current_char, uint32_t offset) {
   arg_iter->arg_value.buf = arg_iter->arg_key.buf + arg_iter->arg_key.len + 1;
   arg_iter->arg_value.len = (uint32_t)(current_char - arg_iter->arg_value.buf);
-  if (arg_iter->arg_value.buf[arg_iter->arg_value.len - 1] == ',') {
+
+  if (arg_iter->arg_value.len > 0 &&
+      arg_iter->arg_value.buf[arg_iter->arg_value.len - 1] == ',') {
     arg_iter->arg_value.len--;
   }
+  if (arg_iter->arg_value.len > 0 &&
+      arg_iter->arg_value.buf[arg_iter->arg_value.len - 1] == ';') {
+    arg_iter->arg_value.len--;
+  }
+
+  printf("key[%u]='%.*s', value[%u]='%.*s'\n", arg_iter->arg_key.len,
+         arg_iter->arg_key.len, arg_iter->arg_key.buf, arg_iter->arg_value.len,
+         arg_iter->arg_value.len, arg_iter->arg_value.buf);
   cmsc_arg_iterator_traverse(arg_iter, current_char, offset);
   return cmsc_ArgNextResults_ARG;
 }
@@ -100,7 +119,7 @@ cmsc_arg_iterator_next(struct cmsc_ArgIterator *arg_iter) {
       if (arg_iter->value.buf) {
         memset(&arg_iter->value, 0, sizeof(struct cmsc_String));
         if (arg_iter->arg_key.buf) {
-          return cmsc_arg_iterator_emit_arg(arg_iter, current_char + 1, 1);
+          return cmsc_arg_iterator_emit_arg(arg_iter, current_char, 1);
         }
       }
       break;

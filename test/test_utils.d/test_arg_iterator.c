@@ -136,7 +136,8 @@ void test_comma_separated_values(void) {
   // First value: SIP/2.0/UDP a.example.com
   res = cmsc_arg_iterator_next(&it);
   TEST_ASSERT_EQUAL(cmsc_ArgNextResults_VALUE, res);
-  TEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0/UDP a.example.com", it.value.buf, it.value.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0/UDP a.example.com", it.value.buf,
+                               it.value.len);
 
   // First param: branch=z9hG1
   res = cmsc_arg_iterator_next(&it);
@@ -147,7 +148,8 @@ void test_comma_separated_values(void) {
   // Second value: SIP/2.0/UDP b.example.com
   res = cmsc_arg_iterator_next(&it);
   TEST_ASSERT_EQUAL(cmsc_ArgNextResults_VALUE, res);
-  TEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0/UDP b.example.com", it.value.buf, it.value.len);
+  TEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0/UDP b.example.com", it.value.buf,
+                               it.value.len);
 
   // Second param: branch=z9hG2
   res = cmsc_arg_iterator_next(&it);

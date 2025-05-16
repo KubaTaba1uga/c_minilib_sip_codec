@@ -17,6 +17,10 @@ project('c_minilib_sip_codec', 'c',
 if get_option('backtrace')
   add_project_arguments('-DCME_ENABLE_BACKTRACE', language: 'c')
 endif
+if get_option('buildtype').startswith('debug')
+  add_project_arguments(['-fno-inline', '-fno-inline-functions'], language : 'c')
+endif
+
 
 # Enable posix functions
 add_project_arguments('-D_POSIX_C_SOURCE=200809L', language: 'c')
