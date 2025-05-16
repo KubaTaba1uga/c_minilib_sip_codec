@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include <unity.h>
 
 #include "c_minilib_sip_codec.h"
+#include "unity_wrapper.h"
 #include "utils/decoder.h"
 #include "utils/sipmsg.h"
 
@@ -41,9 +41,9 @@ void test_decode_to_header(void) {
   TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
 
   // Validate decoded fields
-  TEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com", msg->to.uri.buf,
-                               msg->to.uri.len);
-  TEST_ASSERT_EQUAL_STRING_LEN("123abc", msg->to.tag.buf, msg->to.tag.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com", msg->to.uri.buf,
+                                 msg->to.uri.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("123abc", msg->to.tag.buf, msg->to.tag.len);
 }
 
 void test_decode_from_header(void) {
@@ -76,8 +76,8 @@ void test_decode_from_header(void) {
   TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
 
   // Validate decoded fields
-  TEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com", msg->from.uri.buf,
-                               msg->from.uri.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com", msg->from.uri.buf,
+                                 msg->from.uri.len);
 }
 
 void test_decode_cseq_header(void) {
@@ -103,8 +103,8 @@ void test_decode_cseq_header(void) {
   TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_EQUAL(42, msg->cseq.seq_number);
-  TEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->cseq.method.buf,
-                               msg->cseq.method.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->cseq.method.buf,
+                                 msg->cseq.method.len);
 }
 
 void test_decode_call_id_header(void) {
@@ -129,7 +129,8 @@ void test_decode_call_id_header(void) {
   err = cmsc_decode_sip_headers(msg);
   TEST_ASSERT_NULL(err);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("abcd-1234", msg->call_id.buf, msg->call_id.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("abcd-1234", msg->call_id.buf,
+                                 msg->call_id.len);
 }
 
 void test_decode_max_forwards_header(void) {
@@ -181,8 +182,8 @@ void test_decode_via_header_single(void) {
 
   struct cmsc_SipHeaderVia *via = STAILQ_FIRST(&msg->vias);
   TEST_ASSERT_NOT_NULL(via);
-  TEST_ASSERT_EQUAL_STRING_LEN("UDP", via->proto.buf, via->proto.len);
-  TEST_ASSERT_EQUAL_STRING_LEN("host.example.com", via->sent_by.buf,
-                               via->sent_by.len);
-  TEST_ASSERT_EQUAL_STRING_LEN("z9hG4bK", via->branch.buf, via->branch.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("UDP", via->proto.buf, via->proto.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("host.example.com", via->sent_by.buf,
+                                 via->sent_by.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("z9hG4bK", via->branch.buf, via->branch.len);
 }

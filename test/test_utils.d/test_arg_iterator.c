@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include <unity.h>
 
 #include "utils/tag_iterator.h"
+#include <unity_wrapper.h>
 
 void setUp(void) {}
 void tearDown(void) {}
@@ -91,14 +91,15 @@ void test_multiple_arguments(void) {
   // 2. ARG -> ttl=70
   res = cmsc_arg_iterator_next(&it);
   TEST_ASSERT_EQUAL(cmsc_ArgNextResults_ARG, res);
-  TEST_ASSERT_EQUAL_STRING_LEN("ttl", it.arg_key.buf, it.arg_key.len);
-  TEST_ASSERT_EQUAL_STRING_LEN("70", it.arg_value.buf, it.arg_value.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("ttl", it.arg_key.buf, it.arg_key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("70", it.arg_value.buf, it.arg_value.len);
 
   // 3. ARG -> received=192.0.2.1
   res = cmsc_arg_iterator_next(&it);
   TEST_ASSERT_EQUAL(cmsc_ArgNextResults_ARG, res);
-  TEST_ASSERT_EQUAL_STRING_LEN("received", it.arg_key.buf, it.arg_key.len);
-  TEST_ASSERT_EQUAL_STRING_LEN("192.0.2.1", it.arg_value.buf, it.arg_value.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("received", it.arg_key.buf, it.arg_key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("192.0.2.1", it.arg_value.buf,
+                                 it.arg_value.len);
 
   // 4. END
   res = cmsc_arg_iterator_next(&it);
@@ -116,7 +117,7 @@ void test_argument_without_value(void) {
   // 1. VALUE -> foo
   res = cmsc_arg_iterator_next(&it);
   TEST_ASSERT_EQUAL(cmsc_ArgNextResults_VALUE, res);
-  TEST_ASSERT_EQUAL_STRING_LEN("foo", it.value.buf, it.value.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("foo", it.value.buf, it.value.len);
 
   // 2. ARG -> no_value_key
   res = cmsc_arg_iterator_next(&it);
@@ -136,26 +137,26 @@ void test_comma_separated_values(void) {
   // First value: SIP/2.0/UDP a.example.com
   res = cmsc_arg_iterator_next(&it);
   TEST_ASSERT_EQUAL(cmsc_ArgNextResults_VALUE, res);
-  TEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0/UDP a.example.com", it.value.buf,
-                               it.value.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0/UDP a.example.com", it.value.buf,
+                                 it.value.len);
 
   // First param: branch=z9hG1
   res = cmsc_arg_iterator_next(&it);
   TEST_ASSERT_EQUAL(cmsc_ArgNextResults_ARG, res);
-  TEST_ASSERT_EQUAL_STRING_LEN("branch", it.arg_key.buf, it.arg_key.len);
-  TEST_ASSERT_EQUAL_STRING_LEN("z9hG1", it.arg_value.buf, it.arg_value.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("branch", it.arg_key.buf, it.arg_key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("z9hG1", it.arg_value.buf, it.arg_value.len);
 
   // Second value: SIP/2.0/UDP b.example.com
   res = cmsc_arg_iterator_next(&it);
   TEST_ASSERT_EQUAL(cmsc_ArgNextResults_VALUE, res);
-  TEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0/UDP b.example.com", it.value.buf,
-                               it.value.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0/UDP b.example.com", it.value.buf,
+                                 it.value.len);
 
   // Second param: branch=z9hG2
   res = cmsc_arg_iterator_next(&it);
   TEST_ASSERT_EQUAL(cmsc_ArgNextResults_ARG, res);
-  TEST_ASSERT_EQUAL_STRING_LEN("branch", it.arg_key.buf, it.arg_key.len);
-  TEST_ASSERT_EQUAL_STRING_LEN("z9hG2", it.arg_value.buf, it.arg_value.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("branch", it.arg_key.buf, it.arg_key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("z9hG2", it.arg_value.buf, it.arg_value.len);
 
   // End
   res = cmsc_arg_iterator_next(&it);
