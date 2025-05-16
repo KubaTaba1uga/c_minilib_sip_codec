@@ -214,8 +214,6 @@ cmsc_decode_func_cseq(const struct cmsc_SipHeader *sip_header,
   while (isspace(*method)) {
     method++;
   }
-  printf("Method: l=%d %.*s\n", sip_header->value.len, (int)(end - method),
-         method);
 
   msg->cseq.seq_number = atoi(sip_header->value.buf);
   msg->cseq.method.buf = method;
@@ -275,7 +273,6 @@ cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
             via->proto.len = sent_by - via->proto.buf;
             via->sent_by.buf = sent_by + 1;
             via->sent_by.len = max - via->sent_by.buf;
-            printf("Value: %.*s\n", via->sent_by.len, via->sent_by.buf);
           }
           break;
         }

@@ -55,9 +55,6 @@ cmsc_arg_iterator_emit_value(struct cmsc_ArgIterator *arg_iter,
                              const char *current_char, uint32_t offset) {
   arg_iter->value.buf = arg_iter->buf.buf;
   arg_iter->value.len = (uint32_t)(current_char - arg_iter->buf.buf);
-  if (arg_iter->value.len > 0) {
-    printf("Hit:`%c`\n", arg_iter->value.buf[arg_iter->value.len - 1]);
-  }
   if (arg_iter->arg_value.buf && isspace(*arg_iter->arg_value.buf)) {
     arg_iter->arg_value.buf++;
     arg_iter->arg_value.len--;
@@ -82,9 +79,6 @@ cmsc_arg_iterator_emit_arg(struct cmsc_ArgIterator *arg_iter,
     arg_iter->arg_value.len--;
   }
 
-  printf("key[%u]='%.*s', value[%u]='%.*s'\n", arg_iter->arg_key.len,
-         arg_iter->arg_key.len, arg_iter->arg_key.buf, arg_iter->arg_value.len,
-         arg_iter->arg_value.len, arg_iter->arg_value.buf);
   cmsc_arg_iterator_traverse(arg_iter, current_char, offset);
   return cmsc_ArgNextResults_ARG;
 }
