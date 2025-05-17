@@ -4,6 +4,7 @@
 #include "unity_wrapper.h"
 #include <c_minilib_sip_codec.h>
 
+#include "test_utils.h"
 #include "utils/sipmsg.h"
 
 static struct cmsc_SipMessage *msg = NULL;
@@ -12,7 +13,11 @@ void setUp(void) { cme_init(); }
 void tearDown(void) { cmsc_sipmsg_destroy(&msg); }
 
 static void parse_msg(const char *raw) {
-  cme_error_t err = cmsc_parse_sip((uint32_t)strlen(raw), raw, &msg);
+  const char *new_raw = malloc(strlen(raw) + 1);
+  TEST_ASSERT_NOT_NULL(new_raw);
+  memcpy((void *)new_raw, raw, strlen(raw));
+
+  cme_error_t err = cmsc_parse_sip((uint32_t)strlen(raw), new_raw, &msg);
   if (err) {
     puts(err->msg);
   }
