@@ -14,6 +14,10 @@
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
 
+#ifndef CMSC_SIPMSG_DEFAULT_BUF_SIZE
+#define CMSC_SIPMSG_DEFAULT_BUF_SIZE 512
+#endif
+
 static inline cme_error_t cmsc_sipmsg_create(struct cmsc_Buffer buf,
                                              struct cmsc_SipMessage **msg) {
   struct cmsc_SipMessage *local_msg;
@@ -42,6 +46,31 @@ error_out:
   return cme_return(err);
 };
 
+static inline cme_error_t
+cmsc_sipmsg_create_with_buf(struct cmsc_SipMessage **msg) {
+  cme_error_t err;
+
+  if (!msg) {
+    err = cme_error(EINVAL, "`msg` cannot be NULL");
+    goto error_out;
+  }
+
+  struct cmsc_Buffer buf;
+  buf.buf = malloc(sizeof(char) * CMSC_SIPMSG_DEFAULT_BUF_SIZE);
+  if (!buf.buf) {
+    err = cme_error(ENOMEM, "Cannot allocate memory for `buf.buf`");
+    goto error_out;
+  }
+
+  buf.len = 0;
+  buf.size = CMSC_SIPMSG_DEFAULT_BUF_SIZE;
+
+  return cmsc_sipmsg_create(buf, msg);
+
+error_out:
+  return cme_return(err);
+}
+
 static inline void cmsc_sipmsg_destroy(struct cmsc_SipMessage **msg) {
   if (!msg || !*msg) {
     return;
@@ -53,6 +82,7 @@ static inline void cmsc_sipmsg_destroy(struct cmsc_SipMessage **msg) {
     STAILQ_REMOVE_HEAD(&(*msg)->sip_headers, _next);
     free(header);
   }
+
   struct cmsc_SipHeaderVia *via;
   while (!STAILQ_EMPTY(&(*msg)->vias)) {
     via = STAILQ_FIRST(&(*msg)->vias);
@@ -60,7 +90,10 @@ static inline void cmsc_sipmsg_destroy(struct cmsc_SipMessage **msg) {
     free(via);
   }
 
+  free((void *)(*msg)->_buf.buf);
+
   free(*msg);
+
   *msg = NULL;
 }
 

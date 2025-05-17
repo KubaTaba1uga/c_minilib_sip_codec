@@ -214,13 +214,27 @@ cmsc_parse_sip_first_line(struct cmsc_Buffer *buf,
     goto error_out;
   }
 
-  const char *line_max = strstr(buf->buf, "\r\n");
+  const char *line_max = NULL;
+  for (uint32_t i = 1; i < buf->len; i++) {
+    if (buf->buf[i] == '\n' && buf->buf[i - 1] == '\r') {
+      line_max = buf->buf + i - 1;
+      break;
+    }
+  }
   if (!line_max) {
     err = cme_error(EINVAL, "No CLRF");
     goto error_out;
   }
 
-  const char *sip_version = strstr(buf->buf, "SIP/");
+  const char *sip_version = NULL;
+  for (uint32_t i = 3; i < buf->len; i++) {
+    if (buf->buf[i] == '/' && buf->buf[i - 1] == 'P' &&
+        buf->buf[i - 2] == 'I' && buf->buf[i - 3] == 'S') {
+      sip_version = buf->buf + i - 3;
+      break;
+    }
+  }
+
   if (!sip_version) {
     err = cme_error(EINVAL, "No sip version");
     goto error_out;

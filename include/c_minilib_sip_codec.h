@@ -119,7 +119,7 @@ struct cmsc_SipMessage {
   // Supported headers end
   struct cmsc_SipHeadersList sip_headers;
   struct cmsc_Buffer body;
-  struct cmsc_Buffer _buf; // This is buffer passed during parse
+  struct cmsc_Buffer _buf;
 };
 
 /******************************************************************************
