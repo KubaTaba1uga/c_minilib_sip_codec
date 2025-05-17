@@ -115,7 +115,7 @@ struct cmsc_SipMessage {
   struct cmsc_SipStatusLine status_line;
   // Supported headers start
   struct cmsc_SipHeaderTo to;
-  struct cmsc_SipHeaderTo from;
+  struct cmsc_SipHeaderFrom from;
   struct cmsc_SipHeaderCSeq cseq;
   struct cmsc_String call_id;
   uint32_t max_forwards;

@@ -169,14 +169,14 @@ cme_error_t cmsc_sipmsg_insert_header(uint32_t key_len, const char *key,
     }
   }
 
-  struct cmsc_SipHeader *sip_hdr;
-  err = cmsc_siphdr_create(msg_key.len, msg_key.buf, msg_value.len,
-                           msg_value.buf, &sip_hdr);
-  if (err) {
-    goto error_out;
-  }
+  /* struct cmsc_SipHeader *sip_hdr; */
+  /* err = cmsc_siphdr_create(msg_key.len, msg_key.buf, msg_value.len, */
+  /*                          msg_value.buf, &sip_hdr); */
+  /* if (err) { */
+  /*   goto error_out; */
+  /* } */
 
-  STAILQ_INSERT_TAIL(&msg->sip_headers, sip_hdr, _next);
+  /* STAILQ_INSERT_TAIL(&msg->sip_headers, sip_hdr, _next); */
 
   return 0;
 

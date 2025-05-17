@@ -109,4 +109,41 @@ static inline cme_error_t cmsc_buffer_finsert(struct cmsc_Buffer *buffer,
   return 0;
 }
 
+static inline cme_error_t cmsc_buffer_binsert(const struct cmsc_String value,
+                                              struct cmsc_Buffer *buffer,
+                                              struct cmsc_BString *result) {
+  cme_error_t err;
+
+  if (!buffer) {
+    err = cme_error(EINVAL, "`buffer` cannot be NULL");
+    goto error_out;
+  }
+
+  while (value.len > (buffer->size - buffer->len)) {
+    char *buf_cp =
+
+        realloc((void *)buffer->buf, (unsigned int)(buffer->size * 2));
+    if (!buf_cp) {
+      err = cme_error(ENOMEM, "Cannot allocate memory for new `buffer->buf`");
+      goto error_out;
+    }
+
+    buffer->buf = buf_cp;
+    buffer->size *= 2;
+  }
+
+  if (result) {
+    result->buf_offset = buffer->len;
+    result->len = value.len;
+  }
+
+  memcpy((void *)(buffer->buf) + buffer->len, value.buf, value.len);
+  buffer->len += value.len;
+
+  return 0;
+
+error_out:
+  return cme_return(err);
+};
+
 #endif
