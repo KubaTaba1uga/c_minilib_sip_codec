@@ -14,6 +14,7 @@ foreach test_file : test_files
       test_runner.process(test_file),
     ],
     dependencies: test_dependencies,
+    include_directories: test_include_dirs,
   )
   test(test_name, test_exe)
 endforeach

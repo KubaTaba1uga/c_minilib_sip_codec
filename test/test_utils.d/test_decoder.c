@@ -2,7 +2,9 @@
 #include <string.h>
 #include <unity.h>
 
+#include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
+#include "test_utils.h"
 #include "unity_wrapper.h"
 #include "utils/decoder.h"
 #include "utils/sipmsg.h"
@@ -14,14 +16,9 @@ void tearDown(void) { cmsc_sipmsg_destroy(&msg); }
 
 void test_decode_to_header(void) {
   const char *raw_to_value = "<sip:bob@example.com>;tag=123abc";
+  cme_error_t err;
 
-  // Allocate and initialize the SIP message
-  struct cmsc_Buffer buf = {.buf = raw_to_value,
-                            .len = (uint32_t)strlen(raw_to_value),
-                            .size = (uint32_t)strlen(raw_to_value)};
-
-  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
-  TEST_ASSERT_NULL(err);
+  make_msg(raw_to_value, &msg);
 
   // Allocate and insert To header
   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
@@ -51,15 +48,9 @@ void test_decode_to_header(void) {
 
 void test_decode_from_header(void) {
   const char *raw_to_value = "sip:alice@example.com";
+  cme_error_t err;
 
-  // Allocate and initialize the SIP message
-  struct cmsc_Buffer buf = {.buf = raw_to_value,
-                            .len = (uint32_t)strlen(raw_to_value),
-                            .size = (uint32_t)strlen(raw_to_value)};
-
-  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
-  TEST_ASSERT_NULL(err);
-
+  make_msg(raw_to_value, &msg);
   // Allocate and insert To header
   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
   TEST_ASSERT_NOT_NULL(hdr);
@@ -87,13 +78,9 @@ void test_decode_from_header(void) {
 
 void test_decode_cseq_header(void) {
   const char *raw_value = "42 INVITE";
+  cme_error_t err;
 
-  struct cmsc_Buffer buf = {.buf = raw_value,
-                            .len = (uint32_t)strlen(raw_value),
-                            .size = (uint32_t)strlen(raw_value)};
-  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
-  TEST_ASSERT_NULL(err);
-
+  make_msg(raw_value, &msg);
   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
   TEST_ASSERT_NOT_NULL(hdr);
 
@@ -116,12 +103,9 @@ void test_decode_cseq_header(void) {
 
 void test_decode_call_id_header(void) {
   const char *raw_value = "abcd-1234";
+  cme_error_t err;
 
-  struct cmsc_Buffer buf = {.buf = raw_value,
-                            .len = (uint32_t)strlen(raw_value),
-                            .size = (uint32_t)strlen(raw_value)};
-  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
-  TEST_ASSERT_NULL(err);
+  make_msg(raw_value, &msg);
 
   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
   TEST_ASSERT_NOT_NULL(hdr);
@@ -144,13 +128,9 @@ void test_decode_call_id_header(void) {
 
 void test_decode_max_forwards_header(void) {
   const char *raw_value = "70";
+  cme_error_t err;
 
-  struct cmsc_Buffer buf = {.buf = raw_value,
-                            .len = (uint32_t)strlen(raw_value),
-                            .size = (uint32_t)strlen(raw_value)};
-  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
-  TEST_ASSERT_NULL(err);
-
+  make_msg(raw_value, &msg);
   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
   TEST_ASSERT_NOT_NULL(hdr);
 
@@ -171,13 +151,9 @@ void test_decode_max_forwards_header(void) {
 
 void test_decode_via_header_single(void) {
   const char *raw_value = "SIP/2.0/UDP host.example.com;branch=z9hG4bK";
+  cme_error_t err;
 
-  struct cmsc_Buffer buf = {.buf = raw_value,
-                            .len = (uint32_t)strlen(raw_value),
-                            .size = (uint32_t)strlen(raw_value)};
-  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
-  TEST_ASSERT_NULL(err);
-
+  make_msg(raw_value, &msg);
   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
   TEST_ASSERT_NOT_NULL(hdr);
 
@@ -203,13 +179,9 @@ void test_decode_via_header_single(void) {
 
 void test_decode_content_length_header(void) {
   const char *raw_value = "123";
+  cme_error_t err;
 
-  // Initialize buffer and SIP message
-  struct cmsc_Buffer buf = {.buf = raw_value,
-                            .len = (uint32_t)strlen(raw_value),
-                            .size = (uint32_t)strlen(raw_value)};
-  cme_error_t err = cmsc_sipmsg_create(buf, &msg);
-  TEST_ASSERT_NULL(err);
+  make_msg(raw_value, &msg);
 
   // Allocate and insert Content-Length header
   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
