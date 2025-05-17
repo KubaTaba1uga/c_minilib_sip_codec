@@ -21,8 +21,8 @@ static inline cme_error_t cmsc_buffer_insert(const struct cmsc_String value,
                                              struct cmsc_String *result) {
   cme_error_t err;
 
-  if (!buffer || !result) {
-    err = cme_error(EINVAL, "`buffer` and `result` cannot be NULL");
+  if (!buffer) {
+    err = cme_error(EINVAL, "`buffer` cannot be NULL");
     goto error_out;
   }
 
@@ -38,9 +38,12 @@ static inline cme_error_t cmsc_buffer_insert(const struct cmsc_String value,
     buffer->size *= 2;
   }
 
-  result->buf = buffer->buf + buffer->len;
-  result->len = value.len;
-  memcpy((void *)(result->buf), value.buf, value.len);
+  if (result) {
+    result->buf = buffer->buf + buffer->len;
+    result->len = value.len;
+  }
+
+  memcpy((void *)(buffer->buf) + buffer->len, value.buf, value.len);
   buffer->len += value.len;
 
   return 0;
