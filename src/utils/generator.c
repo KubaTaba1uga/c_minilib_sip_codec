@@ -8,6 +8,7 @@
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
 #include "utils/buffer.h"
+#include "utils/sipmsg.h"
 
 cme_error_t cmsc_generate_sip(const struct cmsc_SipMessage *msg,
                               uint32_t *buf_len, const char **buf) {
@@ -70,8 +71,10 @@ cme_error_t cmsc_generate_sip(const struct cmsc_SipMessage *msg,
 
   struct cmsc_SipHeader *hdr;
   STAILQ_FOREACH(hdr, &msg->sip_headers, _next) {
-    err = cmsc_buffer_finsert(&local_buf, NULL, "%.*s: %.*s\r\n", hdr->key.len,
-                              hdr->key.buf, hdr->value.len, hdr->value.buf);
+    err = cmsc_buffer_finsert(
+        &local_buf, NULL, "%.*s: %.*s\r\n", hdr->key.len,
+        cmsc_sipmsg_bstring_dump_string(&hdr->key, msg), hdr->value.len,
+        cmsc_sipmsg_bstring_dump_string(&hdr->value, msg));
     if (err) {
       goto error_local_buf_cleanup;
     }

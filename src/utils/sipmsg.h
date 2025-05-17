@@ -14,6 +14,8 @@
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
 
+#include "utils/bstring.h"
+
 #ifndef CMSC_SIPMSG_DEFAULT_BUF_SIZE
 #define CMSC_SIPMSG_DEFAULT_BUF_SIZE 512
 #endif
@@ -82,6 +84,13 @@ static inline bool
 cmsc_sipmsg_is_field_present(struct cmsc_SipMessage *msg,
                              enum cmsc_SupportedSipHeaders header_id) {
   return msg->presence_mask & header_id;
+}
+
+static inline struct cmsc_String
+cmsc_sipmsg_bstring_dump_string(const struct cmsc_BString *bstring,
+                                const struct cmsc_SipMessage *msg) {
+  return (struct cmsc_String){.buf = cmsc_bstring_dump_ptr(bstring, &msg->_buf),
+                              .len = bstring->len};
 }
 
 #endif

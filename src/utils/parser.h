@@ -43,7 +43,7 @@ static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_Buffer *buf,
           goto error_out;
         }
 
-        header->key.buf = line_start;
+        header->key.buf_offset = line_start - buf->buf;
         header->key.len = current_char - line_start;
 
         clrf_counter = 0;
@@ -64,8 +64,10 @@ static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_Buffer *buf,
         }
 
         if (header) {
-          header->value.buf = header->key.buf + header->key.len + 1;
-          header->value.len = (current_char - header->value.buf) - 1;
+          header->value.buf_offset =
+              header->key.buf_offset + header->key.len + 1;
+          header->value.len =
+              (current_char - buf->buf + header->value.buf_offset) - 1;
           STAILQ_INSERT_TAIL(&msg->sip_headers, header, _next);
           header = NULL;
         }

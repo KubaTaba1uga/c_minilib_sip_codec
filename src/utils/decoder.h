@@ -18,6 +18,7 @@
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
+#include "utils/bstring.h"
 #include "utils/sipmsg.h"
 #include "utils/tag_iterator.h"
 
@@ -78,12 +79,14 @@ static inline cme_error_t cmsc_decode_sip_headers(struct cmsc_SipMessage *msg) {
   while (generic_header != NULL) {
     next_header = STAILQ_NEXT(generic_header, _next);
 
-    while (isspace(*generic_header->value.buf)) {
-      generic_header->value.buf++;
+    while (
+        isspace(*cmsc_bstring_dump_ptr(&generic_header->value, &msg->_buf))) {
+      generic_header->value.buf_offset++;
       generic_header->value.len--;
     }
 
-    while (isspace(generic_header->value.buf[generic_header->value.len - 1])) {
+    while (isspace(cmsc_bstring_dump_ptr(
+        &generic_header->value, &msg->_buf)[generic_header->value.len - 1])) {
       generic_header->value.len--;
     }
 
@@ -91,7 +94,8 @@ static inline cme_error_t cmsc_decode_sip_headers(struct cmsc_SipMessage *msg) {
     bool is_match = false;
     for (uint32_t i = 0;
          i < sizeof(decoders) / sizeof(struct cmsc_DecoderLogic); i++) {
-      if (strncmp(decoders[i].header_id.buf, generic_header->key.buf,
+      if (strncmp(decoders[i].header_id.buf,
+                  cmsc_bstring_dump_ptr(&generic_header->key, &msg->_buf),
                   generic_header->key.len) == 0) {
         is_match = true;
 
@@ -123,7 +127,8 @@ cmsc_decode_func_to(const struct cmsc_SipHeader *sip_header,
   struct cmsc_ArgIterator it;
   cme_error_t err;
 
-  err = cmsc_arg_iterator_init(sip_header->value, &it);
+  err = cmsc_arg_iterator_init(
+      cmsc_sipmsg_bstring_dump_string(&sip_header->value, msg), &it);
   if (err) {
     goto error_out;
   }
@@ -166,7 +171,8 @@ cmsc_decode_func_from(const struct cmsc_SipHeader *sip_header,
   struct cmsc_ArgIterator it;
   cme_error_t err;
 
-  err = cmsc_arg_iterator_init(sip_header->value, &it);
+  err = cmsc_arg_iterator_init(
+      cmsc_sipmsg_bstring_dump_string(&sip_header->value, msg), &it);
   if (err) {
     goto error_out;
   }
@@ -206,8 +212,10 @@ error_out:
 static inline cme_error_t
 cmsc_decode_func_cseq(const struct cmsc_SipHeader *sip_header,
                       struct cmsc_SipMessage *msg) {
-  const char *method = sip_header->value.buf;
-  const char *end = sip_header->value.buf + sip_header->value.len;
+  const char *digit;
+  const char *method = digit =
+      cmsc_sipmsg_bstring_dump_string(&sip_header->value, msg).buf;
+  const char *end = method + sip_header->value.len;
   while (method != end) {
     if (!isdigit(*method)) {
       break;
@@ -219,7 +227,7 @@ cmsc_decode_func_cseq(const struct cmsc_SipHeader *sip_header,
     method++;
   }
 
-  msg->cseq.seq_number = atoi(sip_header->value.buf);
+  msg->cseq.seq_number = atoi(digit);
   msg->cseq.method.buf = method;
   msg->cseq.method.len = end - method;
   cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CSEQ);
@@ -229,7 +237,7 @@ cmsc_decode_func_cseq(const struct cmsc_SipHeader *sip_header,
 static inline cme_error_t
 cmsc_decode_func_call_id(const struct cmsc_SipHeader *sip_header,
                          struct cmsc_SipMessage *msg) {
-  msg->call_id = sip_header->value;
+  msg->call_id = cmsc_sipmsg_bstring_dump_string(&sip_header->value, msg);
   cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CALL_ID);
   return 0;
 };
@@ -237,7 +245,8 @@ cmsc_decode_func_call_id(const struct cmsc_SipHeader *sip_header,
 static inline cme_error_t
 cmsc_decode_func_max_forwards(const struct cmsc_SipHeader *sip_header,
                               struct cmsc_SipMessage *msg) {
-  msg->max_forwards = atoi(sip_header->value.buf);
+  msg->max_forwards =
+      atoi(cmsc_sipmsg_bstring_dump_string(&sip_header->value, msg).buf);
   cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_MAX_FORWARDS);
   return 0;
 };
@@ -249,7 +258,8 @@ cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
   struct cmsc_ArgIterator it;
   cme_error_t err;
 
-  err = cmsc_arg_iterator_init(sip_header->value, &it);
+  err = cmsc_arg_iterator_init(
+      cmsc_sipmsg_bstring_dump_string(&sip_header->value, msg), &it);
   if (err) {
     goto error_out;
   }
@@ -285,8 +295,8 @@ cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
 
       if (!via->proto.buf || !via->sent_by.buf) {
         free(via);
-        err = cme_errorf(EINVAL, "Malformed Via sip header: %.*s",
-                         sip_header->value.len, sip_header->value.buf);
+        /* err = cme_errorf(EINVAL, "Malformed Via sip header: %.*s", */
+        /*                  sip_header->value.len, sip_header->value.buf); */
         goto error_out;
       }
 
@@ -324,7 +334,8 @@ error_out:
 static inline cme_error_t
 cmsc_decode_func_content_length(const struct cmsc_SipHeader *sip_header,
                                 struct cmsc_SipMessage *msg) {
-  msg->content_length = atoi(sip_header->value.buf);
+  msg->content_length =
+      atoi(cmsc_sipmsg_bstring_dump_string(&sip_header->value, msg).buf);
   cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CONTENT_LENGTH);
   return 0;
 }
