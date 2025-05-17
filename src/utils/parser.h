@@ -16,6 +16,7 @@
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
+#include "utils/siphdr.h"
 #include "utils/sipmsg.h"
 
 static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_Buffer *buf,
@@ -36,14 +37,15 @@ static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_Buffer *buf,
     switch (*current_char) {
     case ':': {
       if (!header) {
-        header = calloc(1, sizeof(struct cmsc_SipHeader));
-        if (!header) {
-          err = cme_error(ENOMEM, "Cannot allocate memory for `header`");
+        err = cmsc_siphdr_create(current_char - line_start, line_start, 0, NULL,
+                                 &header);
+        if (err) {
           goto error_out;
         }
 
         header->key.buf = line_start;
         header->key.len = current_char - line_start;
+
         clrf_counter = 0;
       }
       break;
@@ -283,7 +285,8 @@ static inline cme_error_t cmsc_parse_sip_body(struct cmsc_Buffer *buf,
     return 0;
   }
 
-  msg->body = *buf;
+  msg->body.buf = buf->buf;
+  msg->body.len = buf->len;
 
   if (msg->body.len > msg->content_length) {
     msg->body.len = msg->content_length;

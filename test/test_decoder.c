@@ -4,8 +4,8 @@
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
-#include "test_utils.h"
 #include "unity_wrapper.h"
+#include "utils.h"
 #include "utils/decoder.h"
 #include "utils/sipmsg.h"
 

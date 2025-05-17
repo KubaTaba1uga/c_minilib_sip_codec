@@ -118,7 +118,7 @@ struct cmsc_SipMessage {
   uint32_t content_length;
   // Supported headers end
   struct cmsc_SipHeadersList sip_headers;
-  struct cmsc_Buffer body;
+  struct cmsc_String body;
   struct cmsc_Buffer _buf;
 };
 
@@ -131,5 +131,32 @@ cme_error_t cmsc_parse_sip(uint32_t buf_len, const char *buf,
 /******************************************************************************
  *                             Generate                                       *
  ******************************************************************************/
+cme_error_t cmsc_sipmsg_create_with_buf(struct cmsc_SipMessage **msg);
+void cmsc_sipmsg_destroy_with_buf(struct cmsc_SipMessage **msg);
+
+/* Generation of sipmsg allocates new buffer especially for dumped string. */
+
+cme_error_t
+cmsc_sipmsg_insert_request_line(uint32_t sip_ver_len, const char *sip_ver,
+                                uint32_t req_uri_len, const char *req_uri,
+                                uint32_t sip_method_len, const char *sip_method,
+                                struct cmsc_SipMessage *msg);
+
+cme_error_t cmsc_sipmsg_insert_status_line(uint32_t sip_ver_len,
+                                           const char *sip_ver,
+                                           uint32_t reason_phrase_len,
+                                           const char *reason_phrase,
+                                           uint32_t status_code,
+                                           struct cmsc_SipMessage *msg);
+
+cme_error_t cmsc_sipmsg_insert_header(uint32_t key_len, const char *key,
+                                      uint32_t value_len, const char *value,
+                                      struct cmsc_SipMessage *msg);
+
+cme_error_t cmsc_sipmsg_insert_body(const uint32_t body_len, const char *body,
+                                    struct cmsc_SipMessage *msg);
+
+cme_error_t cmsc_generate_sip(const struct cmsc_SipMessage *msg,
+                              uint32_t *buf_len, const char **buf);
 
 #endif
