@@ -6,6 +6,7 @@
 
 #include "c_minilib_error.h"
 #include "utils.h"
+#include "utils/bstring.h"
 #include "utils/parser.h"
 #include "utils/sipmsg.h"
 
@@ -30,9 +31,10 @@ void test_parse_single_header(void) {
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
-
-  MYTEST_ASSERT_EQUAL_STRING_LEN("Content-Type", h->key.buf, h->key.len);
-  MYTEST_ASSERT_EQUAL_STRING_LEN(" application/sdp", h->value.buf,
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "Content-Type", cmsc_bs_msg_to_string(&h->key, msg).buf, h->key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(" application/sdp",
+                                 cmsc_bs_msg_to_string(&h->value, msg).buf,
                                  h->value.len);
 }
 
@@ -48,11 +50,13 @@ void test_parse_multiple_headers(void) {
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("Content-Type", h->key.buf, h->key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "Content-Type", cmsc_bs_msg_to_string(&h->key, msg).buf, h->key.len);
 
   h = STAILQ_NEXT(h, _next);
   TEST_ASSERT_NOT_NULL(h);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("Content-Length", h->key.buf, h->key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "Content-Length", cmsc_bs_msg_to_string(&h->key, msg).buf, h->key.len);
 }
 
 void test_parse_empty_buffer(void) {
@@ -74,7 +78,8 @@ void test_parse_header_without_value(void) {
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("X-Empty", h->key.buf, h->key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "X-Empty", cmsc_bs_msg_to_string(&h->key, msg).buf, h->key.len);
   TEST_ASSERT_EQUAL(0, h->value.len); // No value after ':'
 }
 
@@ -117,16 +122,19 @@ void test_parse_multiple_mixed_headers(void) {
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("X-Good", h->key.buf, h->key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "X-Good", cmsc_bs_msg_to_string(&h->key, msg).buf, h->key.len);
 
   h = STAILQ_NEXT(h, _next);
   TEST_ASSERT_NOT_NULL(h);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("X-Empty", h->key.buf, h->key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "X-Empty", cmsc_bs_msg_to_string(&h->key, msg).buf, h->key.len);
   TEST_ASSERT_EQUAL(0, h->value.len);
 
   h = STAILQ_NEXT(h, _next);
   TEST_ASSERT_NOT_NULL(h);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("Y-Good", h->key.buf, h->key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "Y-Good", cmsc_bs_msg_to_string(&h->key, msg).buf, h->key.len);
 
   TEST_ASSERT_NULL(STAILQ_NEXT(h, _next)); // Only 3 valid headers
 }

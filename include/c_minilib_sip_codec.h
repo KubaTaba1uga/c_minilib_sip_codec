@@ -32,6 +32,11 @@ struct cmsc_Buffer {
   const char *buf;
 };
 
+struct cmsc_BString {
+  uint32_t len;
+  uint32_t buf_offset;
+};
+
 struct cmsc_String {
   uint32_t len;
   const char *buf;
@@ -71,8 +76,8 @@ struct cmsc_SipStatusLine {
 };
 
 struct cmsc_SipHeader {
-  struct cmsc_String key;
-  struct cmsc_String value;
+  struct cmsc_BString key;
+  struct cmsc_BString value;
   STAILQ_ENTRY(cmsc_SipHeader) _next;
 };
 
