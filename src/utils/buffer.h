@@ -52,4 +52,61 @@ error_out:
   return cme_return(err);
 };
 
+#include <stdarg.h>
+#include <stdio.h>
+
+static inline cme_error_t cmsc_buffer_finsert(struct cmsc_Buffer *buffer,
+                                              struct cmsc_String *result,
+                                              const char *fmt, ...) {
+  if (!buffer || !fmt)
+    return cme_error(EINVAL, "`buffer` and `fmt` must not be NULL");
+
+  va_list args;
+  int written;
+
+  // Start with the current buffer length
+  char *dst = (char *)(buffer->buf + buffer->len);
+  uint32_t space = buffer->size - buffer->len;
+
+  puts("start");
+  while (true) {
+    va_start(args, fmt);
+    written = vsnprintf(dst, space, fmt, args);
+    va_end(args);
+
+    printf("Written=%d, space=%d\n", written, space);
+
+    if (written < 0) {
+      return cme_error(EINVAL, "Formatting failed");
+    }
+
+    // Enough space
+    if ((uint32_t)written < space) {
+      break;
+    }
+
+    // Grow buffer and retry
+    uint32_t new_size = buffer->size * 2 + written;
+    char *new_buf = realloc((void *)buffer->buf, new_size);
+    if (!new_buf) {
+      return cme_error(ENOMEM, "Cannot realloc buffer");
+    }
+
+    printf("New buf: %.*s\n", (int)new_size, new_buf);
+
+    dst = new_buf + buffer->len;
+    buffer->buf = new_buf;
+    buffer->size = new_size;
+    space = buffer->size - buffer->len;
+  }
+
+  if (result) {
+    result->buf = buffer->buf + buffer->len;
+    result->len = (uint32_t)written;
+  }
+
+  buffer->len += (uint32_t)written;
+  return 0;
+}
+
 #endif

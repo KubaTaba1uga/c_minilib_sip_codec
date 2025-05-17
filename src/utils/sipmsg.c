@@ -56,7 +56,11 @@ cmsc_sipmsg_insert_request_line(uint32_t sip_ver_len, const char *sip_ver,
         EINVAL, "`sip_ver`, `req_uri`, `sip_method` and `msg` cannot be NULL");
     goto error_out;
   }
-
+  // Debug print
+  printf("[insert_request_line] method='%.*s' (%u), uri='%.*s' (%u), "
+         "version='%.*s' (%u)\n",
+         sip_method_len, sip_method, sip_method_len, req_uri_len, req_uri,
+         req_uri_len, sip_ver_len, sip_ver, sip_ver_len);
   if (sip_ver_len == 0 || req_uri_len == 0 || sip_method_len == 0) {
     return 0;
   }
@@ -113,7 +117,7 @@ cme_error_t cmsc_sipmsg_insert_status_line(uint32_t sip_ver_len,
   // Insert Sip Version
   err = cmsc_buffer_insert(
       (struct cmsc_String){.buf = sip_ver, .len = sip_ver_len}, &msg->_buf,
-      &msg->request_line.sip_proto_ver);
+      &msg->status_line.sip_proto_ver);
   if (err) {
     goto error_out;
   }
@@ -121,7 +125,7 @@ cme_error_t cmsc_sipmsg_insert_status_line(uint32_t sip_ver_len,
   // Insert Reason Phrase
   err = cmsc_buffer_insert(
       (struct cmsc_String){.buf = reason_phrase, .len = reason_phrase_len},
-      &msg->_buf, &msg->request_line.request_uri);
+      &msg->_buf, &msg->status_line.reason_phrase);
   if (err) {
     goto error_out;
   }

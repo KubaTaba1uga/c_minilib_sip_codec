@@ -54,8 +54,8 @@ void test_insert_valid_status_line(void) {
       strlen(version), version, strlen(reason), reason, status_code, msg);
   TEST_ASSERT_NULL(err);
   TEST_ASSERT_EQUAL(status_code, msg->status_line.status_code);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("OK", msg->request_line.request_uri.buf,
-                                 msg->request_line.request_uri.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("OK", msg->status_line.reason_phrase.buf,
+                                 msg->status_line.reason_phrase.len);
 }
 
 void test_insert_header_and_body(void) {
