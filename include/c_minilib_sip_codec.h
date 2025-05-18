@@ -117,7 +117,7 @@ struct cmsc_SipMessage {
   struct cmsc_SipHeaderTo to;
   struct cmsc_SipHeaderFrom from;
   struct cmsc_SipHeaderCSeq cseq;
-  struct cmsc_String call_id;
+  struct cmsc_BString call_id;
   uint32_t max_forwards;
   struct cmsc_SipViasList vias;
   uint32_t content_length;

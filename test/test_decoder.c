@@ -83,55 +83,37 @@ void test_decode_cseq_header(void) {
       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CSEQ));
 }
 
-/* void test_decode_call_id_header(void) { */
-/*   const char *raw_value = "abcd-1234"; */
-/*   cme_error_t err; */
+void test_decode_call_id_header(void) {
+  const char *raw_value = "Call-ID: abcd-1234";
+  cme_error_t err;
 
-/*   make_msg(raw_value, &msg); */
+  create_msg(raw_value, &msg);
+  create_hdr(msg);
 
-/*   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader)); */
-/*   TEST_ASSERT_NOT_NULL(hdr); */
+  err = cmsc_decode_sip_headers(msg);
+  TEST_ASSERT_NULL(err);
 
-/*   hdr->key.buf = "Call-ID"; */
-/*   hdr->key.len = 7; */
-/*   hdr->value.buf = raw_value; */
-/*   hdr->value.len = (uint32_t)strlen(raw_value); */
+  MYTEST_ASSERT_EQUAL_STRING_LEN("abcd-1234",
+                                 cmsc_bs_msg_to_string(&msg->call_id, msg).buf,
+                                 msg->call_id.len);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CALL_ID));
+}
 
-/*   STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next); */
+void test_decode_max_forwards_header(void) {
+  const char *raw_value = "Max-Forwards: 70";
+  cme_error_t err;
 
-/*   err = cmsc_decode_sip_headers(msg); */
-/*   TEST_ASSERT_NULL(err); */
+  create_msg(raw_value, &msg);
+  create_hdr(msg);
 
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("abcd-1234", msg->call_id.buf, */
-/*                                  msg->call_id.len); */
-/*   TEST_ASSERT_TRUE( */
-/*       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CALL_ID));
- */
-/* } */
+  err = cmsc_decode_sip_headers(msg);
+  TEST_ASSERT_NULL(err);
 
-/* void test_decode_max_forwards_header(void) { */
-/*   const char *raw_value = "70"; */
-/*   cme_error_t err; */
-
-/*   make_msg(raw_value, &msg); */
-/*   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader)); */
-/*   TEST_ASSERT_NOT_NULL(hdr); */
-
-/*   hdr->key.buf = "Max-Forwards"; */
-/*   hdr->key.len = 12; */
-/*   hdr->value.buf = raw_value; */
-/*   hdr->value.len = (uint32_t)strlen(raw_value); */
-
-/*   STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next); */
-
-/*   err = cmsc_decode_sip_headers(msg); */
-/*   TEST_ASSERT_NULL(err); */
-
-/*   TEST_ASSERT_EQUAL(70, msg->max_forwards); */
-/*   TEST_ASSERT_TRUE( */
-/*       cmsc_sipmsg_is_field_present(msg,
- * cmsc_SupportedSipHeaders_MAX_FORWARDS)); */
-/* } */
+  TEST_ASSERT_EQUAL(70, msg->max_forwards);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_MAX_FORWARDS));
+}
 
 void test_decode_via_header_single(void) {
   const char *raw_value = "Via: SIP/2.0/UDP host.example.com;branch=z9hG4bK";
@@ -156,32 +138,22 @@ void test_decode_via_header_single(void) {
       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_VIAS));
 }
 
-/* void test_decode_content_length_header(void) { */
-/*   const char *raw_value = "123"; */
-/*   cme_error_t err; */
+void test_decode_content_length_header(void) {
+  const char *raw_value = "Content-Length: 123";
+  cme_error_t err;
 
-/*   make_msg(raw_value, &msg); */
+  create_msg(raw_value, &msg);
+  create_hdr(msg);
 
-/*   // Allocate and insert Content-Length header */
-/*   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader)); */
-/*   TEST_ASSERT_NOT_NULL(hdr); */
+  // Call decoder
+  err = cmsc_decode_sip_headers(msg);
+  TEST_ASSERT_NULL(err);
 
-/*   hdr->key.buf = "Content-Length"; */
-/*   hdr->key.len = (uint32_t)strlen("Content-Length"); */
-/*   hdr->value.buf = raw_value; */
-/*   hdr->value.len = (uint32_t)strlen(raw_value); */
+  // Custom check: if implemented in future decoder logic
+  // For now just confirm that header was not erroneously left
+  TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
 
-/*   STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next); */
-
-/*   // Call decoder */
-/*   err = cmsc_decode_sip_headers(msg); */
-/*   TEST_ASSERT_NULL(err); */
-
-/*   // Custom check: if implemented in future decoder logic */
-/*   // For now just confirm that header was not erroneously left */
-/*   TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers)); */
-
-/*   // Optional: verify value if `content_length` field is added to */
-/*   // `cmsc_SipMessage` */
-/*   TEST_ASSERT_EQUAL(123, msg->content_length); */
-/* } */
+  // Optional: verify value if `content_length` field is added to
+  // `cmsc_SipMessage`
+  TEST_ASSERT_EQUAL(123, msg->content_length);
+}
