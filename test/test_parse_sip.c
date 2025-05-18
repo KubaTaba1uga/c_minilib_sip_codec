@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "unity.h"
 #include "unity_wrapper.h"
 #include <c_minilib_sip_codec.h>
 
@@ -108,87 +109,137 @@ void test_parse_basic_invite_request(void) {
   h = STAILQ_NEXT(h, _next);
   TEST_ASSERT_NULL(h); // Ensure only 1 header remained after decoding
 }
+void test_parse_multiple_via_headers(void) {
+  const char *raw = "INVITE sip:bob@example.com SIP/2.0\r\n"
+                    "Via: SIP/2.0/UDP first.example.com;branch=z1\r\n"
+                    "Via: SIP/2.0/TCP second.example.com;branch=z2,SIP/2.0/WS "
+                    "third.example.com;branch=z3\r\n"
+                    "To: <sip:bob@example.com>\r\n"
+                    "From: <sip:alice@example.com>;tag=taggy\r\n"
+                    "Call-ID: abc123\r\n"
+                    "CSeq: 1 INVITE\r\n"
+                    "Max-Forwards: 70\r\n"
+                    "\r\n";
 
-/* void test_parse_multiple_via_headers(void) { */
-/*   const char *raw = "INVITE sip:bob@example.com SIP/2.0\r\n" */
-/*                     "Via: SIP/2.0/UDP first.example.com;branch=z1\r\n" */
-/*                     "Via: SIP/2.0/TCP second.example.com;branch=z2,SIP/2.0/WS " */
-/*                     "third.example.com;branch=z3\r\n" */
-/*                     "To: <sip:bob@example.com>\r\n" */
-/*                     "From: <sip:alice@example.com>;tag=taggy\r\n" */
-/*                     "Call-ID: abc123\r\n" */
-/*                     "CSeq: 1 INVITE\r\n" */
-/*                     "Max-Forwards: 70\r\n" */
-/*                     "\r\n"; */
+  parse_msg(raw);
 
-/*   parse_msg(raw); */
+  // Check all decoded fields
+  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com",
+      cmsc_bs_msg_to_string(&msg->to.uri, msg).buf,
+      msg->to.uri.len);
 
-/*   // Check all decoded fields */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com", msg->to.uri.buf, */
-/*                                  msg->to.uri.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com", msg->from.uri.buf, */
-/*                                  msg->from.uri.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("taggy", msg->from.tag.buf, msg->from.tag.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->cseq.method.buf, */
-/*                                  msg->cseq.method.len); */
-/*   TEST_ASSERT_EQUAL(1, msg->cseq.seq_number); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("abc123", msg->call_id.buf, msg->call_id.len); */
-/*   TEST_ASSERT_EQUAL(70, msg->max_forwards); */
+  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com",
+      cmsc_bs_msg_to_string(&msg->from.uri, msg).buf,
+      msg->from.uri.len);
 
-/*   // Check Via list (should contain 3 entries) */
-/*   struct cmsc_SipHeaderVia *via = STAILQ_FIRST(&msg->vias); */
-/*   TEST_ASSERT_NOT_NULL(via); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("UDP", via->proto.buf, via->proto.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("first.example.com", via->sent_by.buf, */
-/*                                  via->sent_by.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("z1", via->branch.buf, via->branch.len); */
+  MYTEST_ASSERT_EQUAL_STRING_LEN("taggy",
+      cmsc_bs_msg_to_string(&msg->from.tag, msg).buf,
+      msg->from.tag.len);
 
-/*   via = STAILQ_NEXT(via, _next); */
-/*   TEST_ASSERT_NOT_NULL(via); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("TCP", via->proto.buf, via->proto.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("second.example.com", via->sent_by.buf, */
-/*                                  via->sent_by.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("z2", via->branch.buf, via->branch.len); */
+  MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE",
+      cmsc_bs_msg_to_string(&msg->cseq.method, msg).buf,
+      msg->cseq.method.len);
 
-/*   via = STAILQ_NEXT(via, _next); */
-/*   TEST_ASSERT_NOT_NULL(via); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("WS", via->proto.buf, via->proto.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("third.example.com", via->sent_by.buf, */
-/*                                  via->sent_by.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("z3", via->branch.buf, strlen("z3")); */
+  TEST_ASSERT_EQUAL(1, msg->cseq.seq_number);
 
-/*   via = STAILQ_NEXT(via, _next); */
-/*   TEST_ASSERT_NULL(via); // Only 3 vias expected */
-/* } */
+  MYTEST_ASSERT_EQUAL_STRING_LEN("abc123",
+      cmsc_bs_msg_to_string(&msg->call_id, msg).buf,
+      msg->call_id.len);
 
-/* void test_parse_message_with_body(void) { */
-/*   const char *raw = "INVITE sip:bob@example.com SIP/2.0\r\n" */
-/*                     "To: <sip:bob@example.com>\r\n" */
-/*                     "From: <sip:alice@example.com>;tag=tag123\r\n" */
-/*                     "Call-ID: call123\r\n" */
-/*                     "CSeq: 1 INVITE\r\n" */
-/*                     "Content-Length: 16\r\n" */
-/*                     "\r\n" */
-/*                     "Hello from body!"; */
+  TEST_ASSERT_EQUAL(70, msg->max_forwards);
 
-/*   parse_msg(raw); */
+  // Check Via list (should contain 3 entries)
+  struct cmsc_SipHeaderVia *via = STAILQ_FIRST(&msg->vias);
+  TEST_ASSERT_NOT_NULL(via);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("UDP",
+      cmsc_bs_msg_to_string(&via->proto, msg).buf,
+      via->proto.len);
 
-/*   // Basic field checks */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com", msg->to.uri.buf, */
-/*                                  msg->to.uri.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com", msg->from.uri.buf, */
-/*                                  msg->from.uri.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("tag123", msg->from.tag.buf, */
-/*                                  msg->from.tag.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->cseq.method.buf, */
-/*                                  msg->cseq.method.len); */
-/*   TEST_ASSERT_EQUAL(1, msg->cseq.seq_number); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("call123", msg->call_id.buf, msg->call_id.len); */
+  MYTEST_ASSERT_EQUAL_STRING_LEN("first.example.com",
+      cmsc_bs_msg_to_string(&via->sent_by, msg).buf,
+      via->sent_by.len);
 
-/*   // Check body */
-/*   printf("body: %.*s\n", msg->body.len, msg->body.buf); */
-/*   TEST_ASSERT_EQUAL(16, msg->body.len); */
-/*   TEST_ASSERT_EQUAL(16, msg->content_length); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("Hello from body!", msg->body.buf, */
-/*                                  msg->body.len); */
-/* } */
+  MYTEST_ASSERT_EQUAL_STRING_LEN("z1",
+      cmsc_bs_msg_to_string(&via->branch, msg).buf,
+      via->branch.len);
+
+  via = STAILQ_NEXT(via, _next);
+  TEST_ASSERT_NOT_NULL(via);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("TCP",
+      cmsc_bs_msg_to_string(&via->proto, msg).buf,
+      via->proto.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN("second.example.com",
+      cmsc_bs_msg_to_string(&via->sent_by, msg).buf,
+      via->sent_by.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN("z2",
+      cmsc_bs_msg_to_string(&via->branch, msg).buf,
+      via->branch.len);
+
+  via = STAILQ_NEXT(via, _next);
+  TEST_ASSERT_NOT_NULL(via);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("WS",
+      cmsc_bs_msg_to_string(&via->proto, msg).buf,
+      via->proto.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN("third.example.com",
+      cmsc_bs_msg_to_string(&via->sent_by, msg).buf,
+      via->sent_by.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN("z3",
+      cmsc_bs_msg_to_string(&via->branch, msg).buf,
+      via->branch.len);
+
+  via = STAILQ_NEXT(via, _next);
+  TEST_ASSERT_NULL(via); // Only 3 vias expected
+}
+
+void test_parse_message_with_body(void) {
+  const char *raw = "INVITE sip:bob@example.com SIP/2.0\r\n"
+                    "To: <sip:bob@example.com>\r\n"
+                    "From: <sip:alice@example.com>;tag=tag123\r\n"
+                    "Call-ID: call123\r\n"
+                    "CSeq: 1 INVITE\r\n"
+                    "Content-Length: 16\r\n"
+                    "\r\n"
+                    "Hello from body!";
+
+  parse_msg(raw);
+
+  // Basic field checks
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "sip:bob@example.com",
+      cmsc_bs_msg_to_string(&msg->to.uri, msg).buf,
+      msg->to.uri.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "sip:alice@example.com",
+      cmsc_bs_msg_to_string(&msg->from.uri, msg).buf,
+      msg->from.uri.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "tag123",
+      cmsc_bs_msg_to_string(&msg->from.tag, msg).buf,
+      msg->from.tag.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "INVITE",
+      cmsc_bs_msg_to_string(&msg->cseq.method, msg).buf,
+      msg->cseq.method.len);
+
+  TEST_ASSERT_EQUAL(1, msg->cseq.seq_number);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "call123",
+      cmsc_bs_msg_to_string(&msg->call_id, msg).buf,
+      msg->call_id.len);
+
+  // Check body
+  struct cmsc_String body = cmsc_bs_msg_to_string(&msg->body, msg);
+  TEST_ASSERT_EQUAL(16, body.len);
+  TEST_ASSERT_EQUAL(16, msg->content_length);
+  TEST_ASSERT_NOT_NULL(body.buf);
+  TEST_ASSERT_NOT_EQUAL(0, body.len);  
+  MYTEST_ASSERT_EQUAL_STRING_LEN("Hello from body!", body.buf, body.len);
+}

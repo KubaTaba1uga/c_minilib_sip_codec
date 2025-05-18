@@ -64,7 +64,7 @@ static inline cme_error_t cmsc_decode_sip_headers(struct cmsc_SipMessage *msg) {
        .decode_func = cmsc_decode_func_call_id},
       {.header_id = {.buf = "Max-Forwards", .len = 11},
        .decode_func = cmsc_decode_func_max_forwards},
-      {.header_id = {.buf = "Content-Length", .len = 11},
+      {.header_id = {.buf = "Content-Length", .len = 14},
        .decode_func = cmsc_decode_func_content_length},
   };
   cme_error_t err;
@@ -85,11 +85,14 @@ static inline cme_error_t cmsc_decode_sip_headers(struct cmsc_SipMessage *msg) {
     bool is_match = false;
     for (uint32_t i = 0;
          i < sizeof(decoders) / sizeof(struct cmsc_DecoderLogic); i++) {
+      printf("Hdr: %.*s vs %.*s\n", generic_header->key.len,
+             cmsc_bs_msg_to_string(&generic_header->key, msg).buf,
+             decoders[i].header_id.len, decoders[i].header_id.buf);
       if (strncmp(decoders[i].header_id.buf,
                   cmsc_bs_msg_to_string(&generic_header->key, msg).buf,
                   generic_header->key.len) == 0) {
         is_match = true;
-
+        puts("HITHITHIT");
         err = decoders[i].decode_func(generic_header, msg);
         if (err) {
           goto error_out;

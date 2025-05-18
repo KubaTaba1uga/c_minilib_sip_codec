@@ -299,7 +299,7 @@ static inline cme_error_t cmsc_parse_sip_body(struct cmsc_Buffer *buf,
     return 0;
   }
 
-  msg->body.buf_offset = msg->_buf.buf - buf->buf;
+  msg->body.buf_offset = buf->buf - msg->_buf.buf;
   msg->body.len = buf->len;
 
   if (msg->body.len > msg->content_length) {
