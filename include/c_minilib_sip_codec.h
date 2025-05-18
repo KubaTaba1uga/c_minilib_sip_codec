@@ -93,16 +93,16 @@ struct cmsc_SipHeaderFrom {
   struct cmsc_BString tag;
 };
 struct cmsc_SipHeaderCSeq {
-  struct cmsc_String method;
+  struct cmsc_BString method;
   uint32_t seq_number;
 };
 
 struct cmsc_SipHeaderVia {
-  struct cmsc_String proto;
-  struct cmsc_String sent_by;
-  struct cmsc_String addr;
-  struct cmsc_String branch;
-  struct cmsc_String received;
+  struct cmsc_BString proto;
+  struct cmsc_BString sent_by;
+  struct cmsc_BString addr;
+  struct cmsc_BString branch;
+  struct cmsc_BString received;
   uint32_t ttl;
   STAILQ_ENTRY(cmsc_SipHeaderVia) _next;
 };

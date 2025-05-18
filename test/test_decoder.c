@@ -76,8 +76,9 @@ void test_decode_cseq_header(void) {
   TEST_ASSERT_NULL(err);
 
   TEST_ASSERT_EQUAL(42, msg->cseq.seq_number);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->cseq.method.buf,
-                                 msg->cseq.method.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "INVITE", cmsc_bs_msg_to_string(&msg->cseq.method, msg).buf,
+      msg->cseq.method.len);
   TEST_ASSERT_TRUE(
       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CSEQ));
 }
@@ -132,34 +133,28 @@ void test_decode_cseq_header(void) {
  * cmsc_SupportedSipHeaders_MAX_FORWARDS)); */
 /* } */
 
-/* void test_decode_via_header_single(void) { */
-/*   const char *raw_value = "SIP/2.0/UDP host.example.com;branch=z9hG4bK"; */
-/*   cme_error_t err; */
+void test_decode_via_header_single(void) {
+  const char *raw_value = "Via: SIP/2.0/UDP host.example.com;branch=z9hG4bK";
+  cme_error_t err;
 
-/*   make_msg(raw_value, &msg); */
-/*   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader)); */
-/*   TEST_ASSERT_NOT_NULL(hdr); */
+  create_msg(raw_value, &msg);
+  create_hdr(msg);
 
-/*   hdr->key.buf = "Via"; */
-/*   hdr->key.len = 3; */
-/*   hdr->value.buf = raw_value; */
-/*   hdr->value.len = (uint32_t)strlen(raw_value); */
+  err = cmsc_decode_sip_headers(msg);
+  TEST_ASSERT_NULL(err);
 
-/*   STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next); */
-
-/*   err = cmsc_decode_sip_headers(msg); */
-/*   TEST_ASSERT_NULL(err); */
-
-/*   struct cmsc_SipHeaderVia *via = STAILQ_FIRST(&msg->vias); */
-/*   TEST_ASSERT_NOT_NULL(via); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("UDP", via->proto.buf, via->proto.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("host.example.com", via->sent_by.buf, */
-/*                                  via->sent_by.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("z9hG4bK", via->branch.buf,
- * via->branch.len); */
-/*   TEST_ASSERT_TRUE( */
-/*       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_VIAS)); */
-/* } */
+  struct cmsc_SipHeaderVia *via = STAILQ_FIRST(&msg->vias);
+  TEST_ASSERT_NOT_NULL(via);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "UDP", cmsc_bs_msg_to_string(&via->proto, msg).buf, via->proto.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("host.example.com",
+                                 cmsc_bs_msg_to_string(&via->sent_by, msg).buf,
+                                 via->sent_by.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "z9hG4bK", cmsc_bs_msg_to_string(&via->branch, msg).buf, via->branch.len);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_VIAS));
+}
 
 /* void test_decode_content_length_header(void) { */
 /*   const char *raw_value = "123"; */
