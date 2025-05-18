@@ -152,31 +152,31 @@ cme_error_t cmsc_sipmsg_insert_header(uint32_t key_len, const char *key,
     return 0;
   }
 
-  struct cmsc_String msg_key = {0};
-  err = cmsc_buffer_insert((struct cmsc_String){.buf = key, .len = key_len},
-                           &msg->_buf, &msg_key);
+  struct cmsc_BString msg_key = {0};
+  err = cmsc_buffer_binsert((struct cmsc_String){.buf = key, .len = key_len},
+                            &msg->_buf, &msg_key);
   if (err) {
     goto error_out;
   }
 
-  struct cmsc_String msg_value = {0};
+  struct cmsc_BString msg_value = {0};
   if (value) {
-    err =
-        cmsc_buffer_insert((struct cmsc_String){.buf = value, .len = value_len},
-                           &msg->_buf, &msg_value);
+    err = cmsc_buffer_binsert(
+        (struct cmsc_String){.buf = value, .len = value_len}, &msg->_buf,
+        &msg_value);
     if (err) {
       goto error_out;
     }
   }
 
-  /* struct cmsc_SipHeader *sip_hdr; */
-  /* err = cmsc_siphdr_create(msg_key.len, msg_key.buf, msg_value.len, */
-  /*                          msg_value.buf, &sip_hdr); */
-  /* if (err) { */
-  /*   goto error_out; */
-  /* } */
+  struct cmsc_SipHeader *sip_hdr;
+  err = cmsc_siphdr_create(msg_key.len, msg_key.buf_offset, msg_value.len,
+                           msg_value.buf_offset, &sip_hdr);
+  if (err) {
+    goto error_out;
+  }
 
-  /* STAILQ_INSERT_TAIL(&msg->sip_headers, sip_hdr, _next); */
+  STAILQ_INSERT_TAIL(&msg->sip_headers, sip_hdr, _next);
 
   return 0;
 

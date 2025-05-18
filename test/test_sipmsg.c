@@ -2,6 +2,7 @@
 #include "c_minilib_sip_codec.h"
 #include "unity_wrapper.h"
 #include "utils.h"
+#include "utils/bstring.h"
 #include "utils/sipmsg.h"
 #include <string.h>
 #include <unity.h>
@@ -30,13 +31,19 @@ void test_insert_valid_request_line(void) {
       strlen(version), version, strlen(uri), uri, strlen(method), method, msg);
   TEST_ASSERT_NULL(err);
 
-  MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->request_line.sip_method.buf,
-                                 msg->request_line.sip_method.len);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com",
-                                 msg->request_line.request_uri.buf,
-                                 msg->request_line.request_uri.len);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0", msg->request_line.sip_proto_ver.buf,
-                                 msg->request_line.sip_proto_ver.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "INVITE", cmsc_bs_msg_to_string(&msg->request_line.sip_method, msg).buf,
+      msg->request_line.sip_method.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "sip:bob@example.com",
+      cmsc_bs_msg_to_string(&msg->request_line.request_uri, msg).buf,
+      msg->request_line.request_uri.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "SIP/2.0",
+      cmsc_bs_msg_to_string(&msg->request_line.sip_proto_ver, msg).buf,
+      msg->request_line.sip_proto_ver.len);
 }
 
 void test_insert_request_line_null_args(void) {
@@ -54,8 +61,10 @@ void test_insert_valid_status_line(void) {
       strlen(version), version, strlen(reason), reason, status_code, msg);
   TEST_ASSERT_NULL(err);
   TEST_ASSERT_EQUAL(status_code, msg->status_line.status_code);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("OK", msg->status_line.reason_phrase.buf,
-                                 msg->status_line.reason_phrase.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "OK", cmsc_bs_msg_to_string(&msg->status_line.reason_phrase, msg).buf,
+      msg->status_line.reason_phrase.len);
 }
 
 void test_insert_header_and_body(void) {
@@ -67,13 +76,18 @@ void test_insert_header_and_body(void) {
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("X-Test", h->key.buf, h->key.len);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("Hello", h->value.buf, h->value.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "X-Test", cmsc_bs_msg_to_string(&h->key, msg).buf, h->key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "Hello", cmsc_bs_msg_to_string(&h->value, msg).buf, h->value.len);
 
   const char *body = "Hello Body";
   err = cmsc_sipmsg_insert_body(strlen(body), body, msg);
   TEST_ASSERT_NULL(err);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("Hello Body", msg->body.buf, msg->body.len);
+
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "Hello Body", cmsc_bs_msg_to_string(&msg->body, msg).buf, msg->body.len);
   TEST_ASSERT_EQUAL(strlen(body), msg->content_length);
   TEST_ASSERT_TRUE(cmsc_sipmsg_is_field_present(
       msg, cmsc_SupportedSipHeaders_CONTENT_LENGTH));
@@ -86,7 +100,8 @@ void test_insert_header_key_only(void) {
 
   struct cmsc_SipHeader *h = STAILQ_FIRST(&msg->sip_headers);
   TEST_ASSERT_NOT_NULL(h);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("X-Only-Key", h->key.buf, h->key.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "X-Only-Key", cmsc_bs_msg_to_string(&h->key, msg).buf, h->key.len);
   TEST_ASSERT_EQUAL(0, h->value.len);
 }
 
