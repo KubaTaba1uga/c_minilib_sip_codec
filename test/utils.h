@@ -25,7 +25,6 @@ inline static void create_msg(const char *raw, struct cmsc_SipMessage **msg) {
   struct cmsc_Buffer buf = {.buf = raw_buf,
                             .len = (uint32_t)strlen(raw),
                             .size = (uint32_t)strlen(raw)};
-  puts(raw);
   cme_error_t err = cmsc_sipmsg_create(buf, msg);
   TEST_ASSERT_NULL(err);
 }
