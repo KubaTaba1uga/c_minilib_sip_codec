@@ -31,12 +31,12 @@ struct cmsc_DecoderLogic {
 static inline cme_error_t
 cmsc_decode_func_to(const struct cmsc_SipHeader *sip_header,
                     struct cmsc_SipMessage *msg);
-/* static inline cme_error_t */
-/* cmsc_decode_func_from(const struct cmsc_SipHeader *sip_header, */
-/*                       struct cmsc_SipMessage *msg); */
-/* static inline cme_error_t */
-/* cmsc_decode_func_cseq(const struct cmsc_SipHeader *sip_header, */
-/*                       struct cmsc_SipMessage *msg); */
+static inline cme_error_t
+cmsc_decode_func_from(const struct cmsc_SipHeader *sip_header,
+                      struct cmsc_SipMessage *msg);
+static inline cme_error_t
+cmsc_decode_func_cseq(const struct cmsc_SipHeader *sip_header,
+                      struct cmsc_SipMessage *msg);
 /* static inline cme_error_t */
 /* cmsc_decode_func_call_id(const struct cmsc_SipHeader *sip_header, */
 /*                          struct cmsc_SipMessage *msg); */
@@ -56,10 +56,10 @@ static inline cme_error_t cmsc_decode_sip_headers(struct cmsc_SipMessage *msg) {
        .decode_func = cmsc_decode_func_to},
       /* {.header_id = {.buf = "Via", .len = 3}, */
       /*  .decode_func = cmsc_decode_func_via}, */
-      /* {.header_id = {.buf = "From", .len = 4}, */
-      /*  .decode_func = cmsc_decode_func_from}, */
-      /* {.header_id = {.buf = "CSeq", .len = 4}, */
-      /*  .decode_func = cmsc_decode_func_cseq}, */
+      {.header_id = {.buf = "From", .len = 4},
+       .decode_func = cmsc_decode_func_from},
+      {.header_id = {.buf = "CSeq", .len = 4},
+       .decode_func = cmsc_decode_func_cseq},
       /* {.header_id = {.buf = "Call-ID", .len = 7}, */
       /*  .decode_func = cmsc_decode_func_call_id}, */
       /* {.header_id = {.buf = "Max-Forwards", .len = 11}, */
@@ -118,7 +118,8 @@ cmsc_decode_func_to(const struct cmsc_SipHeader *sip_header,
   struct cmsc_ArgIterator it;
   cme_error_t err;
 
-  err = cmsc_arg_iterator_init(                  cmsc_bs_msg_to_string(&sip_header->key, msg), &it);
+  err = cmsc_arg_iterator_init(cmsc_bs_msg_to_string(&sip_header->value, msg),
+                               &it);
   if (err) {
     goto error_out;
   }
@@ -128,20 +129,23 @@ cmsc_decode_func_to(const struct cmsc_SipHeader *sip_header,
   while ((result = cmsc_arg_iterator_next(&it))) {
     switch (result) {
     case cmsc_ArgNextResults_VALUE: {
-      while (*it.value.buf == '<') {
-        it.value.buf++;
-        it.value.len--;
-      }
-      while (it.value.buf[it.value.len - 1] == '>') {
-        it.value.len--;
-      }
-      msg->to.uri = it.value;
+      cmsc_s_trimm(&it.value, '<');
+      cmsc_s_trimm(&it.value, '>');
+
+      msg->to.uri = cmsc_s_msg_to_bstring(&it.value, msg);
       cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_TO);
+      printf("it.value=%.*s, it_value.len=%d\n", it.value.len, it.value.buf,
+             it.value.len);
       break;
     }
     case cmsc_ArgNextResults_ARG: {
       if (strncmp("tag", it.arg_key.buf, it.arg_key.len) == 0) {
-        msg->to.tag = it.arg_value;
+        printf("it.arg_key=%.*s, it_arg_key.len=%d\n", it.arg_key.len,
+               it.arg_key.buf, it.arg_key.len);
+        printf("it.arg_value=%.*s, it_arg_value.len=%d\n", it.arg_value.len,
+               it.arg_value.buf, it.arg_value.len);
+
+        msg->to.tag = cmsc_s_msg_to_bstring(&it.arg_value, msg);
       }
       break;
     }
@@ -155,71 +159,77 @@ error_out:
   return cme_return(err);
 }
 
-/* static inline cme_error_t */
-/* cmsc_decode_func_from(const struct cmsc_SipHeader *sip_header, */
-/*                       struct cmsc_SipMessage *msg) { */
-/*   struct cmsc_ArgIterator it; */
-/*   cme_error_t err; */
+static inline cme_error_t
+cmsc_decode_func_from(const struct cmsc_SipHeader *sip_header,
+                      struct cmsc_SipMessage *msg) {
+  struct cmsc_ArgIterator it;
+  cme_error_t err;
 
-/*   err = cmsc_arg_iterator_init(sip_header->value, &it); */
-/*   if (err) { */
-/*     goto error_out; */
-/*   } */
+  err = cmsc_arg_iterator_init(cmsc_bs_msg_to_string(&sip_header->value, msg),
+                               &it);
+  if (err) {
+    goto error_out;
+  }
 
-/*   enum cmsc_ArgNextResults result; */
+  enum cmsc_ArgNextResults result;
 
-/*   while ((result = cmsc_arg_iterator_next(&it))) { */
-/*     switch (result) { */
-/*     case cmsc_ArgNextResults_VALUE: { */
-/*       while (*it.value.buf == '<') { */
-/*         it.value.buf++; */
-/*         it.value.len--; */
-/*       } */
-/*       while (it.value.buf[it.value.len - 1] == '>') { */
-/*         it.value.len--; */
-/*       } */
-/*       msg->from.uri = it.value; */
-/*       cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_FROM); */
-/*       break; */
-/*     } */
-/*     case cmsc_ArgNextResults_ARG: { */
-/*       if (strncmp("tag", it.arg_key.buf, it.arg_key.len) == 0) { */
-/*         msg->from.tag = it.arg_value; */
-/*       } */
-/*       break; */
-/*     } */
-/*     default:; */
-/*     } */
-/*   } */
+  while ((result = cmsc_arg_iterator_next(&it))) {
+    switch (result) {
+    case cmsc_ArgNextResults_VALUE: {
+      cmsc_s_trimm(&it.value, '<');
+      cmsc_s_trimm(&it.value, '>');
 
-/*   return 0; */
+      msg->from.uri = cmsc_s_msg_to_bstring(&it.value, msg);
+      cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_FROM);
+      printf("it.value=%.*s, it_value.len=%d\n", it.value.len, it.value.buf,
+             it.value.len);
+      break;
+    }
+    case cmsc_ArgNextResults_ARG: {
+      if (strncmp("tag", it.arg_key.buf, it.arg_key.len) == 0) {
+        printf("it.arg_key=%.*s, it_arg_key.len=%d\n", it.arg_key.len,
+               it.arg_key.buf, it.arg_key.len);
+        printf("it.arg_value=%.*s, it_arg_value.len=%d\n", it.arg_value.len,
+               it.arg_value.buf, it.arg_value.len);
 
-/* error_out: */
-/*   return cme_return(err); */
-/* } */
+        msg->from.tag = cmsc_s_msg_to_bstring(&it.arg_value, msg);
+      }
+      break;
+    }
+    default:;
+    }
+  }
 
-/* static inline cme_error_t */
-/* cmsc_decode_func_cseq(const struct cmsc_SipHeader *sip_header, */
-/*                       struct cmsc_SipMessage *msg) { */
-/*   const char *method = sip_header->value.buf; */
-/*   const char *end = sip_header->value.buf + sip_header->value.len; */
-/*   while (method != end) { */
-/*     if (!isdigit(*method)) { */
-/*       break; */
-/*     } */
-/*     method++; */
-/*   } */
+  return 0;
 
-/*   while (isspace(*method)) { */
-/*     method++; */
-/*   } */
+error_out:
+  return cme_return(err);
+}
 
-/*   msg->cseq.seq_number = atoi(sip_header->value.buf); */
-/*   msg->cseq.method.buf = method; */
-/*   msg->cseq.method.len = end - method; */
-/*   cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CSEQ); */
-/*   return 0; */
-/* } */
+static inline cme_error_t
+cmsc_decode_func_cseq(const struct cmsc_SipHeader *sip_header,
+                      struct cmsc_SipMessage *msg) {
+  const char *digit;
+  const char *method = digit =
+      cmsc_bs_msg_to_string(&sip_header->value, msg).buf;
+  const char *end = method + sip_header->value.len;
+  while (method != end) {
+    if (!isdigit(*method)) {
+      break;
+    }
+    method++;
+  }
+
+  while (isspace(*method)) {
+    method++;
+  }
+
+  msg->cseq.seq_number = atoi(digit);
+  msg->cseq.method.buf = method;
+  msg->cseq.method.len = end - method;
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CSEQ);
+  return 0;
+}
 
 /* static inline cme_error_t */
 /* cmsc_decode_func_call_id(const struct cmsc_SipHeader *sip_header, */
@@ -233,7 +243,8 @@ error_out:
 /* cmsc_decode_func_max_forwards(const struct cmsc_SipHeader *sip_header, */
 /*                               struct cmsc_SipMessage *msg) { */
 /*   msg->max_forwards = atoi(sip_header->value.buf); */
-/*   cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_MAX_FORWARDS); */
+/*   cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_MAX_FORWARDS);
+ */
 /*   return 0; */
 /* }; */
 
@@ -298,7 +309,8 @@ error_out:
 /*         via->addr = it.arg_value; */
 /*       } else if (strncmp("branch", it.arg_key.buf, it.arg_key.len) == 0) { */
 /*         via->branch = it.arg_value; */
-/*       } else if (strncmp("received", it.arg_key.buf, it.arg_key.len) == 0) { */
+/*       } else if (strncmp("received", it.arg_key.buf, it.arg_key.len) == 0) {
+ */
 /*         via->received = it.arg_value; */
 /*       } else if (strncmp("ttl", it.arg_key.buf, it.arg_key.len) == 0) { */
 /*         via->ttl = atoi(it.arg_value.buf); */
@@ -320,7 +332,8 @@ error_out:
 /* cmsc_decode_func_content_length(const struct cmsc_SipHeader *sip_header, */
 /*                                 struct cmsc_SipMessage *msg) { */
 /*   msg->content_length = atoi(sip_header->value.buf); */
-/*   cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CONTENT_LENGTH); */
+/*   cmsc_sipmsg_mark_field_present(msg,
+ * cmsc_SupportedSipHeaders_CONTENT_LENGTH); */
 /*   return 0; */
 /* } */
 

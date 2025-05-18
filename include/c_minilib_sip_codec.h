@@ -84,13 +84,13 @@ struct cmsc_SipHeader {
 STAILQ_HEAD(cmsc_SipHeadersList, cmsc_SipHeader);
 
 struct cmsc_SipHeaderTo {
-  struct cmsc_String uri;
-  struct cmsc_String tag;
+  struct cmsc_BString uri;
+  struct cmsc_BString tag;
 };
 
 struct cmsc_SipHeaderFrom {
-  struct cmsc_String uri;
-  struct cmsc_String tag;
+  struct cmsc_BString uri;
+  struct cmsc_BString tag;
 };
 struct cmsc_SipHeaderCSeq {
   struct cmsc_String method;

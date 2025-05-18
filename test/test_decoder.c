@@ -6,6 +6,7 @@
 #include "c_minilib_sip_codec.h"
 #include "unity_wrapper.h"
 #include "utils.h"
+#include "utils/bstring.h"
 #include "utils/buffer.h"
 #include "utils/decoder.h"
 #include "utils/sipmsg.h"
@@ -16,30 +17,11 @@ void setUp(void) {}
 void tearDown(void) { cmsc_sipmsg_destroy_with_buf(&msg); }
 
 void test_decode_to_header(void) {
-  const char *raw_to_value = "<sip:bob@example.com>;tag=123abc";
+  const char *raw_to_value = "To: <sip:bob@example.com>;tag=123abc";
   cme_error_t err;
 
   create_msg(raw_to_value, &msg);
-  
-  // Allocate and insert To header
-  struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader));
-  TEST_ASSERT_NOT_NULL(hdr);
-
-  err = cmsc_buffer_binsert((const struct cmsc_String){.buf = "To", .len = 2},
-                            &msg->_buf, &hdr->key);
-  TEST_ASSERT_NULL(err);
-  err = cmsc_buffer_binsert(
-      (const struct cmsc_String){.buf = raw_to_value,
-                                 .len = strlen(raw_to_value)},
-      &msg->_buf, &hdr->value);
-  TEST_ASSERT_NULL(err);
-
-  /* hdr->key.buf = "To"; */
-  /* hdr->key.len = 2; */
-  /* hdr->value.buf = raw_to_value; */
-  /* hdr->value.len = (uint32_t)strlen(raw_to_value); */
-
-  STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next);
+  create_hdr(msg);
 
   // Call decoder
   err = cmsc_decode_sip_headers(msg);
@@ -49,76 +31,56 @@ void test_decode_to_header(void) {
   TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
 
   // Validate decoded fields
-  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com", msg->to.uri.buf,
+  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@example.com",
+                                 cmsc_bs_msg_to_string(&msg->to.uri, msg).buf,
                                  msg->to.uri.len);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("123abc", msg->to.tag.buf, msg->to.tag.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "123abc", cmsc_bs_msg_to_string(&msg->to.tag, msg).buf, msg->to.tag.len);
   TEST_ASSERT_TRUE(
       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_TO));
 }
 
-/* void test_decode_from_header(void) { */
-/*   const char *raw_to_value = "sip:alice@example.com"; */
-/*   cme_error_t err; */
+void test_decode_from_header(void) {
+  const char *raw_from_value = "From: <sip:alice@example.com>;tag=456def";
+  cme_error_t err;
 
-/*   make_msg(raw_to_value, &msg); */
-/*   // Allocate and insert To header */
-/*   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader)); */
-/*   TEST_ASSERT_NOT_NULL(hdr); */
+  create_msg(raw_from_value, &msg);
+  create_hdr(msg);
 
-/*   err = cmsc_buffer_binsert((const struct cmsc_String){.buf = "From", .len = 4}, */
-/*                             &msg->_buf, &hdr->key); */
-/*   TEST_ASSERT_NULL(err); */
-/*   err = cmsc_buffer_binsert( */
-/*       (const struct cmsc_String){.buf = raw_to_value, */
-/*                                  .len = strlen(raw_to_value)}, */
-/*       &msg->_buf, &hdr->value); */
-/*   TEST_ASSERT_NULL(err); */
+  // Call decoder
+  err = cmsc_decode_sip_headers(msg);
+  TEST_ASSERT_NULL(err);
 
-/*   /\* hdr->key.buf = "From"; *\/ */
-/*   /\* hdr->key.len = 4; *\/ */
-/*   /\* hdr->value.buf = raw_to_value; *\/ */
-/*   /\* hdr->value.len = (uint32_t)strlen(raw_to_value); *\/ */
+  // Ensure header was consumed
+  TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers));
 
-/*   STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next); */
+  // Validate decoded fields
+  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com",
+                                 cmsc_bs_msg_to_string(&msg->from.uri, msg).buf,
+                                 msg->from.uri.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("456def",
+                                 cmsc_bs_msg_to_string(&msg->from.tag, msg).buf,
+                                 msg->from.tag.len);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_FROM));
+}
 
-/*   // Call decoder */
-/*   err = cmsc_decode_sip_headers(msg); */
-/*   TEST_ASSERT_NULL(err); */
+void test_decode_cseq_header(void) {
+  const char *raw_value = "CSeq: 42 INVITE";
+  cme_error_t err;
 
-/*   // Ensure header was consumed */
-/*   TEST_ASSERT_TRUE(STAILQ_EMPTY(&msg->sip_headers)); */
+  create_msg(raw_value, &msg);
+  create_hdr(msg);
 
-/*   // Validate decoded fields */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("sip:alice@example.com", msg->from.uri.buf, */
-/*                                  msg->from.uri.len); */
-/*   TEST_ASSERT_TRUE( */
-/*       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_FROM)); */
-/* } */
+  err = cmsc_decode_sip_headers(msg);
+  TEST_ASSERT_NULL(err);
 
-/* void test_decode_cseq_header(void) { */
-/*   const char *raw_value = "42 INVITE"; */
-/*   cme_error_t err; */
-
-/*   make_msg(raw_value, &msg); */
-/*   struct cmsc_SipHeader *hdr = calloc(1, sizeof(struct cmsc_SipHeader)); */
-/*   TEST_ASSERT_NOT_NULL(hdr); */
-
-/*   hdr->key.buf = "CSeq"; */
-/*   hdr->key.len = 4; */
-/*   hdr->value.buf = raw_value; */
-/*   hdr->value.len = (uint32_t)strlen(raw_value); */
-
-/*   STAILQ_INSERT_TAIL(&msg->sip_headers, hdr, _next); */
-
-/*   err = cmsc_decode_sip_headers(msg); */
-/*   TEST_ASSERT_NULL(err); */
-
-/*   TEST_ASSERT_EQUAL(42, msg->cseq.seq_number); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->cseq.method.buf, */
-/*                                  msg->cseq.method.len); */
-/*   TEST_ASSERT_TRUE( */
-/*       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CSEQ)); */
-/* } */
+  TEST_ASSERT_EQUAL(42, msg->cseq.seq_number);
+  MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->cseq.method.buf,
+                                 msg->cseq.method.len);
+  TEST_ASSERT_TRUE(
+      cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CSEQ));
+}
 
 /* void test_decode_call_id_header(void) { */
 /*   const char *raw_value = "abcd-1234"; */
@@ -142,7 +104,8 @@ void test_decode_to_header(void) {
 /*   MYTEST_ASSERT_EQUAL_STRING_LEN("abcd-1234", msg->call_id.buf, */
 /*                                  msg->call_id.len); */
 /*   TEST_ASSERT_TRUE( */
-/*       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CALL_ID)); */
+/*       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_CALL_ID));
+ */
 /* } */
 
 /* void test_decode_max_forwards_header(void) { */
@@ -165,7 +128,8 @@ void test_decode_to_header(void) {
 
 /*   TEST_ASSERT_EQUAL(70, msg->max_forwards); */
 /*   TEST_ASSERT_TRUE( */
-/*       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_MAX_FORWARDS)); */
+/*       cmsc_sipmsg_is_field_present(msg,
+ * cmsc_SupportedSipHeaders_MAX_FORWARDS)); */
 /* } */
 
 /* void test_decode_via_header_single(void) { */
@@ -191,7 +155,8 @@ void test_decode_to_header(void) {
 /*   MYTEST_ASSERT_EQUAL_STRING_LEN("UDP", via->proto.buf, via->proto.len); */
 /*   MYTEST_ASSERT_EQUAL_STRING_LEN("host.example.com", via->sent_by.buf, */
 /*                                  via->sent_by.len); */
-/*   MYTEST_ASSERT_EQUAL_STRING_LEN("z9hG4bK", via->branch.buf, via->branch.len); */
+/*   MYTEST_ASSERT_EQUAL_STRING_LEN("z9hG4bK", via->branch.buf,
+ * via->branch.len); */
 /*   TEST_ASSERT_TRUE( */
 /*       cmsc_sipmsg_is_field_present(msg, cmsc_SupportedSipHeaders_VIAS)); */
 /* } */

@@ -16,7 +16,7 @@ subdir('test_unity.d')
 test_files = [
   'test_parser.c',
   # 'test_parse_sip.c',
-  # 'test_arg_iterator.c',
+  'test_arg_iterator.c',
   'test_decoder.c',
   # 'test_sipmsg.c',
   # 'test_generator.c'

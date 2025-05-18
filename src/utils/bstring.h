@@ -22,19 +22,32 @@ cmsc_bs_msg_to_string(const struct cmsc_BString *src,
                               .len = src->len};
 }
 
+static inline struct cmsc_BString
+cmsc_s_msg_to_bstring(const struct cmsc_String *src,
+                      struct cmsc_SipMessage *msg) {
+  return (struct cmsc_BString){.buf_offset = src->buf - msg->_buf.buf,
+                               .len = src->len};
+}
+
+static inline void cmsc_s_trimm(struct cmsc_String *src, char c_to_sanitize) {
+  while (src->len > 0 && *src->buf == c_to_sanitize) {
+    src->buf++;
+    src->len--;
+  }
+
+  while (src->len > 0 && src->buf[src->len - 1] == c_to_sanitize) {
+    src->len--;
+  }
+}
+
 static inline void cmsc_bs_trimm(struct cmsc_BString *src, char c_to_sanitize,
                                  struct cmsc_SipMessage *msg) {
   struct cmsc_String string = {.buf = msg->_buf.buf + src->buf_offset,
                                .len = src->len};
+  cmsc_s_trimm(&string, c_to_sanitize);
 
-  while (*string.buf == c_to_sanitize && string.len > 0) {
-    string.buf++;
-    string.len--;
-  }
-
-  while (string.buf[string.len - 1] == c_to_sanitize && string.len > 0) {
-    string.len--;
-  }
+  src->buf_offset = string.buf - msg->_buf.buf;
+  src->len = string.len;
 }
 
 #endif

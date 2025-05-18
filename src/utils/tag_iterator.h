@@ -16,6 +16,7 @@
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
+#include "utils/bstring.h"
 
 struct cmsc_ArgIterator {
   struct cmsc_String buf;
