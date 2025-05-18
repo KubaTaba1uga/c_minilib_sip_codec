@@ -66,7 +66,7 @@ cmsc_sipmsg_insert_request_line(uint32_t sip_ver_len, const char *sip_ver,
   }
 
   // Insert Sip Version
-  err = cmsc_buffer_insert(
+  err = cmsc_buffer_binsert(
       (struct cmsc_String){.buf = sip_ver, .len = sip_ver_len}, &msg->_buf,
       &msg->request_line.sip_proto_ver);
   if (err) {
@@ -74,7 +74,7 @@ cmsc_sipmsg_insert_request_line(uint32_t sip_ver_len, const char *sip_ver,
   }
 
   // Insert Request Uri
-  err = cmsc_buffer_insert(
+  err = cmsc_buffer_binsert(
       (struct cmsc_String){.buf = req_uri, .len = req_uri_len}, &msg->_buf,
       &msg->request_line.request_uri);
   if (err) {
@@ -82,7 +82,7 @@ cmsc_sipmsg_insert_request_line(uint32_t sip_ver_len, const char *sip_ver,
   }
 
   // Insert Method
-  err = cmsc_buffer_insert(
+  err = cmsc_buffer_binsert(
       (struct cmsc_String){.buf = sip_method, .len = sip_method_len},
       &msg->_buf, &msg->request_line.sip_method);
   if (err) {
@@ -115,7 +115,7 @@ cme_error_t cmsc_sipmsg_insert_status_line(uint32_t sip_ver_len,
   }
 
   // Insert Sip Version
-  err = cmsc_buffer_insert(
+  err = cmsc_buffer_binsert(
       (struct cmsc_String){.buf = sip_ver, .len = sip_ver_len}, &msg->_buf,
       &msg->status_line.sip_proto_ver);
   if (err) {
@@ -123,7 +123,7 @@ cme_error_t cmsc_sipmsg_insert_status_line(uint32_t sip_ver_len,
   }
 
   // Insert Reason Phrase
-  err = cmsc_buffer_insert(
+  err = cmsc_buffer_binsert(
       (struct cmsc_String){.buf = reason_phrase, .len = reason_phrase_len},
       &msg->_buf, &msg->status_line.reason_phrase);
   if (err) {
@@ -197,8 +197,8 @@ cme_error_t cmsc_sipmsg_insert_body(const uint32_t body_len, const char *body,
     return 0;
   }
 
-  err = cmsc_buffer_insert((struct cmsc_String){.buf = body, .len = body_len},
-                           &msg->_buf, &msg->body);
+  err = cmsc_buffer_binsert((struct cmsc_String){.buf = body, .len = body_len},
+                            &msg->_buf, &msg->body);
   if (err) {
     goto error_out;
   }

@@ -64,14 +64,14 @@ enum cmsc_SupportedSipHeaders {
 };
 
 struct cmsc_SipRequestLine {
-  struct cmsc_String sip_proto_ver;
-  struct cmsc_String request_uri;
-  struct cmsc_String sip_method;
+  struct cmsc_BString sip_proto_ver;
+  struct cmsc_BString request_uri;
+  struct cmsc_BString sip_method;
 };
 
 struct cmsc_SipStatusLine {
-  struct cmsc_String sip_proto_ver;
-  struct cmsc_String reason_phrase;
+  struct cmsc_BString sip_proto_ver;
+  struct cmsc_BString reason_phrase;
   uint32_t status_code;
 };
 
@@ -123,7 +123,7 @@ struct cmsc_SipMessage {
   uint32_t content_length;
   // Supported headers end
   struct cmsc_SipHeadersList sip_headers;
-  struct cmsc_String body;
+  struct cmsc_BString body;
   struct cmsc_Buffer _buf;
 };
 

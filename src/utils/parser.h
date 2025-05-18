@@ -16,6 +16,7 @@
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
+#include "utils/bstring.h"
 #include "utils/siphdr.h"
 #include "utils/sipmsg.h"
 
@@ -136,14 +137,18 @@ static inline cme_error_t cmsc_parse_request_line(const struct cmsc_Buffer *buf,
     request_uri_len++;
   }
 
-  msg->request_line.sip_method.buf = buf->buf;
-  msg->request_line.sip_method.len = method_len;
+  msg->request_line.sip_method = cmsc_s_msg_to_bstring(
+      &(struct cmsc_String){.buf = buf->buf, .len = method_len}, msg);
 
-  msg->request_line.sip_proto_ver.buf = buf->buf + (sip_version - buffer);
-  msg->request_line.sip_proto_ver.len = sip_version_len;
+  msg->request_line.sip_proto_ver = cmsc_s_msg_to_bstring(
+      &(struct cmsc_String){.buf = buf->buf + (sip_version - buffer),
+                            .len = sip_version_len},
+      msg);
 
-  msg->request_line.request_uri.buf = buf->buf + (request_uri - buffer);
-  msg->request_line.request_uri.len = request_uri_len;
+  msg->request_line.request_uri = cmsc_s_msg_to_bstring(
+      &(struct cmsc_String){.buf = buf->buf + (request_uri - buffer),
+                            .len = request_uri_len},
+      msg);
 
   return NULL;
 error_out:
@@ -186,13 +191,15 @@ static inline cme_error_t cmsc_parse_status_line(const struct cmsc_Buffer *buf,
     goto error_out;
   }
 
-  msg->status_line.sip_proto_ver.buf = buf->buf;
-  msg->status_line.sip_proto_ver.len = sip_version_len;
+  msg->status_line.sip_proto_ver = cmsc_s_msg_to_bstring(
+      &(struct cmsc_String){.buf = buf->buf, .len = sip_version_len}, msg);
 
   msg->status_line.status_code = code;
 
-  msg->status_line.reason_phrase.buf = buf->buf + (reason_phrase - buffer);
-  msg->status_line.reason_phrase.len = reason_phrase_len;
+  msg->status_line.reason_phrase = cmsc_s_msg_to_bstring(
+      &(struct cmsc_String){.buf = buf->buf + (reason_phrase - buffer),
+                            .len = reason_phrase_len},
+      msg);
 
   return NULL;
 error_out:
@@ -284,7 +291,7 @@ static inline cme_error_t cmsc_parse_sip_body(struct cmsc_Buffer *buf,
     return 0;
   }
 
-  msg->body.buf = buf->buf;
+  msg->body.buf_offset = msg->_buf.buf - buf->buf;
   msg->body.len = buf->len;
 
   if (msg->body.len > msg->content_length) {

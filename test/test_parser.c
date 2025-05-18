@@ -145,17 +145,22 @@ void test_valid_request_line(void) {
   cme_error_t err = cmsc_parse_sip_first_line(&parse_buf, msg);
   TEST_ASSERT_NULL(err);
 
-  MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->request_line.sip_method.buf,
-                                 msg->request_line.sip_method.len);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@biloxi.com",
-                                 msg->request_line.request_uri.buf,
-                                 msg->request_line.request_uri.len);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0", msg->request_line.sip_proto_ver.buf,
-                                 msg->request_line.sip_proto_ver.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "INVITE", cmsc_bs_msg_to_string(&msg->request_line.sip_method, msg).buf,
+      msg->request_line.sip_method.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "sip:bob@biloxi.com",
+      cmsc_bs_msg_to_string(&msg->request_line.request_uri, msg).buf,
+      msg->request_line.request_uri.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "SIP/2.0",
+      cmsc_bs_msg_to_string(&msg->request_line.sip_proto_ver, msg).buf,
+      msg->request_line.sip_proto_ver.len);
 }
 
 void test_missing_crlf(void) {
-  make_msg("INVITE sip:bob@biloxi.com SIP/2.0", &msg); // No \r\n
+  make_msg("INVITE sip:bob@biloxi.com SIP/2.0",
+           &msg); // No \r\n
 
   struct cmsc_Buffer parse_buf = msg->_buf;
   cme_error_t err = cmsc_parse_sip_first_line(&parse_buf, msg);
@@ -184,13 +189,17 @@ void test_invalid_request_line_extra_space(void) {
   struct cmsc_Buffer parse_buf = msg->_buf;
   cme_error_t err = cmsc_parse_sip_first_line(&parse_buf, msg);
   TEST_ASSERT_NULL(err); // still valid
-  MYTEST_ASSERT_EQUAL_STRING_LEN("INVITE", msg->request_line.sip_method.buf,
-                                 msg->request_line.sip_method.len);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("sip:bob@biloxi.com",
-                                 msg->request_line.request_uri.buf,
-                                 msg->request_line.request_uri.len);
-  MYTEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0", msg->request_line.sip_proto_ver.buf,
-                                 msg->request_line.sip_proto_ver.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "INVITE", cmsc_bs_msg_to_string(&msg->request_line.sip_method, msg).buf,
+      msg->request_line.sip_method.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "sip:bob@biloxi.com",
+      cmsc_bs_msg_to_string(&msg->request_line.request_uri, msg).buf,
+      msg->request_line.request_uri.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "SIP/2.0",
+      cmsc_bs_msg_to_string(&msg->request_line.sip_proto_ver, msg).buf,
+      msg->request_line.sip_proto_ver.len);
 }
 
 void test_sip_version_not_in_first_line(void) {
@@ -208,13 +217,16 @@ void test_valid_status_line_parsing(void) {
   cme_error_t err = cmsc_parse_sip_first_line(&parse_buf, msg);
   TEST_ASSERT_NULL(err);
 
-  MYTEST_ASSERT_EQUAL_STRING_LEN("SIP/2.0", msg->status_line.sip_proto_ver.buf,
-                                 msg->status_line.sip_proto_ver.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "SIP/2.0",
+      cmsc_bs_msg_to_string(&msg->status_line.sip_proto_ver, msg).buf,
+      msg->status_line.sip_proto_ver.len);
 
   TEST_ASSERT_EQUAL(200, msg->status_line.status_code);
 
-  MYTEST_ASSERT_EQUAL_STRING_LEN("OK", msg->status_line.reason_phrase.buf,
-                                 msg->status_line.reason_phrase.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "OK", cmsc_bs_msg_to_string(&msg->status_line.reason_phrase, msg).buf,
+      msg->status_line.reason_phrase.len);
 }
 
 void test_status_line_with_reason_phrase_spaces(void) {
@@ -226,9 +238,10 @@ void test_status_line_with_reason_phrase_spaces(void) {
 
   TEST_ASSERT_EQUAL(486, msg->status_line.status_code);
 
-  MYTEST_ASSERT_EQUAL_STRING_LEN("Busy Here",
-                                 msg->status_line.reason_phrase.buf,
-                                 msg->status_line.reason_phrase.len);
+  MYTEST_ASSERT_EQUAL_STRING_LEN(
+      "Busy Here",
+      cmsc_bs_msg_to_string(&msg->status_line.reason_phrase, msg).buf,
+      msg->status_line.reason_phrase.len);
 }
 
 void test_status_line_missing_reason_phrase(void) {
@@ -243,7 +256,8 @@ void test_status_line_missing_reason_phrase(void) {
 }
 
 void test_status_line_not_numeric_code(void) {
-  make_msg("SIP/2.0 twohundred OK\r\n", &msg); // non-numeric
+  make_msg("SIP/2.0 twohundred OK\r\n",
+           &msg); // non-numeric
 
   struct cmsc_Buffer parse_buf = msg->_buf;
   cme_error_t err = cmsc_parse_sip_first_line(&parse_buf, msg);
