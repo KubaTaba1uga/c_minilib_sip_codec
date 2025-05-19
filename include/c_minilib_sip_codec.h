@@ -132,6 +132,7 @@ struct cmsc_SipMessage {
  ******************************************************************************/
 cme_error_t cmsc_parse_sip(uint32_t buf_len, const char *buf,
                            struct cmsc_SipMessage **msg);
+void cmsc_sipmsg_destroy(struct cmsc_SipMessage **msg);
 
 /******************************************************************************
  *                             Generate                                       *
@@ -189,5 +190,12 @@ cme_error_t cmsc_sipmsg_insert_body(const uint32_t body_len, const char *body,
 
 cme_error_t cmsc_generate_sip(const struct cmsc_SipMessage *msg,
                               uint32_t *buf_len, const char **buf);
+
+static inline struct cmsc_String
+cmsc_bs_msg_to_string(const struct cmsc_BString *src,
+                      struct cmsc_SipMessage *msg) {
+  return (struct cmsc_String){.buf = msg->_buf.buf + src->buf_offset,
+                              .len = src->len};
+}
 
 #endif

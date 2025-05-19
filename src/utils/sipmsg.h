@@ -47,31 +47,6 @@ error_out:
   return cme_return(err);
 };
 
-// This function assumes user keeps ownership over _buf memory
-static inline void cmsc_sipmsg_destroy(struct cmsc_SipMessage **msg) {
-  if (!msg || !*msg) {
-    return;
-  }
-
-  struct cmsc_SipHeader *header;
-  while (!STAILQ_EMPTY(&(*msg)->sip_headers)) {
-    header = STAILQ_FIRST(&(*msg)->sip_headers);
-    STAILQ_REMOVE_HEAD(&(*msg)->sip_headers, _next);
-    free(header);
-  }
-
-  struct cmsc_SipHeaderVia *via;
-  while (!STAILQ_EMPTY(&(*msg)->vias)) {
-    via = STAILQ_FIRST(&(*msg)->vias);
-    STAILQ_REMOVE_HEAD(&(*msg)->vias, _next);
-    free(via);
-  }
-
-  free(*msg);
-
-  *msg = NULL;
-}
-
 static inline void
 cmsc_sipmsg_mark_field_present(struct cmsc_SipMessage *msg,
                                enum cmsc_SupportedSipHeaders header_id) {

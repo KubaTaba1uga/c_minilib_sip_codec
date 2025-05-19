@@ -15,13 +15,6 @@
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
 
-static inline struct cmsc_String
-cmsc_bs_msg_to_string(const struct cmsc_BString *src,
-                      struct cmsc_SipMessage *msg) {
-  return (struct cmsc_String){.buf = msg->_buf.buf + src->buf_offset,
-                              .len = src->len};
-}
-
 static inline struct cmsc_BString
 cmsc_s_msg_to_bstring(const struct cmsc_String *src,
                       struct cmsc_SipMessage *msg) {

@@ -32,6 +32,31 @@ error_out:
   return cme_return(err);
 }
 
+// This function assumes user keeps ownership over _buf memory
+void cmsc_sipmsg_destroy(struct cmsc_SipMessage **msg) {
+  if (!msg || !*msg) {
+    return;
+  }
+
+  struct cmsc_SipHeader *header;
+  while (!STAILQ_EMPTY(&(*msg)->sip_headers)) {
+    header = STAILQ_FIRST(&(*msg)->sip_headers);
+    STAILQ_REMOVE_HEAD(&(*msg)->sip_headers, _next);
+    free(header);
+  }
+
+  struct cmsc_SipHeaderVia *via;
+  while (!STAILQ_EMPTY(&(*msg)->vias)) {
+    via = STAILQ_FIRST(&(*msg)->vias);
+    STAILQ_REMOVE_HEAD(&(*msg)->vias, _next);
+    free(via);
+  }
+
+  free(*msg);
+
+  *msg = NULL;
+}
+
 // This function assumes user ownership over _buf memory is transferred to msg
 //  it also assumes memory was allocated dynamically with malloc.
 void cmsc_sipmsg_destroy_with_buf(struct cmsc_SipMessage **msg) {
@@ -56,11 +81,7 @@ cmsc_sipmsg_insert_request_line(uint32_t sip_ver_len, const char *sip_ver,
         EINVAL, "`sip_ver`, `req_uri`, `sip_method` and `msg` cannot be NULL");
     goto error_out;
   }
-  // Debug print
-  printf("[insert_request_line] method='%.*s' (%u), uri='%.*s' (%u), "
-         "version='%.*s' (%u)\n",
-         sip_method_len, sip_method, sip_method_len, req_uri_len, req_uri,
-         req_uri_len, sip_ver_len, sip_ver, sip_ver_len);
+
   if (sip_ver_len == 0 || req_uri_len == 0 || sip_method_len == 0) {
     return 0;
   }

@@ -67,13 +67,10 @@ static inline cme_error_t cmsc_buffer_finsert(struct cmsc_Buffer *buffer,
   // Start with the current buffer length
   char *dst = (char *)(buffer->buf + buffer->len);
   uint32_t space = buffer->size - buffer->len;
-  puts("start");
   while (true) {
     va_start(args, fmt);
     written = vsnprintf(dst, space, fmt, args);
     va_end(args);
-
-    printf("Written=%d, space=%d\n", written, space);
 
     if (written < 0) {
       return cme_error(EINVAL, "Formatting failed");
@@ -95,8 +92,6 @@ static inline cme_error_t cmsc_buffer_finsert(struct cmsc_Buffer *buffer,
     if (!new_buf) {
       return cme_error(ENOMEM, "Cannot realloc buffer");
     }
-
-    printf("New buf: %.*s\n", (int)new_size, new_buf);
 
     dst = new_buf + buffer->len;
     buffer->buf = new_buf;

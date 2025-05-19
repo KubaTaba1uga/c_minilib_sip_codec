@@ -43,12 +43,6 @@ static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_Buffer *buf,
         if (err) {
           goto error_out;
         }
-        printf("line_start=%.*s\n", (int)(current_char - line_start),
-               line_start);
-
-        printf("hdr_key=%.*s\n", header->key.len,
-               cmsc_bs_msg_to_string(&header->key, msg).buf);
-
         clrf_counter = 0;
       }
       break;
@@ -72,8 +66,6 @@ static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_Buffer *buf,
           header->value.len =
               (current_char - (msg->_buf.buf + header->value.buf_offset)) - 1;
           STAILQ_INSERT_TAIL(&msg->sip_headers, header, _next);
-          printf("hdr_value=%.*s\n", header->value.len,
-                 cmsc_bs_msg_to_string(&header->value, msg).buf);
 
           header = NULL;
         }
