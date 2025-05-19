@@ -21,6 +21,8 @@ struct cmsc_EncoderLogic {
   enum cmsc_SupportedSipHeaders id;
 };
 
+static inline cme_error_t cmsc_encode_hdr_via(const struct cmsc_SipMessage *msg,
+                                              struct cmsc_Buffer *buf);
 static inline cme_error_t cmsc_encode_hdr_to(const struct cmsc_SipMessage *msg,
                                              struct cmsc_Buffer *buf);
 static inline cme_error_t
@@ -32,8 +34,9 @@ cmsc_encode_hdr_call_id(const struct cmsc_SipMessage *msg,
 static inline cme_error_t
 cmsc_encode_hdr_cseq(const struct cmsc_SipMessage *msg,
                      struct cmsc_Buffer *buf);
-static inline cme_error_t cmsc_encode_hdr_via(const struct cmsc_SipMessage *msg,
-                                              struct cmsc_Buffer *buf);
+static inline cme_error_t
+cmsc_encode_hdr_content_length(const struct cmsc_SipMessage *msg,
+                               struct cmsc_Buffer *buf);
 
 static inline cme_error_t
 cmsc_encode_request_line(const struct cmsc_SipMessage *msg,
@@ -90,6 +93,9 @@ cmsc_encode_sip_headers(const struct cmsc_SipMessage *msg,
        .id = cmsc_SupportedSipHeaders_CALL_ID},
       {.encode_func = cmsc_encode_hdr_cseq,
        .id = cmsc_SupportedSipHeaders_CSEQ},
+      {.encode_func = cmsc_encode_hdr_content_length,
+       .id = cmsc_SupportedSipHeaders_CONTENT_LENGTH},
+
   };
   cme_error_t err;
   if (!msg) {
@@ -240,5 +246,13 @@ static inline cme_error_t cmsc_encode_hdr_via(const struct cmsc_SipMessage *msg,
 error_out:
   return cme_return(err);
 };
+
+static inline cme_error_t
+cmsc_encode_hdr_content_length(const struct cmsc_SipMessage *msg,
+                               struct cmsc_Buffer *buf) {
+  return cmsc_buffer_finsert(buf, NULL, "%.*s: %u\r\n",
+                             strlen("Content-Length"), "Content-Length",
+                             msg->content_length);
+}
 
 #endif

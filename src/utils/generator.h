@@ -60,4 +60,24 @@ error_out:
   return cme_return(err);
 }
 
+static inline cme_error_t cmsc_generate_body(const struct cmsc_SipMessage *msg,
+                                             struct cmsc_Buffer *buf) {
+  cme_error_t err;
+  if (cmsc_sipmsg_is_field_present((struct cmsc_SipMessage *)msg,
+                                   cmsc_SupportedSipHeaders_CONTENT_LENGTH) &&
+      msg->content_length > 0) {
+    err = cmsc_buffer_insert(
+        cmsc_bs_msg_to_string(&msg->body, (struct cmsc_SipMessage *)msg), buf,
+        NULL);
+    if (err) {
+      goto error_out;
+    }
+  }
+
+  return 0;
+
+error_out:
+  return cme_return(err);
+}
+
 #endif

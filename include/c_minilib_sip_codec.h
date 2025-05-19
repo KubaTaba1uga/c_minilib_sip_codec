@@ -181,6 +181,9 @@ cme_error_t cmsc_sipmsg_insert_via(uint32_t proto_len, const char *proto,
                                    uint32_t received_len, const char *received,
                                    uint32_t ttl, struct cmsc_SipMessage *msg);
 
+cme_error_t cmsc_sipmsg_insert_content_length(uint32_t content_length,
+                                              struct cmsc_SipMessage *msg);
+
 cme_error_t cmsc_sipmsg_insert_body(const uint32_t body_len, const char *body,
                                     struct cmsc_SipMessage *msg);
 

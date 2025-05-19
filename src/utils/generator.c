@@ -17,6 +17,7 @@
 #include "utils/buffer.h"
 #include "utils/encoder.h"
 #include "utils/generator.h"
+#include "utils/sipmsg.h"
 
 #ifndef CMSC_GENERATOR_DEFAULT_SPACE_SIZE
 #define CMSC_GENERATOR_DEFAULT_SPACE_SIZE 128
@@ -59,6 +60,11 @@ cme_error_t cmsc_generate_sip(const struct cmsc_SipMessage *msg,
   err = cmsc_buffer_insert(
       (struct cmsc_String){.buf = "\r\n", .len = strlen("\r\n")}, &local_buf,
       NULL);
+  if (err) {
+    goto error_local_buf_cleanup;
+  }
+
+  err = cmsc_generate_body(msg, &local_buf);
   if (err) {
     goto error_local_buf_cleanup;
   }

@@ -164,14 +164,12 @@ void test_generate_full_sip_request_invite(void) {
   // Insert Via
   const char *proto = "SIP/2.0/UDP";
   const char *sent_by = "client.example.com";
-  const char *addr = ""; // optional, empty if not used
   const char *branch = "z9hG4bK776asdhds";
-  const char *received = ""; // optional, empty if not used
-  uint32_t ttl = 0;          // optional, 0 if not used
+  uint32_t ttl = 0;
 
-  cme_error_t err = cmsc_sipmsg_insert_via(
-      strlen(proto), proto, strlen(sent_by), sent_by, strlen(addr), addr,
-      strlen(branch), branch, strlen(received), received, ttl, msg);
+  cme_error_t err =
+      cmsc_sipmsg_insert_via(strlen(proto), proto, strlen(sent_by), sent_by, 0,
+                             NULL, strlen(branch), branch, 0, NULL, ttl, msg);
   TEST_ASSERT_NULL(err);
 
   err = cmsc_sipmsg_insert_to(strlen("<sip:bob@example.com>"),
@@ -203,6 +201,41 @@ void test_generate_full_sip_request_invite(void) {
       "From: <sip:alice@example.com>;tag=123\r\n"
       "Call-ID: a84b4c76e66710\r\n"
       "CSeq: 314159 INVITE\r\n\r\n";
+
+  TEST_ASSERT_EQUAL_STRING(expected, out_buf);
+}
+
+void test_generate_sip_request_with_body(void) {
+  TEST_ASSERT_NULL(cmsc_sipmsg_create_with_buf(&msg));
+
+  // Insert request line
+  const char *method = "POST";
+  const char *uri = "sip:service@example.com";
+  const char *version = "SIP/2.0";
+  TEST_ASSERT_NULL(cmsc_sipmsg_insert_request_line(
+      strlen(version), version, strlen(uri), uri, strlen(method), method, msg));
+
+  // Insert Content-Type
+  TEST_ASSERT_NULL(
+      cmsc_sipmsg_insert_header(strlen("Content-Type"), "Content-Type",
+                                strlen("text/plain"), "text/plain", msg));
+
+  // Insert body
+  const char *body = "Hello, this is the body";
+  TEST_ASSERT_NULL(cmsc_sipmsg_insert_body(strlen(body), body, msg));
+
+  // Generate SIP message
+  uint32_t out_len = 0;
+  cme_error_t err = cmsc_generate_sip(msg, &out_len, &out_buf);
+  TEST_ASSERT_NULL(err);
+  TEST_ASSERT_NOT_NULL(out_buf);
+
+  // Expected output (hardcoded, like other tests)
+  const char *expected = "POST sip:service@example.com SIP/2.0\r\n"
+                         "Content-Length: 23\r\n"
+                         "Content-Type: text/plain\r\n"
+                         "\r\n"
+                         "Hello, this is the body";
 
   TEST_ASSERT_EQUAL_STRING(expected, out_buf);
 }
