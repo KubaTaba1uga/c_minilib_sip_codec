@@ -18,3 +18,4 @@ example/subprojects/c_minilib_error
 example/subprojects/c_minilib_config
 example/subprojects/unity
 generate_error.txt
+message.sip

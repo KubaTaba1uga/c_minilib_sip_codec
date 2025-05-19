@@ -4,8 +4,8 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#ifndef C_MINILIB_SIP_CODEC_DECODER_H
-#define C_MINILIB_SIP_CODEC_DECODER_H
+#ifndef C_MINILIB_SIP_CODEC_ENCODER_H
+#define C_MINILIB_SIP_CODEC_ENCODER_H
 
 #include "c_minilib_error.h"
 #include "c_minilib_sip_codec.h"
