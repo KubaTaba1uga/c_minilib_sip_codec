@@ -89,6 +89,8 @@ cmsc_sipmsg_insert_request_line(uint32_t sip_ver_len, const char *sip_ver,
     goto error_out;
   }
 
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_REQUEST_LINE);
+
   return 0;
 
 error_out:
@@ -131,6 +133,8 @@ cme_error_t cmsc_sipmsg_insert_status_line(uint32_t sip_ver_len,
   }
 
   msg->status_line.status_code = status_code;
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_STATUS_LINE);
 
   return 0;
 
@@ -211,3 +215,252 @@ cme_error_t cmsc_sipmsg_insert_body(const uint32_t body_len, const char *body,
 error_out:
   return cme_return(err);
 };
+
+cme_error_t cmsc_sipmsg_insert_to(uint32_t uri_len, const char *uri,
+                                  uint32_t tag_len, const char *tag,
+                                  struct cmsc_SipMessage *msg) {
+  cme_error_t err;
+
+  if (!uri || !msg) {
+    err = cme_error(EINVAL, "`uri` and `msg` cannot be NULL");
+    goto error_out;
+  }
+
+  if (uri_len == 0) {
+    return 0;
+  }
+
+  err = cmsc_buffer_binsert((struct cmsc_String){.buf = uri, .len = uri_len},
+                            &msg->_buf, &msg->to.uri);
+  if (err) {
+    goto error_out;
+  }
+
+  if (tag && tag_len > 0) {
+    err = cmsc_buffer_binsert((struct cmsc_String){.buf = tag, .len = tag_len},
+                              &msg->_buf, &msg->to.tag);
+    if (err) {
+      goto error_out;
+    }
+  }
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_TO);
+
+  return 0;
+
+error_out:
+  return cme_return(err);
+};
+
+cme_error_t cmsc_sipmsg_insert_from(uint32_t uri_len, const char *uri,
+                                    uint32_t tag_len, const char *tag,
+                                    struct cmsc_SipMessage *msg) {
+  cme_error_t err;
+
+  if (!uri || !msg) {
+    err = cme_error(EINVAL, "`uri` and `msg` cannot be NULL");
+    goto error_out;
+  }
+
+  if (uri_len == 0) {
+    return 0;
+  }
+
+  err = cmsc_buffer_binsert((struct cmsc_String){.buf = uri, .len = uri_len},
+                            &msg->_buf, &msg->from.uri);
+  if (err) {
+    goto error_out;
+  }
+
+  if (tag && tag_len > 0) {
+    err = cmsc_buffer_binsert((struct cmsc_String){.buf = tag, .len = tag_len},
+                              &msg->_buf, &msg->from.tag);
+    if (err) {
+      goto error_out;
+    }
+  }
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_FROM);
+
+  return 0;
+
+error_out:
+  return cme_return(err);
+};
+
+cme_error_t cmsc_sipmsg_insert_call_id(uint32_t call_id_len,
+                                       const char *call_id,
+                                       struct cmsc_SipMessage *msg) {
+  cme_error_t err;
+
+  if (!call_id || !msg) {
+    err = cme_error(EINVAL, "`call_id` and `msg` cannot be NULL");
+    goto error_out;
+  }
+
+  if (call_id_len == 0) {
+    return 0;
+  }
+
+  err = cmsc_buffer_binsert(
+      (struct cmsc_String){.buf = call_id, .len = call_id_len}, &msg->_buf,
+      &msg->call_id);
+  if (err) {
+    goto error_out;
+  }
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CALL_ID);
+
+  return 0;
+
+error_out:
+  return cme_return(err);
+};
+
+cme_error_t cmsc_sipmsg_insert_cseq(uint32_t sip_method_len,
+                                    const char *sip_method, uint32_t seq_number,
+                                    struct cmsc_SipMessage *msg) {
+  cme_error_t err;
+
+  if (!sip_method || !seq_number || !msg) {
+    err = cme_error(EINVAL,
+                    "`sip_method`, `seq_number` and `msg` cannot be NULL");
+    goto error_out;
+  }
+
+  if (sip_method_len == 0) {
+    return 0;
+  }
+
+  err = cmsc_buffer_binsert(
+      (struct cmsc_String){.buf = sip_method, .len = sip_method_len},
+      &msg->_buf, &msg->cseq.method);
+  if (err) {
+    goto error_out;
+  }
+
+  msg->cseq.seq_number = seq_number;
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CSEQ);
+
+  return 0;
+
+error_out:
+  return cme_return(err);
+}
+
+cme_error_t cmsc_sipmsg_insert_max_forwards(uint32_t max_forwards,
+                                            struct cmsc_SipMessage *msg) {
+  cme_error_t err;
+
+  if (!msg) {
+    err = cme_error(EINVAL, "`msg` cannot be NULL");
+    goto error_out;
+  }
+
+  msg->max_forwards = max_forwards;
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_MAX_FORWARDS);
+
+  return 0;
+
+error_out:
+  return cme_return(err);
+}
+
+cme_error_t cmsc_sipmsg_insert_content_length(uint32_t content_length,
+                                              struct cmsc_SipMessage *msg) {
+  cme_error_t err;
+
+  if (!msg) {
+    err = cme_error(EINVAL, "`msg` cannot be NULL");
+    goto error_out;
+  }
+
+  msg->content_length = content_length;
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_CONTENT_LENGTH);
+
+  return 0;
+
+error_out:
+  return cme_return(err);
+}
+
+cme_error_t cmsc_sipmsg_insert_via(uint32_t proto_len, const char *proto,
+                                   uint32_t sent_by_len, const char *sent_by,
+                                   uint32_t addr_len, const char *addr,
+                                   uint32_t branch_len, const char *branch,
+                                   uint32_t received_len, const char *received,
+                                   uint32_t ttl, struct cmsc_SipMessage *msg) {
+  cme_error_t err;
+
+  if (!msg || !proto || sent_by) {
+    err = cme_error(EINVAL, "`msg`, `proto` and `sent_by` cannot be NULL");
+    goto error_out;
+  }
+
+  if (!proto_len || !sent_by_len) {
+    return 0;
+  }
+
+  struct cmsc_SipHeaderVia *via;
+  via = calloc(1, sizeof(struct cmsc_SipHeaderVia));
+  if (!via) {
+    err = cme_error(ENOMEM, "Cannot allocate memory for `via`");
+    goto error_via_cleanup;
+  }
+
+  err =
+      cmsc_buffer_binsert((struct cmsc_String){.len = proto_len, .buf = proto},
+                          &msg->_buf, &via->proto);
+  if (err) {
+    goto error_via_cleanup;
+  }
+
+  err = cmsc_buffer_binsert(
+      (struct cmsc_String){.len = sent_by_len, .buf = sent_by}, &msg->_buf,
+      &via->sent_by);
+  if (err) {
+    goto error_via_cleanup;
+  }
+
+  if (addr_len && addr) {
+    err =
+        cmsc_buffer_binsert((struct cmsc_String){.len = addr_len, .buf = addr},
+                            &msg->_buf, &via->addr);
+    if (err) {
+      goto error_via_cleanup;
+    }
+  }
+
+  if (branch_len && branch) {
+    err = cmsc_buffer_binsert(
+        (struct cmsc_String){.len = branch_len, .buf = branch}, &msg->_buf,
+        &via->branch);
+    if (err) {
+      goto error_via_cleanup;
+    }
+  }
+
+  if (received_len && received) {
+    err = cmsc_buffer_binsert(
+        (struct cmsc_String){.len = received_len, .buf = received}, &msg->_buf,
+        &via->received);
+    if (err) {
+      goto error_via_cleanup;
+    }
+  }
+
+  via->ttl = ttl;
+
+  STAILQ_INSERT_TAIL(&msg->vias, via, _next);
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_VIAS);
+
+  return 0;
+
+error_via_cleanup:
+  free(via);
+error_out:
+  return cme_return(err);
+}

@@ -158,6 +158,29 @@ cme_error_t cmsc_sipmsg_insert_header(uint32_t key_len, const char *key,
                                       uint32_t value_len, const char *value,
                                       struct cmsc_SipMessage *msg);
 
+cme_error_t cmsc_sipmsg_insert_to(uint32_t uri_len, const char *uri,
+                                  uint32_t tag_len, const char *tag,
+                                  struct cmsc_SipMessage *msg);
+
+cme_error_t cmsc_sipmsg_insert_from(uint32_t uri_len, const char *uri,
+                                    uint32_t tag_len, const char *tag,
+                                    struct cmsc_SipMessage *msg);
+
+cme_error_t cmsc_sipmsg_insert_call_id(uint32_t call_id_len,
+                                       const char *call_id,
+                                       struct cmsc_SipMessage *msg);
+
+cme_error_t cmsc_sipmsg_insert_cseq(uint32_t sip_method_len,
+                                    const char *sip_method, uint32_t seq_number,
+                                    struct cmsc_SipMessage *msg);
+
+cme_error_t cmsc_sipmsg_insert_via(uint32_t proto_len, const char *proto,
+                                   uint32_t sent_by_len, const char *sent_by,
+                                   uint32_t addr_len, const char *addr,
+                                   uint32_t branch_len, const char *branch,
+                                   uint32_t received_len, const char *received,
+                                   uint32_t ttl, struct cmsc_SipMessage *msg);
+
 cme_error_t cmsc_sipmsg_insert_body(const uint32_t body_len, const char *body,
                                     struct cmsc_SipMessage *msg);
 

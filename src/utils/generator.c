@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Jakub Buczynski <KubaTaba1uga>
+ * SPDX-License-Identifier: MIT
+ * See LICENSE file in the project root for full license information.
+ */
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -9,6 +15,8 @@
 #include "c_minilib_sip_codec.h"
 #include "utils/bstring.h"
 #include "utils/buffer.h"
+#include "utils/encoder.h"
+#include "utils/generator.h"
 
 #ifndef CMSC_GENERATOR_DEFAULT_SPACE_SIZE
 #define CMSC_GENERATOR_DEFAULT_SPACE_SIZE 128
@@ -32,59 +40,21 @@ cme_error_t cmsc_generate_sip(const struct cmsc_SipMessage *msg,
     err = cme_error(ENOMEM, "Cannot allocate memory for `local_buf`");
     goto error_out;
   }
-  if (msg->request_line.sip_proto_ver.len) {
-    /*
-      According RFC 3261 25 request line looks like this:
-        Method SP Request-URI SP SIP-Version CRLF
-    */
-    err = cmsc_buffer_finsert(
-        &local_buf, NULL, "%.*s %.*s %.*s\r\n",
-        msg->request_line.sip_method.len,
-        cmsc_bs_msg_to_string(&msg->request_line.sip_method,
-                              (struct cmsc_SipMessage *)msg)
-            .buf,
-        msg->request_line.request_uri.len,
-        cmsc_bs_msg_to_string(&msg->request_line.request_uri,
-                              (struct cmsc_SipMessage *)msg)
-            .buf,
-        msg->request_line.sip_proto_ver.len,
-        cmsc_bs_msg_to_string(&msg->request_line.sip_proto_ver,
-                              (struct cmsc_SipMessage *)msg)
-            .buf);
-    if (err) {
-      goto error_local_buf_cleanup;
-    }
-  } else if (msg->status_line.sip_proto_ver.len) {
-    /*
-      According RFC 3261 25 status line looks like this:
-        SIP-Version SP Status-Code SP Reason-Phrase CRLF
-    */
-    err = cmsc_buffer_finsert(
-        &local_buf, NULL, "%.*s %d %.*s\r\n",
-        msg->status_line.sip_proto_ver.len,
-        cmsc_bs_msg_to_string(&msg->status_line.sip_proto_ver,
-                              (struct cmsc_SipMessage *)msg)
-            .buf,
-        msg->status_line.status_code, msg->status_line.reason_phrase.len,
-        cmsc_bs_msg_to_string(&msg->status_line.reason_phrase,
-                              (struct cmsc_SipMessage *)msg)
-            .buf);
-    if (err) {
-      goto error_local_buf_cleanup;
-    }
+
+  err = cmsc_generate_first_line(msg, &local_buf);
+  if (err) {
+    goto error_local_buf_cleanup;
   }
 
-  struct cmsc_SipHeader *hdr;
-  STAILQ_FOREACH(hdr, &msg->sip_headers, _next) {
-    err = cmsc_buffer_finsert(
-        &local_buf, NULL, "%.*s: %.*s\r\n", hdr->key.len,
-        cmsc_bs_msg_to_string(&hdr->key, (struct cmsc_SipMessage *)msg).buf,
-        hdr->value.len,
-        cmsc_bs_msg_to_string(&hdr->value, (struct cmsc_SipMessage *)msg).buf);
-    if (err) {
-      goto error_local_buf_cleanup;
-    }
-  };
+  err = cmsc_encode_sip_headers(msg, &local_buf);
+  if (err) {
+    goto error_local_buf_cleanup;
+  }
+
+  err = cmsc_generate_generic_headers(msg, &local_buf);
+  if (err) {
+    goto error_local_buf_cleanup;
+  }
 
   err = cmsc_buffer_insert(
       (struct cmsc_String){.buf = "\r\n", .len = strlen("\r\n")}, &local_buf,
@@ -97,6 +67,7 @@ cme_error_t cmsc_generate_sip(const struct cmsc_SipMessage *msg,
   *buf_len = local_buf.len;
 
   return 0;
+
 error_local_buf_cleanup:
   free((void *)local_buf.buf);
 error_out:

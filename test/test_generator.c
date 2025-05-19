@@ -47,7 +47,7 @@ void test_generate_invite_exact_match(void) {
   TEST_ASSERT_EQUAL_STRING(expected, out_buf);
 }
 
-void test_generate_full_sip_request(void) {
+void test_generate_full_sip_request_generic(void) {
   TEST_ASSERT_NULL(cmsc_sipmsg_create_with_buf(&msg));
 
   const char *method = "INVITE";
@@ -150,4 +150,46 @@ void test_generate_very_long_sip_message(void) {
 
   // Final assertion
   TEST_ASSERT_EQUAL_STRING(expected_msg, out_buf);
+}
+
+void test_generate_full_sip_request_invite(void) {
+  TEST_ASSERT_NULL(cmsc_sipmsg_create_with_buf(&msg));
+
+  const char *method = "INVITE";
+  const char *uri = "sip:bob@example.com";
+  const char *version = "SIP/2.0";
+
+  TEST_ASSERT_NULL(cmsc_sipmsg_insert_request_line(
+      strlen(version), version, strlen(uri), uri, strlen(method), method, msg));
+
+  cme_error_t err = cmsc_sipmsg_insert_to(strlen("<sip:bob@example.com>"),
+                                          "<sip:bob@example.com>",
+                                          strlen("abs456"), "abs456", msg);
+  TEST_ASSERT_NULL(err);
+
+  err = cmsc_sipmsg_insert_from(strlen("<sip:alice@example.com>"),
+                                "<sip:alice@example.com>", strlen("123"), "123",
+                                msg);
+  TEST_ASSERT_NULL(err);
+
+  err = cmsc_sipmsg_insert_call_id(strlen("a84b4c76e66710"), "a84b4c76e66710",
+                                   msg);
+
+  TEST_ASSERT_NULL(err);
+
+  err = cmsc_sipmsg_insert_cseq(strlen("INVITE"), "INVITE", 314159, msg);
+  TEST_ASSERT_NULL(err);
+
+  uint32_t out_len = 0;
+  err = cmsc_generate_sip(msg, &out_len, &out_buf);
+  TEST_ASSERT_NULL(err);
+  TEST_ASSERT_NOT_NULL(out_buf);
+
+  const char *expected = "INVITE sip:bob@example.com SIP/2.0\r\n"
+                         "To: <sip:bob@example.com>;tag=abs456\r\n"
+                         "From: <sip:alice@example.com>;tag=123\r\n"
+                         "Call-ID: a84b4c76e66710\r\n"
+                         "CSeq: 314159 INVITE\r\n\r\n";
+
+  TEST_ASSERT_EQUAL_STRING(expected, out_buf);
 }
