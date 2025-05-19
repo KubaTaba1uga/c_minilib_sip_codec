@@ -32,6 +32,8 @@ cmsc_encode_hdr_call_id(const struct cmsc_SipMessage *msg,
 static inline cme_error_t
 cmsc_encode_hdr_cseq(const struct cmsc_SipMessage *msg,
                      struct cmsc_Buffer *buf);
+static inline cme_error_t cmsc_encode_hdr_via(const struct cmsc_SipMessage *msg,
+                                              struct cmsc_Buffer *buf);
 
 static inline cme_error_t
 cmsc_encode_request_line(const struct cmsc_SipMessage *msg,
@@ -80,13 +82,15 @@ static inline cme_error_t
 cmsc_encode_sip_headers(const struct cmsc_SipMessage *msg,
                         struct cmsc_Buffer *buf) {
   static struct cmsc_EncoderLogic encoders[] = {
+      {.encode_func = cmsc_encode_hdr_via, .id = cmsc_SupportedSipHeaders_VIAS},
       {.encode_func = cmsc_encode_hdr_to, .id = cmsc_SupportedSipHeaders_TO},
       {.encode_func = cmsc_encode_hdr_from,
        .id = cmsc_SupportedSipHeaders_FROM},
       {.encode_func = cmsc_encode_hdr_call_id,
        .id = cmsc_SupportedSipHeaders_CALL_ID},
       {.encode_func = cmsc_encode_hdr_cseq,
-       .id = cmsc_SupportedSipHeaders_CSEQ}};
+       .id = cmsc_SupportedSipHeaders_CSEQ},
+  };
   cme_error_t err;
   if (!msg) {
     err = cme_error(EINVAL, "`msg` cannot be NULL");
@@ -151,7 +155,7 @@ cmsc_encode_hdr_from(const struct cmsc_SipMessage *msg,
             .buf);
   }
 
-  return err;
+  return cme_return(err);
 };
 
 static inline cme_error_t
@@ -171,6 +175,70 @@ cmsc_encode_hdr_cseq(const struct cmsc_SipMessage *msg,
       msg->cseq.seq_number, msg->cseq.method.len,
       cmsc_bs_msg_to_string(&msg->cseq.method, (struct cmsc_SipMessage *)msg)
           .buf);
+};
+
+static inline cme_error_t cmsc_encode_hdr_via(const struct cmsc_SipMessage *msg,
+                                              struct cmsc_Buffer *buf) {
+  struct cmsc_SipHeaderVia *via;
+  cme_error_t err;
+  STAILQ_FOREACH(via, &msg->vias, _next) {
+    err = cmsc_buffer_finsert(
+        buf, NULL, "%.*s: %.*s %.*s", strlen("Via"), "Via", via->proto.len,
+        cmsc_bs_msg_to_string(&via->proto, (struct cmsc_SipMessage *)msg).buf,
+        via->sent_by.len,
+        cmsc_bs_msg_to_string(&via->sent_by, (struct cmsc_SipMessage *)msg)
+            .buf);
+    if (err) {
+      goto error_out;
+    }
+
+    if (via->addr.len) {
+      err = cmsc_buffer_finsert(
+          buf, NULL, ";addr=%.*s", via->addr.len,
+          cmsc_bs_msg_to_string(&via->addr, (struct cmsc_SipMessage *)msg).buf);
+      if (err) {
+        goto error_out;
+      }
+    }
+
+    if (via->branch.len) {
+      err = cmsc_buffer_finsert(
+          buf, NULL, ";branch=%.*s", via->branch.len,
+          cmsc_bs_msg_to_string(&via->branch, (struct cmsc_SipMessage *)msg)
+              .buf);
+      if (err) {
+        goto error_out;
+      }
+    }
+
+    if (via->received.len) {
+      err = cmsc_buffer_finsert(
+          buf, NULL, ";received=%.*s", via->received.len,
+          cmsc_bs_msg_to_string(&via->received, (struct cmsc_SipMessage *)msg)
+              .buf);
+      if (err) {
+        goto error_out;
+      }
+    }
+
+    if (via->ttl) {
+      err = cmsc_buffer_finsert(buf, NULL, ";ttl=%d", via->ttl);
+      if (err) {
+        goto error_out;
+      }
+    }
+
+    err = cmsc_buffer_insert(
+        (struct cmsc_String){.buf = "\r\n", .len = strlen("\r\n")}, buf, NULL);
+    if (err) {
+      goto error_out;
+    }
+  }
+
+  return 0;
+
+error_out:
+  return cme_return(err);
 };
 
 #endif

@@ -67,7 +67,6 @@ static inline cme_error_t cmsc_buffer_finsert(struct cmsc_Buffer *buffer,
   // Start with the current buffer length
   char *dst = (char *)(buffer->buf + buffer->len);
   uint32_t space = buffer->size - buffer->len;
-
   puts("start");
   while (true) {
     va_start(args, fmt);

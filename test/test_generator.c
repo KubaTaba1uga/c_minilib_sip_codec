@@ -151,7 +151,6 @@ void test_generate_very_long_sip_message(void) {
   // Final assertion
   TEST_ASSERT_EQUAL_STRING(expected_msg, out_buf);
 }
-
 void test_generate_full_sip_request_invite(void) {
   TEST_ASSERT_NULL(cmsc_sipmsg_create_with_buf(&msg));
 
@@ -162,9 +161,22 @@ void test_generate_full_sip_request_invite(void) {
   TEST_ASSERT_NULL(cmsc_sipmsg_insert_request_line(
       strlen(version), version, strlen(uri), uri, strlen(method), method, msg));
 
-  cme_error_t err = cmsc_sipmsg_insert_to(strlen("<sip:bob@example.com>"),
-                                          "<sip:bob@example.com>",
-                                          strlen("abs456"), "abs456", msg);
+  // Insert Via
+  const char *proto = "SIP/2.0/UDP";
+  const char *sent_by = "client.example.com";
+  const char *addr = ""; // optional, empty if not used
+  const char *branch = "z9hG4bK776asdhds";
+  const char *received = ""; // optional, empty if not used
+  uint32_t ttl = 0;          // optional, 0 if not used
+
+  cme_error_t err = cmsc_sipmsg_insert_via(
+      strlen(proto), proto, strlen(sent_by), sent_by, strlen(addr), addr,
+      strlen(branch), branch, strlen(received), received, ttl, msg);
+  TEST_ASSERT_NULL(err);
+
+  err = cmsc_sipmsg_insert_to(strlen("<sip:bob@example.com>"),
+                              "<sip:bob@example.com>", strlen("abs456"),
+                              "abs456", msg);
   TEST_ASSERT_NULL(err);
 
   err = cmsc_sipmsg_insert_from(strlen("<sip:alice@example.com>"),
@@ -174,7 +186,6 @@ void test_generate_full_sip_request_invite(void) {
 
   err = cmsc_sipmsg_insert_call_id(strlen("a84b4c76e66710"), "a84b4c76e66710",
                                    msg);
-
   TEST_ASSERT_NULL(err);
 
   err = cmsc_sipmsg_insert_cseq(strlen("INVITE"), "INVITE", 314159, msg);
@@ -185,11 +196,13 @@ void test_generate_full_sip_request_invite(void) {
   TEST_ASSERT_NULL(err);
   TEST_ASSERT_NOT_NULL(out_buf);
 
-  const char *expected = "INVITE sip:bob@example.com SIP/2.0\r\n"
-                         "To: <sip:bob@example.com>;tag=abs456\r\n"
-                         "From: <sip:alice@example.com>;tag=123\r\n"
-                         "Call-ID: a84b4c76e66710\r\n"
-                         "CSeq: 314159 INVITE\r\n\r\n";
+  const char *expected =
+      "INVITE sip:bob@example.com SIP/2.0\r\n"
+      "Via: SIP/2.0/UDP client.example.com;branch=z9hG4bK776asdhds\r\n"
+      "To: <sip:bob@example.com>;tag=abs456\r\n"
+      "From: <sip:alice@example.com>;tag=123\r\n"
+      "Call-ID: a84b4c76e66710\r\n"
+      "CSeq: 314159 INVITE\r\n\r\n";
 
   TEST_ASSERT_EQUAL_STRING(expected, out_buf);
 }

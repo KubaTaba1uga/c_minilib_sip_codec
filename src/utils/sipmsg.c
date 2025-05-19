@@ -395,7 +395,7 @@ cme_error_t cmsc_sipmsg_insert_via(uint32_t proto_len, const char *proto,
                                    uint32_t ttl, struct cmsc_SipMessage *msg) {
   cme_error_t err;
 
-  if (!msg || !proto || sent_by) {
+  if (!msg || !proto || !sent_by) {
     err = cme_error(EINVAL, "`msg`, `proto` and `sent_by` cannot be NULL");
     goto error_out;
   }
