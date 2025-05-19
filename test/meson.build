@@ -19,7 +19,7 @@ test_files = [
   'test_arg_iterator.c',
   'test_decoder.c',
   'test_sipmsg.c',
-  # 'test_generator.c'
+  'test_generator.c'
 ]
 
 foreach test_file : test_files

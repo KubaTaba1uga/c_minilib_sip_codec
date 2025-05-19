@@ -1,7 +1,8 @@
 sources += files(
-   # 'list.h',
+   'list.h',
    'parser.h',
    'sipmsg.h', 'sipmsg.c',
-   # 'encoder.h',
-   # 'generator.h', 'generator.c',
+   'decoder.h',   
+   'encoder.h',
+   'generator.h', 'generator.c',
 )

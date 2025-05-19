@@ -86,7 +86,12 @@ static inline cme_error_t cmsc_buffer_finsert(struct cmsc_Buffer *buffer,
     }
 
     // Grow buffer and retry
-    uint32_t new_size = buffer->size * 2 + written;
+    uint32_t new_size = buffer->size;
+    if (written > new_size) {
+      new_size = written;
+    }
+
+    new_size *= 2;
     char *new_buf = realloc((void *)buffer->buf, new_size);
     if (!new_buf) {
       return cme_error(ENOMEM, "Cannot realloc buffer");
