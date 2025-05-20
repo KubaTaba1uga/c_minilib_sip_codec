@@ -1,2 +1,4 @@
-[wrap-redirect]
-filename = c_minilib_error/subprojects/unity.wrap
+[wrap-git]
+url = https://github.com/ThrowTheSwitch/Unity.git
+revision = v2.6.1
+depth = 1
