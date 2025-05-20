@@ -7,9 +7,10 @@
 #ifndef C_MINILIB_SIP_CODEC_BUFFER_H
 #define C_MINILIB_SIP_CODEC_BUFFER_H
 
-#include <asm-generic/errno-base.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -52,14 +53,12 @@ error_out:
   return cme_return(err);
 };
 
-#include <stdarg.h>
-#include <stdio.h>
-
 static inline cme_error_t cmsc_buffer_finsert(struct cmsc_Buffer *buffer,
                                               struct cmsc_String *result,
                                               const char *fmt, ...) {
-  if (!buffer || !fmt)
+  if (!buffer || !fmt) {
     return cme_error(EINVAL, "`buffer` and `fmt` must not be NULL");
+  }
 
   va_list args;
   int written;

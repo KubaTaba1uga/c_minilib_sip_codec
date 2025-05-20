@@ -4,7 +4,8 @@ Checks: >
   readability-*,
   -llvm-header-guard,
   -readability-avoid-const-params-in-decls,
-  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
-
-WarningsAsErrors: ''
-    
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -readability-enum-initial-value,
+  -readability-function-cognitive-complexity,
+  -bugprone-easily-swappable-parameters
+WarningsAsErrors: '*'

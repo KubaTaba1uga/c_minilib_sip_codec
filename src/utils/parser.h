@@ -49,7 +49,6 @@ static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_Buffer *buf,
     }
     case '\n': {
       if (*(current_char - 1) == '\r') {
-
         clrf_counter++;
 
         const char *old_line_start = line_start;
@@ -72,6 +71,7 @@ static inline cme_error_t cmsc_parse_sip_headers(struct cmsc_Buffer *buf,
       }
       break;
     }
+    default:;
     }
 
     current_char++;

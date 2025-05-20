@@ -32,7 +32,7 @@ cme_error_t cmsc_sipmsg_create_with_buf(struct cmsc_SipMessage **msg) {
   buf.len = 0;
   buf.size = CMSC_SIPMSG_DEFAULT_BUF_SIZE;
 
-  return cmsc_sipmsg_create(buf, msg);
+  return cmsc_sipmsg_create(buf, msg); // NOLINT
 
 error_out:
   return cme_return(err);

@@ -52,28 +52,31 @@ cmsc_decode_func_content_length(const struct cmsc_SipHeader *sip_header,
 
 static inline cme_error_t cmsc_decode_sip_headers(struct cmsc_SipMessage *msg) {
   static struct cmsc_DecoderLogic decoders[] = {
-      {.header_id = {.buf = "To", .len = 2},
+      {.header_id = {.buf = "To", .len = sizeof("To") - 1},
        .decode_func = cmsc_decode_func_to},
-      {.header_id = {.buf = "Via", .len = 3},
+      {.header_id = {.buf = "Via", .len = sizeof("Via") - 1},
        .decode_func = cmsc_decode_func_via},
-      {.header_id = {.buf = "From", .len = 4},
+      {.header_id = {.buf = "From", .len = sizeof("From") - 1},
        .decode_func = cmsc_decode_func_from},
-      {.header_id = {.buf = "CSeq", .len = 4},
+      {.header_id = {.buf = "CSeq", .len = sizeof("CSeq") - 1},
        .decode_func = cmsc_decode_func_cseq},
-      {.header_id = {.buf = "Call-ID", .len = 7},
+      {.header_id = {.buf = "Call-ID", .len = sizeof("Call-ID") - 1},
        .decode_func = cmsc_decode_func_call_id},
-      {.header_id = {.buf = "Max-Forwards", .len = 11},
+      {.header_id = {.buf = "Max-Forwards", .len = sizeof("Max-Forwards") - 1},
        .decode_func = cmsc_decode_func_max_forwards},
-      {.header_id = {.buf = "Content-Length", .len = 14},
+      {.header_id = {.buf = "Content-Length",
+                     .len = sizeof("Content-Length") - 1},
        .decode_func = cmsc_decode_func_content_length},
   };
   cme_error_t err;
+
   if (!msg) {
     err = cme_error(EINVAL, "`msg` cannot be NULL");
     goto error_out;
   }
 
-  struct cmsc_SipHeader *generic_header, *next_header;
+  struct cmsc_SipHeader *generic_header;
+  struct cmsc_SipHeader *next_header;
   generic_header = STAILQ_FIRST(&msg->sip_headers);
 
   while (generic_header != NULL) {
@@ -114,30 +117,30 @@ error_out:
 static inline cme_error_t
 cmsc_decode_func_to(const struct cmsc_SipHeader *sip_header,
                     struct cmsc_SipMessage *msg) {
-  struct cmsc_ArgIterator it;
+  struct cmsc_ArgIterator iter;
   cme_error_t err;
 
   err = cmsc_arg_iterator_init(cmsc_bs_msg_to_string(&sip_header->value, msg),
-                               &it);
+                               &iter);
   if (err) {
     goto error_out;
   }
 
   enum cmsc_ArgNextResults result;
 
-  while ((result = cmsc_arg_iterator_next(&it))) {
+  while ((result = cmsc_arg_iterator_next(&iter))) {
     switch (result) {
     case cmsc_ArgNextResults_VALUE: {
-      cmsc_s_trimm(&it.value, '<');
-      cmsc_s_trimm(&it.value, '>');
+      cmsc_s_trimm(&iter.value, '<');
+      cmsc_s_trimm(&iter.value, '>');
 
-      msg->to.uri = cmsc_s_msg_to_bstring(&it.value, msg);
+      msg->to.uri = cmsc_s_msg_to_bstring(&iter.value, msg);
       cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_TO);
       break;
     }
     case cmsc_ArgNextResults_ARG: {
-      if (strncmp("tag", it.arg_key.buf, it.arg_key.len) == 0) {
-        msg->to.tag = cmsc_s_msg_to_bstring(&it.arg_value, msg);
+      if (strncmp("tag", iter.arg_key.buf, iter.arg_key.len) == 0) {
+        msg->to.tag = cmsc_s_msg_to_bstring(&iter.arg_value, msg);
       }
       break;
     }
@@ -154,30 +157,30 @@ error_out:
 static inline cme_error_t
 cmsc_decode_func_from(const struct cmsc_SipHeader *sip_header,
                       struct cmsc_SipMessage *msg) {
-  struct cmsc_ArgIterator it;
+  struct cmsc_ArgIterator iter;
   cme_error_t err;
 
   err = cmsc_arg_iterator_init(cmsc_bs_msg_to_string(&sip_header->value, msg),
-                               &it);
+                               &iter);
   if (err) {
     goto error_out;
   }
 
   enum cmsc_ArgNextResults result;
 
-  while ((result = cmsc_arg_iterator_next(&it))) {
+  while ((result = cmsc_arg_iterator_next(&iter))) {
     switch (result) {
     case cmsc_ArgNextResults_VALUE: {
-      cmsc_s_trimm(&it.value, '<');
-      cmsc_s_trimm(&it.value, '>');
+      cmsc_s_trimm(&iter.value, '<');
+      cmsc_s_trimm(&iter.value, '>');
 
-      msg->from.uri = cmsc_s_msg_to_bstring(&it.value, msg);
+      msg->from.uri = cmsc_s_msg_to_bstring(&iter.value, msg);
       cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_FROM);
       break;
     }
     case cmsc_ArgNextResults_ARG: {
-      if (strncmp("tag", it.arg_key.buf, it.arg_key.len) == 0) {
-        msg->from.tag = cmsc_s_msg_to_bstring(&it.arg_value, msg);
+      if (strncmp("tag", iter.arg_key.buf, iter.arg_key.len) == 0) {
+        msg->from.tag = cmsc_s_msg_to_bstring(&iter.arg_value, msg);
       }
       break;
     }
@@ -236,18 +239,18 @@ static inline cme_error_t
 cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
                      struct cmsc_SipMessage *msg) {
   struct cmsc_SipHeaderVia *via = NULL;
-  struct cmsc_ArgIterator it;
+  struct cmsc_ArgIterator iter;
   cme_error_t err;
 
   err = cmsc_arg_iterator_init(cmsc_bs_msg_to_string(&sip_header->value, msg),
-                               &it);
+                               &iter);
   if (err) {
     goto error_out;
   }
 
   enum cmsc_ArgNextResults result;
 
-  while ((result = cmsc_arg_iterator_next(&it))) {
+  while ((result = cmsc_arg_iterator_next(&iter))) {
     switch (result) {
     case cmsc_ArgNextResults_VALUE: {
       via = calloc(1, sizeof(struct cmsc_SipHeaderVia));
@@ -256,8 +259,8 @@ cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
         goto error_out;
       }
 
-      const char *sent_by = it.value.buf;
-      const char *max = it.value.buf + it.value.len;
+      const char *sent_by = iter.value.buf;
+      const char *max = iter.value.buf + iter.value.len;
       const char *slash = NULL;
       while (sent_by != max) {
         if (*sent_by == '/') {
@@ -295,14 +298,14 @@ cmsc_decode_func_via(const struct cmsc_SipHeader *sip_header,
         break;
       }
 
-      if (strncmp("addr", it.arg_key.buf, it.arg_key.len) == 0) {
-        via->addr = cmsc_s_msg_to_bstring(&it.arg_value, msg);
-      } else if (strncmp("branch", it.arg_key.buf, it.arg_key.len) == 0) {
-        via->branch = cmsc_s_msg_to_bstring(&it.arg_value, msg);
-      } else if (strncmp("received", it.arg_key.buf, it.arg_key.len) == 0) {
-        via->received = cmsc_s_msg_to_bstring(&it.arg_value, msg);
-      } else if (strncmp("ttl", it.arg_key.buf, it.arg_key.len) == 0) {
-        via->ttl = atoi(it.arg_value.buf);
+      if (strncmp("addr", iter.arg_key.buf, iter.arg_key.len) == 0) {
+        via->addr = cmsc_s_msg_to_bstring(&iter.arg_value, msg);
+      } else if (strncmp("branch", iter.arg_key.buf, iter.arg_key.len) == 0) {
+        via->branch = cmsc_s_msg_to_bstring(&iter.arg_value, msg);
+      } else if (strncmp("received", iter.arg_key.buf, iter.arg_key.len) == 0) {
+        via->received = cmsc_s_msg_to_bstring(&iter.arg_value, msg);
+      } else if (strncmp("ttl", iter.arg_key.buf, iter.arg_key.len) == 0) {
+        via->ttl = atoi(iter.arg_value.buf);
       }
 
       break;
