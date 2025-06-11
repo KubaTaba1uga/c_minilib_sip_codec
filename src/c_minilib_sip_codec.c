@@ -58,26 +58,27 @@ cme_error_t cmsc_parse_sip(uint32_t buf_len, const char *buf,
   struct cmsc_Buffer parse_buf = {.buf = buf, .len = buf_len, .size = buf_len};
   err = cmsc_parse_sip_first_line(&parse_buf, (*msg));
   if (err) {
-    goto error_out;
+    goto error_sipmsg_cleanup;
   }
 
   err = cmsc_parse_sip_headers(&parse_buf, (*msg));
   if (err) {
-    goto error_out;
+    goto error_sipmsg_cleanup;
   }
 
   err = cmsc_decode_sip_headers((*msg));
   if (err) {
-    goto error_out;
+    goto error_sipmsg_cleanup;
   }
 
   err = cmsc_parse_sip_body(&parse_buf, (*msg));
   if (err) {
-    goto error_out;
+    goto error_sipmsg_cleanup;
   }
 
   return 0;
-
+error_sipmsg_cleanup:
+  cmsc_sipmsg_destroy(msg);
 error_out:
   return cme_return(err);
 }
