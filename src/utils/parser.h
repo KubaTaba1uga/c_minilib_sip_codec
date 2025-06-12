@@ -150,6 +150,8 @@ static inline cme_error_t cmsc_parse_request_line(const struct cmsc_Buffer *buf,
                             .len = request_uri_len},
       msg);
 
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_REQUEST_LINE);
+
   return NULL;
 error_out:
   return cme_return(err);
@@ -200,6 +202,8 @@ static inline cme_error_t cmsc_parse_status_line(const struct cmsc_Buffer *buf,
       &(struct cmsc_String){.buf = buf->buf + (reason_phrase - buffer),
                             .len = reason_phrase_len},
       msg);
+
+  cmsc_sipmsg_mark_field_present(msg, cmsc_SupportedSipHeaders_STATUS_LINE);
 
   return NULL;
 error_out:
