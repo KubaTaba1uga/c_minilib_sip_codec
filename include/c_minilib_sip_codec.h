@@ -198,4 +198,10 @@ cmsc_bs_msg_to_string(const struct cmsc_BString *src,
                               .len = src->len};
 }
 
+static inline bool
+cmsc_sipmsg_is_field_present(struct cmsc_SipMessage *msg,
+                             enum cmsc_SupportedSipHeaders header_id) {
+  return msg->presence_mask & header_id;
+}
+
 #endif
